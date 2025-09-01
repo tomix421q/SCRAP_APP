@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// AUTH
+enum Role {
+  USER
+  ENGINEER
+  ADMIN
+  MODERATOR
+}
+
+
+model User {
+  id                  String    @id
+  name                String
+  email               String    @unique
+  emailVerified       Boolean
+  image               String?
+  createdAt           DateTime
+  updatedAt           DateTime
+  accounts            Account[]
+  sessions            Session[]
+  role                Role @default(USER)
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+
+// APP
+model Hall {
+id Int @id @default(autoincrement())
+name String @unique
+description String?
+projects Project[]
+}
+
+model Project {
+id Int @id @default(autoincrement())
+hallId Int
+name String @unique
+description String?
+hall Hall @relation(fields: [hallId], references: [id],onDelete: Cascade)
+processes Process[]
+}
+
+model Process {
+id Int @id @default(autoincrement())
+projectId Int
+name String @unique
+description String?
+project Project @relation(fields: [projectId], references: [id],onDelete: Cascade)
+parts Part[]
+}
+
+model Part {
+id Int @id @default(autoincrement())
+processId Int
+processName String
+projectName String
+hallName String
+partNumber String
+side String 
+color String
+process Process @relation(fields: [processId], references: [id],onDelete: Cascade)
+scrapRecords ScrapRecord[]
+scrapSummary ScrapSummary[]
+}
+
+model ScrapCode {
+id Int @id @default(autoincrement())
+code String @unique 
+name String
+description String?
+active Boolean @default(true)
+scrapRecords ScrapRecord[]
+scrapSummary ScrapSummary[]
+}
+
+model ScrapRecord {
+id Int @id @default(autoincrement())
+partId Int
+scrapCodeId Int
+description String?
+quantity Int
+createdBy String
+createdAt DateTime @default(now())
+part Part @relation(fields: [partId], references: [id])
+scrapCode ScrapCode @relation(fields: [scrapCodeId], references: [id],onDelete: Cascade)
+
+@@index([createdAt])
+@@index([scrapCodeId])
+@@index([partId])
+}
+
+model ScrapSummary {
+id Int @id @default(autoincrement())
+partId Int
+scrapCodeId Int
+date DateTime 
+totalQty Int
+part Part @relation(fields: [partId], references: [id])
+scrapCode ScrapCode @relation(fields: [scrapCodeId], references: [id])
+
+@@unique([partId, scrapCodeId, date]) // aby bol len jeden záznam za deň
+@@index([date])
+}

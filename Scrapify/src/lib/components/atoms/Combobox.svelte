@@ -1,0 +1,128 @@
+<script lang="ts">
+	import * as Command from '$lib/components/ui/command/index.js';
+	import * as Popover from '$lib/components/ui/popover/index.js';
+	import Button from '@/components/ui/button/button.svelte';
+	import { CheckIcon, ChevronsUpDownIcon } from '@lucide/svelte';
+	import { cn } from '@/components/ui/utils';
+	import { tick } from 'svelte';
+
+	type NameLabel = 'name' | 'codeName' | 'partnumSideColor';
+
+	let {
+		dataBox,
+		value = $bindable(),
+		reset,
+		id = '',
+		nameLabel = 'name'
+	}: {
+		dataBox: any[];
+		value: string;
+		reset: boolean;
+		id?: string;
+		nameLabel?: NameLabel;
+	} = $props();
+	let open = $state(false);
+	let InternalValue = $state('');
+	let triggerRef = $state<HTMLButtonElement>(null!);
+
+	// const selectedLabel = $derived(dataBox?.find((f: any) => f.id === InternalValue)?.name);
+	const selectedLabel = $derived.by<string | undefined>(() => {
+		const foundItem = dataBox?.find((f: any) => f.id === InternalValue);
+		if (!foundItem) {
+			return undefined;
+		}
+		if (foundItem.name && foundItem.code) {
+			let name = foundItem.code + ' - ' + foundItem.name;
+			return name;
+		}
+		if (foundItem.partNumber) {
+			let name = foundItem.partNumber + ' - ' + foundItem.side + ' - ' + foundItem.color;
+			return name;
+		}
+		if (foundItem.name) {
+			let name = foundItem.name;
+			return name;
+		}
+
+		return undefined;
+	});
+	let changeCss = $derived<boolean>(selectedLabel && selectedLabel?.length > 15 ? true : false);
+
+	function closeAndFocusTrigger() {
+		open = false;
+		tick().then(() => {
+			triggerRef.focus();
+		});
+	}
+
+	$effect(() => {
+		if (InternalValue && !reset) {
+			value = InternalValue;
+		}
+		if (reset) {
+			InternalValue = '';
+			value = '';
+		}
+	});
+
+	// $inspect(selectedLabel);
+</script>
+
+<div>
+	<Popover.Root bind:open>
+		<Popover.Trigger bind:ref={triggerRef}>
+			{#snippet child({ props })}
+				<Button
+					{...props}
+					{id}
+					variant="secondary"
+					role="combobox"
+					aria-expanded={open}
+					class="w-[200px] lg:w-[250px] text-md justify-between whitespace-break-spaces {changeCss &&
+						'lg:h-[50px]'}"
+				>
+					{selectedLabel || 'Select item'}
+					<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" />
+				</Button>
+			{/snippet}
+		</Popover.Trigger>
+		<Popover.Content class="w-[200px] lg:w-[250px] p-0 border-primary">
+			<Command.Root>
+				<Command.Input placeholder="Search ..." class="h-4! inputNormalize" />
+
+				<Command.List class="mt-4">
+					<Command.Empty>Not found.</Command.Empty>
+					<Command.Group>
+						{#each dataBox as item}
+							<Command.Item
+								value={item.name}
+								onSelect={() => {
+									InternalValue = item.id;
+									closeAndFocusTrigger();
+								}}
+							>
+								<CheckIcon
+									class={cn('mr-2 size-4', InternalValue !== item.id && 'text-transparent')}
+								/>
+								{@render labelText(item)}
+								<!-- {(item.code && item.code + ' - ' + item.name) ||
+									item.partNumber + ' - ' + item.side + ' - ' + item.color ||
+									item.name} -->
+							</Command.Item>
+						{/each}
+					</Command.Group>
+				</Command.List>
+			</Command.Root>
+		</Popover.Content>
+	</Popover.Root>
+</div>
+
+{#snippet labelText(item: any)}
+	{#if nameLabel === 'name'}
+		<span>{item.name}</span>
+	{:else if nameLabel === 'codeName'}
+		<span>{item.code + ' - ' + item.name}</span>
+	{:else if nameLabel === 'partnumSideColor'}
+		<span>{item.partNumber + ' - ' + item.side + ' - ' + item.color}</span>
+	{/if}
+{/snippet}

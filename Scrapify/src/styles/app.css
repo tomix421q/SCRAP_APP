@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+@layer base {
+	button {
+		@apply cursor-pointer!;
+	}
+	:root {
+		@apply font-serif;
+	}
+}
+
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	-webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
+	border-radius: 5px;
+}
+::-webkit-scrollbar-thumb {
+	border-radius: 5px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+	background: #6ee7b7;
+}
