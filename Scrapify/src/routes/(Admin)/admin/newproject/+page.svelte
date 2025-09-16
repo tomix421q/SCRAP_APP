@@ -8,9 +8,11 @@
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import { Plus } from '@lucide/svelte';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
+	import NewProjectTable from '@/components/organism/Tables/NewProjectTable.svelte';
+	import Pagination from '@/components/molecules/Pagination.svelte';
 
 	let { form, data }: PageProps = $props();
-	let { projects, halls } = $derived(data.data);
+	let { projects, halls, totalPages, projectsCount } = $derived(data.data);
 
 	let isSubmitting = $state(false);
 	let hallId = $state('');
@@ -23,7 +25,7 @@
 <main class="flex flex-col lg:flex-wrap gap-10">
 	<!--  -->
 	<!-- CREATE PROJECT -->
-	<section class="w-full sm:w-lg mx-auto">
+	<section class="w-full sm:w-lg">
 		<form
 			method="POST"
 			action="?/createProject"
@@ -42,7 +44,7 @@
 			}}
 			class="formNormalize"
 		>
-			<h1 class="mx-auto mb-10 text-2xl">Create new project</h1>
+			<h1 class="mx-auto mb-6 text-2xl">Create new project</h1>
 			<div>
 				<ResultInfo data={form} />
 			</div>
@@ -93,15 +95,11 @@
 
 	<!--  -->
 	<!-- PROCESS LIST -->
-	<section class="flex listNormalize flex-col gap-2 w-full lg:min-w-3xl max-h-[500px]">
-		<h2 class="text-2xl text-center mb-6">Actuall project list</h2>
-		{#each projects as project}
-			<div class="flex gap-2">
-				<p class="min-w-[80px] text-muted-foreground">
-					ID: <span class="text-primary">{project.id}</span>
-				</p>
-				<p class="text-muted-foreground">Name: <span class="text-primary">{project.name}</span></p>
-			</div>
-		{/each}
+	<section class="">
+		<NewProjectTable {projects} {totalPages} {projectsCount} headerText="Projects list" />
+	</section>
+
+	<section class="z-50">
+		<Pagination {totalPages} />
 	</section>
 </main>

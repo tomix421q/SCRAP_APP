@@ -6,21 +6,26 @@
 	import { Label } from '@/components/ui/label';
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Button from '@/components/ui/button/button.svelte';
-	import { Edit, Plus, Trash } from '@lucide/svelte';
+	import { Plus } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { Input } from '@/components/ui/input';
-	import EditDeleteBtns from '@/components/organism/EditDeleteBtns.svelte';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
+	import NewPartTable from '@/components/organism/Tables/NewPartTable.svelte';
+	import Pagination from '@/components/molecules/Pagination.svelte';
 
 	interface CustomPageData {
 		parts: Part[];
 		processes: Process[];
 		projects: Project[];
-		halls: Hall[] | [];
+		halls: Hall[];
+		totalPages: number;
+		partsCount: number;
 	}
 
 	let { data, form }: PageProps = $props();
-	let { parts, processes, projects, halls } = $derived(data.data) as CustomPageData;
+	let { parts, processes, projects, halls, totalPages, partsCount } = $derived(
+		data.data
+	) as CustomPageData;
 
 	let isSubmitting = $state(false);
 
@@ -37,16 +42,16 @@
 
 	let partProdNumberId = $state('');
 	let partSide = $state('') as PartSide;
-	let partColor = $state('');
+	// let partColor = $state('');
 
-	// $inspect(hallId);
+	// $inspect(partsCount);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
 <main class="flex flex-col lg:flex-wrap gap-10">
 	<!--  -->
 	<!-- FORM -->
-	<section class="w-full sm:w-lg mx-auto">
+	<section class="w-full sm:w-lg">
 		<form
 			method="POST"
 			action="?/createPart"
@@ -70,7 +75,7 @@
 			}}
 			class="formNormalize"
 		>
-			<h1 class="mx-auto mb-10 text-2xl">Create new part</h1>
+			<h1 class="mx-auto mb-6 text-2xl">Create new part</h1>
 			<div>
 				<ResultInfo data={form} />
 			</div>
@@ -126,25 +131,13 @@
 				/>
 			</article>
 			<article class="flex justify-between items-center gap-2">
-				<Label for="partColor" class="text-sm sm:text-xl">Part color</Label>
-				<Input
-					type="text"
-					name="partColor"
-					id="partColor"
-					bind:value={partColor}
-					placeholder="Insert part color"
-					class="inputNormalize max-w-[240px]"
-					required
-				/>
-			</article>
-			<article class="flex justify-between items-center gap-2">
 				<Label for="partSide" class="text-sm sm:text-xl">Side</Label>
 				<div class="flex gap-2 w-[240px]">
 					<Combobox
 						dataBox={PART_SIDES}
 						bind:value={partSide}
 						reset={resetPartSideCombo}
-						id={partSide}
+						id={'partSide'}
 					/>
 				</div>
 				<input type="hidden" name="partSide" required bind:value={partSide} />
@@ -161,26 +154,11 @@
 
 	<!--  -->
 	<!-- PARTS LIST -->
-	<section class="flex listNormalize flex-col gap-2 w-full lg:min-w-3xl text-xs md:text-sm">
-		<h2 class="text-2xl text-center mb-6">Actuall parts list</h2>
-		{#each parts as part}
-			<div class="flex gap-2 border-b pb-2 border-muted">
-				<p class="md:min-w-[80px] text-muted-foreground text-sm">
-					ID: <span class="text-primary">{part.id}</span>
-				</p>
-				<p class="text-muted-foreground lg:min-w-[280px] text-sm">
-					Number [PN]: <span class="text-primary">{part.partNumber}</span>
-				</p>
-				<p class="text-muted-foreground text-sm lg:min-w-[150px]">
-					Side: <span class="text-primary">{part.side}</span>
-				</p>
-				<p class="text-muted-foreground text-sm lg:min-w-[100px]">
-					Color: <span class="text-primary">{part.color}</span>
-				</p>
-				<div class="ml-auto">
-					<EditDeleteBtns />
-				</div>
-			</div>
-		{/each}
+	<section class="">
+		<NewPartTable {parts} {totalPages} {partsCount} headerText="Parts list" />
+	</section>
+
+	<section class="z-50">
+		<Pagination {totalPages} />
 	</section>
 </main>

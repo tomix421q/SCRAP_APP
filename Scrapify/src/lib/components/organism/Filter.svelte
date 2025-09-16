@@ -26,6 +26,7 @@
 		dateTo: ''
 	});
 	let resetProcessCombo = $state(false);
+
 	function applyFilter() {
 		const params = new URLSearchParams();
 		if (filterOptions.partNumber) params.set('partNumber', filterOptions.partNumber);
@@ -62,9 +63,9 @@
 </script>
 
 <main>
-	<Card class="formNormalize">
+	<Card class="bg-transparent formNormalize">
 		<CardHeader>
-			<CardTitle class="text-2xl tracking-widest">Filter</CardTitle>
+			<CardTitle class="text-2xl tracking-widest text-center">Filter</CardTitle>
 		</CardHeader>
 
 		<CardContent class="space-y-6 lg:flex lg:gap-x-24">
@@ -73,7 +74,7 @@
 					<Label class="text-sm w-[200px]">Part Number</Label>
 					<Input
 						class="inputNormalize"
-						placeholder="Search scrap code"
+						placeholder="Search part number"
 						bind:value={filterOptions.partNumber}
 					/>
 				</article>
@@ -117,7 +118,13 @@
 		</CardContent>
 		<CardFooter>
 			<div class="flex justify-center w-full gap-4">
-				<Button variant="default" type="submit" onclick={applyFilter}><Scan />Apply</Button>
+				<Button
+					variant="default"
+					type="submit"
+					onclick={() => {
+						applyFilter();
+					}}><Scan />Apply</Button
+				>
 				<Button variant="destructive" onclick={clearFilter}><X />Clear</Button>
 			</div>
 		</CardFooter>

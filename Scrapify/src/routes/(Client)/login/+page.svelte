@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { authClient } from '$lib/auth/auth-client.js';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import Label from '$lib/components/ui/label/label.svelte';
 	import { loginSchema } from '$lib/utils/zod/auth';
 	import { Eye, EyeOff } from '@lucide/svelte';
 	import { slide } from 'svelte/transition';
@@ -75,7 +74,6 @@
 		);
 	}
 </script>
-
 <main
 	class="absolute top-0 left-0 flex h-screen w-full flex-col items-center justify-center bg-[url('/image2.jpg')] bg-cover bg-fixed bg-center bg-no-repeat"
 >
@@ -93,7 +91,7 @@
 					id="email"
 					bind:value={email}
 					disabled={loading}
-					class="inputNormalize placeholder:text-lg text-2xl!"
+					class="inputNormalize autofill:bg-white/30"
 					placeholder="Your Email"
 				/>
 			</div>
@@ -104,7 +102,7 @@
 					id="password"
 					bind:value={password}
 					disabled={loading}
-					class="inputNormalize placeholder:text-lg text-2xl!"
+					class="inputNormalize"
 					placeholder="Your Password"
 				/>
 				<p class="absolute -top-1 right-0">

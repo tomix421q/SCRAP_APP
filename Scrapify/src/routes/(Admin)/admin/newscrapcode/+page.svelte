@@ -5,19 +5,24 @@
 	import { Label } from '@/components/ui/label';
 	import { Input } from '@/components/ui/input';
 	import { Button } from '@/components/ui/button';
-	import EditDeleteBtns from '@/components/organism/EditDeleteBtns.svelte';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
+	import Combobox from '@/components/atoms/Combobox.svelte';
+	import { Plus } from '@lucide/svelte';
+	import NewScrapCodeTable from '@/components/organism/Tables/NewScrapCodeTable.svelte';
+	import Pagination from '@/components/molecules/Pagination.svelte';
 
 	let { data, form }: PageProps = $props();
-	let { scrapCodes } = $derived(data.data);
+	let { scrapCodes, processes, scrapCodeCount, totalPages } = $derived(data.data);
 
 	let isSubmitting = $state(false);
+	let resetProcessCombo = $state(false);
 
+	let processId = $state('');
 	let scrapcodeNum = $state('');
 	let scrapcodeName = $state('');
 	let scrapDescription = $state('');
 
-	// $inspect(data);
+	// $inspect(scrapCodes);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -37,10 +42,25 @@
 				};
 			}}
 		>
-			<h1 class="mx-auto mb-10 text-2xl">Create new screp code</h1>
+			<h1 class="mx-auto mb-6 text-2xl">Create new screp code</h1>
 			<div>
 				<ResultInfo data={form} />
 			</div>
+			<!--  -->
+			<!-- process COMBO -->
+			<article class="flex justify-between items-center gap-2">
+				<Label for="processId" class="text-sm md:text-lg">Process</Label>
+				<div class="flex gap-2">
+					<Combobox
+						dataBox={processes}
+						bind:value={processId}
+						reset={resetProcessCombo}
+						id="processId"
+					/>
+					<Button size="icon" href="/admin/newprocess"><Plus /></Button>
+				</div>
+				<input type="hidden" name="processId" required bind:value={processId} />
+			</article>
 			<!--  -->
 			<!-- inputs -->
 			<article class="flex justify-between items-center gap-2">
@@ -90,26 +110,11 @@
 
 	<!--  -->
 	<!-- Scrap Code LIST -->
-	<section class="flex listNormalize flex-col gap-2 w-full lg:min-w-3xl text-xs md:text-sm">
-		<h2 class="text-2xl text-center mb-6">Actuall scrap code list</h2>
-		{#each scrapCodes as code}
-			<div class="flex gap-2 border-b pb-2 border-muted">
-				<p class="md:min-w-[80px] text-muted-foreground text-sm">
-					ID: <span class="text-primary">{code.id}</span>
-				</p>
-				<p class="text-muted-foreground lg:min-w-[280px] text-sm">
-					Uniq code num: <span class="text-primary">{code.code}</span>
-				</p>
-				<p class="text-muted-foreground text-sm lg:min-w-[150px]">
-					Name: <span class="text-primary">{code.name}</span>
-				</p>
-				<p class="text-muted-foreground text-sm lg:min-w-[100px]">
-					Description: <span class="text-primary">{code.description ? code.description : 'X'}</span>
-				</p>
-				<div class="ml-auto">
-					<EditDeleteBtns />
-				</div>
-			</div>
-		{/each}
+	<section class="">
+		<NewScrapCodeTable {scrapCodes} {totalPages} {scrapCodeCount} headerText="Codes list" />
+	</section>
+
+	<section class="z-50">
+		<Pagination {totalPages} />
 	</section>
 </main>

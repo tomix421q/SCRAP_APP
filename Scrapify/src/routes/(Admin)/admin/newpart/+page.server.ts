@@ -1,20 +1,28 @@
 import prismaClient from '@/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
-import { error, fail } from '@sveltejs/kit';
+import { error, fail, type ActionFailure } from '@sveltejs/kit';
+import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 
 export const load: PageServerLoad = async (event) => {
+	const page = Number(event.url.searchParams.get('page') ?? '1');
+	const limit = 100;
+	const skip = (page - 1) * limit;
 	try {
 		const [allParts, allProcesses, allProjects, allHalls] = await Promise.all([
-			prismaClient.part.findMany({ orderBy: { id: 'desc' } }),
+			prismaClient.part.findMany({ skip, take: limit, orderBy: { id: 'desc' } }),
 			prismaClient.process.findMany(),
 			prismaClient.project.findMany(),
 			prismaClient.hall.findMany()
 		]);
+		const partsCount = await prismaClient.part.count();
+		const totalPages = Math.ceil(partsCount / limit);
 		const data = {
 			parts: allParts,
 			processes: allProcesses,
 			projects: allProjects,
-			halls: allHalls
+			halls: allHalls,
+			totalPages,
+			partsCount
 		};
 
 		return { data };
@@ -33,7 +41,6 @@ export const actions = {
 		const processId = formData.get('processId') as string;
 		const partProdNumberId = formData.get('partNumber') as string;
 		const partSide = formData.get('partSide') as string;
-		const partColor = formData.get('partColor') as string;
 		console.log(formData);
 
 		if (!hallId || !projectId || !processId) {
@@ -63,8 +70,7 @@ export const actions = {
 					projectName: findProject.name,
 					hallName: findHall.name,
 					partNumber: partProdNumberId,
-					side: partSide,
-					color: partColor
+					side: partSide
 				}
 			});
 			return { success: true, message: 'Part created successfully.' };
@@ -76,5 +82,28 @@ export const actions = {
 			});
 		}
 	},
-	editPart: async (event) => {}
+	deletePart: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
+		const formData = await event.request.formData();
+		const id = formData.get('deleteId');
+
+		if (!id) {
+			return fail(400, { success: false, message: 'Validation', error: 'Id not found.' });
+		}
+
+		try {
+			const deleteItem = await prismaClient.part.delete({ where: { id: Number(id) } });
+
+			return {
+				success: true,
+				message: `Successful deleted id: ${deleteItem.partNumber}.`,
+				error: false
+			};
+		} catch (error: any) {
+			return {
+				success: false,
+				message: 'Something is wrong, Please try again later.',
+				error: error.message + ' ' + error.code || 'Unknown error'
+			};
+		}
+	}
 } satisfies Actions;

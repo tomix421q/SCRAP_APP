@@ -9,15 +9,17 @@
 	import type { Hall, Process, Project } from '@prisma/client';
 	import type { PageProps } from './$types';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
+	import NewProcessTable from '@/components/organism/Tables/NewProcessTable.svelte';
+	import Pagination from '@/components/molecules/Pagination.svelte';
 
-	interface CustomPageData {
-		processes: Process[];
-		projects: Project[];
-		halls: Hall[];
-	}
+	// interface CustomPageData {
+	// 	processes: Process[];
+	// 	projects: Project[];
+	// 	halls: Hall[];
+	// }
 
 	let { data, form }: PageProps = $props();
-	let { processes, projects, halls } = $derived(data.data) as CustomPageData;
+	let { processes, projects, halls, totalPages, processCount } = $derived(data.data);
 
 	let isSubmitting = $state(false);
 
@@ -32,7 +34,7 @@
 	let projectName = $state('');
 	let projectDescription = $state('');
 
-	// $inspect(form);
+	// $inspect(processes);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -58,7 +60,7 @@
 			}}
 			class="formNormalize"
 		>
-			<h1 class="mx-auto mb-10 text-2xl">Create new process</h1>
+			<h1 class="mx-auto mb-6 text-2xl">Create new process</h1>
 			<div>
 				<ResultInfo data={form} />
 			</div>
@@ -124,15 +126,11 @@
 
 	<!--  -->
 	<!-- PROJECT LIST -->
-	<section class="flex listNormalize flex-col gap-2 w-full lg:min-w-3xl max-h-[500px]">
-		<h2 class="text-2xl text-center mb-6">Actuall process list</h2>
-		{#each processes as process}
-			<div class="flex gap-2">
-				<p class="min-w-[80px] text-muted-foreground">
-					ID: <span class="text-primary">{process.id}</span>
-				</p>
-				<p class="text-muted-foreground">Name: <span class="text-primary">{process.name}</span></p>
-			</div>
-		{/each}
+	<section class="">
+		<NewProcessTable {processes} {totalPages} {processCount} headerText="Process list" />
+	</section>
+
+	<section class="z-50">
+		<Pagination {totalPages} />
 	</section>
 </main>

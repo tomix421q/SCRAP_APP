@@ -1,19 +1,33 @@
 import prismaClient from '@/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
-import { error, fail } from '@sveltejs/kit';
+import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import { scrapRecordSchema } from '@/utils/zod';
+import type { Prisma } from '@prisma/client';
+import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 
 export const load: PageServerLoad = async (event) => {
+	const filters = {
+		processId: event.url.searchParams.get('processId')
+	};
+	const processId = filters.processId ? Number(filters.processId) : undefined;
+
 	try {
-		const allParts = await prismaClient.part.findMany();
-		const scrapCodes = await prismaClient.scrapCode.findMany();
+		const allProcess = await prismaClient.process.findMany();
+		const allParts = await prismaClient.part.findMany({
+			where: { processId: processId }
+		});
+		const scrapCodes = await prismaClient.scrapCode.findMany({
+			where: { processId: processId }
+		});
 		const scrapRecords = await prismaClient.scrapRecord.findMany({
 			include: { part: true, scrapCode: true },
-			orderBy: { createdBy: 'desc' },
-			take: 20
+			orderBy: { createdAt: 'desc' },
+			take: 20,
+			where: { part: { processId: processId } }
 		});
 
 		const data = {
+			processes: allProcess,
 			parts: allParts,
 			scrapCodes: scrapCodes,
 			scrapRecords: scrapRecords
@@ -29,6 +43,7 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
 	createScrap: async (event) => {
 		const formData = await event.request.formData();
+
 		const formDataRaw = {
 			partId: formData.get('partId'),
 			scrapId: formData.get('scrapCodeId'),
@@ -50,9 +65,10 @@ export const actions: Actions = {
 		try {
 			if (parseZod.success) {
 				const [findPartId, findScrapId] = await Promise.all([
-					prismaClient.part.findFirst({ where: { id: parseZod.data?.partId } }),
+					prismaClient.part.findFirst({ where: { id: parseZod.data.partId } }),
 					prismaClient.scrapCode.findFirst({ where: { id: parseZod.data.scrapId } })
 				]);
+				console.log(findPartId);
 				if (!findPartId || !findScrapId) {
 					return fail(404, {
 						success: false,
@@ -70,7 +86,7 @@ export const actions: Actions = {
 					}
 				});
 
-				return { success: true, message: 'Scrap vytvoreny uspesne.Dakujeme :).' };
+				return { success: true, message: 'Scrap vytvoreny uspesne.Dakujeme.' };
 			}
 		} catch (error: any) {
 			return fail(500, {
@@ -78,6 +94,33 @@ export const actions: Actions = {
 				error: error.message || 'Unknown error',
 				message: `Something is wrong :( Please try again later. ${error.message ? `Error ${error.message}` : error}`
 			});
+		}
+	},
+	deleteScrapRecord: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
+		const formData = await event.request.formData();
+		const id = formData.get('deleteId');
+
+		if (!id) {
+			return fail(400, { success: false, message: 'Validation', error: 'Id not found.' });
+		}
+
+		try {
+			const deleteScrapRecord = await prismaClient.scrapRecord.delete({
+				where: { id: Number(id) }
+			});
+
+			return {
+				success: true,
+				message: `Successful deleted id: ${deleteScrapRecord.id}.`,
+				error: false
+			};
+		} catch (error: any) {
+			console.log(error);
+			return {
+				success: false,
+				message: 'Something is wrong, Please try again later.',
+				error: error.message + ' ' + error.code || 'Unknown error'
+			};
 		}
 	}
 };

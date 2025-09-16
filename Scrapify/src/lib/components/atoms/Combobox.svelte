@@ -36,7 +36,7 @@
 			return name;
 		}
 		if (foundItem.partNumber) {
-			let name = foundItem.partNumber + ' - ' + foundItem.side + ' - ' + foundItem.color;
+			let name = foundItem.partNumber + ' - ' + foundItem.side;
 			return name;
 		}
 		if (foundItem.name) {
@@ -105,9 +105,6 @@
 									class={cn('mr-2 size-4', InternalValue !== item.id && 'text-transparent')}
 								/>
 								{@render labelText(item)}
-								<!-- {(item.code && item.code + ' - ' + item.name) ||
-									item.partNumber + ' - ' + item.side + ' - ' + item.color ||
-									item.name} -->
 							</Command.Item>
 						{/each}
 					</Command.Group>
@@ -123,6 +120,6 @@
 	{:else if nameLabel === 'codeName'}
 		<span>{item.code + ' - ' + item.name}</span>
 	{:else if nameLabel === 'partnumSideColor'}
-		<span>{item.partNumber + ' - ' + item.side + ' - ' + item.color}</span>
+		<span>{item.partNumber + ' - ' + item.side}</span>
 	{/if}
 {/snippet}

@@ -6,13 +6,17 @@
 	import type { PageProps } from './$types';
 	import ToNavigateBtn from '@/components/atoms/ToNavigateBtn.svelte';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
+	import HallsTable from '@/components/organism/Tables/HallsTable.svelte';
+	import Pagination from '@/components/molecules/Pagination.svelte';
 
 	let { form, data }: PageProps = $props();
-	let halls = $derived(data.halls);
+	let { halls, hallsCount, totalPages } = $derived(data);
 	let isSubmitting = $state(false);
 
 	let hallName = $state('');
 	let hallDescription = $state('');
+
+	// $inspect(form);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -33,7 +37,7 @@
 			}}
 			class="formNormalize"
 		>
-			<h1 class="mx-auto mb-10 text-2xl">Create new hall</h1>
+			<h1 class="mx-auto mb-6 text-2xl">Create new hall</h1>
 			<div>
 				<ResultInfo data={form} />
 			</div>
@@ -48,6 +52,7 @@
 					bind:value={hallName}
 					placeholder="Insert hall name"
 					class="inputNormalize max-w-[240px]"
+					id="hallName"
 					required
 				/>
 			</article>
@@ -59,6 +64,7 @@
 					bind:value={hallDescription}
 					class="inputNormalize max-w-[240px]"
 					placeholder="Hall description (optional)"
+					id="hallDescription"
 				/>
 			</article>
 			<Button type="submit" class="mt-10 ">
@@ -73,15 +79,12 @@
 
 	<!--  -->
 	<!-- HALLS LIST -->
-	<section class="flex listNormalize flex-col gap-2 w-full lg:min-w-3xl max-h-[500px]">
-		<h2 class="text-2xl text-center mb-4">Actuall hall List</h2>
-		{#each halls as hall}
-			<div class="flex gap-2">
-				<p class="min-w-[80px] text-muted-foreground">
-					ID: <span class="text-primary">{hall.id}</span>
-				</p>
-				<p class="text-muted-foreground">Name: <span class="text-primary">{hall.name}</span></p>
-			</div>
-		{/each}
+	<section class="">
+		<HallsTable {halls} {hallsCount} headerText='Halls List'/>
+	</section>
+	<!--  -->
+	<!-- PAGINATION -->
+	<section>
+		<Pagination {totalPages} />
 	</section>
 </main>

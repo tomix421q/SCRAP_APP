@@ -21,6 +21,7 @@ model User {
   id                  String    @id
   name                String
   email               String    @unique
+  cardId              Int   @unique
   emailVerified       Boolean
   image               String?
   createdAt           DateTime
@@ -107,9 +108,8 @@ processId Int
 processName String
 projectName String
 hallName String
-partNumber String
-side String 
-color String
+partNumber String @unique
+side String
 process Process @relation(fields: [processId], references: [id],onDelete: Cascade)
 scrapRecords ScrapRecord[]
 scrapSummary ScrapSummary[]
@@ -117,6 +117,7 @@ scrapSummary ScrapSummary[]
 
 model ScrapCode {
 id Int @id @default(autoincrement())
+processId Int?
 code String @unique 
 name String
 description String?
@@ -130,10 +131,10 @@ id Int @id @default(autoincrement())
 partId Int
 scrapCodeId Int
 description String?
-quantity Int
+quantity Float
 createdBy String
 createdAt DateTime @default(now())
-part Part @relation(fields: [partId], references: [id])
+part Part @relation(fields: [partId], references: [id],onDelete: Cascade)
 scrapCode ScrapCode @relation(fields: [scrapCodeId], references: [id],onDelete: Cascade)
 
 @@index([createdAt])
@@ -147,8 +148,8 @@ partId Int
 scrapCodeId Int
 date DateTime 
 totalQty Int
-part Part @relation(fields: [partId], references: [id])
-scrapCode ScrapCode @relation(fields: [scrapCodeId], references: [id])
+part Part @relation(fields: [partId], references: [id],onDelete: Cascade)
+scrapCode ScrapCode @relation(fields: [scrapCodeId], references: [id],onDelete: Cascade)
 
 @@unique([partId, scrapCodeId, date]) // aby bol len jeden záznam za deň
 @@index([date])

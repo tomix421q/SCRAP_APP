@@ -1,18 +1,19 @@
 import prismaClient from '@/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
 import type { Prisma } from '@prisma/client';
-import { error } from '@sveltejs/kit';
+import { error, fail, type ActionFailure } from '@sveltejs/kit';
+import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
-	const limit = 5;
+	const limit = 10;
 	const skip = (page - 1) * limit;
 
 	const filters = {
 		partNumber: event.url.searchParams.get('partNumber'),
 		partId: Number(event.url.searchParams.get('partId')),
 		scrapCode: event.url.searchParams.get('scrapCode'),
-		processName: event.url.searchParams.get('processName'),
+		processName: Number(event.url.searchParams.get('processName')),
 		dateFrom: event.url.searchParams.get('dateFrom'),
 		dateTo: event.url.searchParams.get('dateTo')
 	};
@@ -28,7 +29,7 @@ export const load: PageServerLoad = async (event) => {
 	}
 
 	if (filters.processName) {
-		partWhere.process = { name: { contains: filters.processName, mode: 'insensitive' } };
+		partWhere.process = { id: { equals: filters.processName } };
 	}
 	if (Object.keys(partWhere).length > 0) {
 		where.part = partWhere;
@@ -73,26 +74,32 @@ export const load: PageServerLoad = async (event) => {
 	}
 };
 
-export const actions: Actions = {};
+export const actions: Actions = {
+	deleteScrapRecord: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
+		const formData = await event.request.formData();
+		const id = formData.get('deleteId');
 
-//  id: 2,
-//     partId: 3,
-//     scrapCodeId: 3,
-//     description: 'dasd',
-//     quantity: 3,
-//     createdBy: '106374',
-//     createdAt: 2025-08-21T21:36:31.840Z,
-//     part: {
-//       id: 3,
-//       processId: 12,
-//       processName: 'Proc 2',
-//       partNumber: '123111111111',
-//       side: '',
-//       color: 'black'
-//     },
-//     scrapCode: {
-//       id: 3,
-//       code: '1235',
-//       name: 'scrap3',
-//       description: '',
-//       active: true
+		if (!id) {
+			return fail(400, { success: false, message: 'Validation', error: 'Id not found.' });
+		}
+
+		try {
+			const deleteScrapRecord = await prismaClient.scrapRecord.delete({
+				where: { id: Number(id) }
+			});
+
+			return {
+				success: true,
+				message: `Successful deleted id: ${deleteScrapRecord.id}.`,
+				error: false
+			};
+		} catch (error: any) {
+			console.log(error);
+			return {
+				success: false,
+				message: 'Something is wrong, Please try again later.',
+				error: error.message + ' ' + error.code || 'Unknown error'
+			};
+		}
+	}
+};

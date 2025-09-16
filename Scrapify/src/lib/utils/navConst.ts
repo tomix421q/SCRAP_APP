@@ -19,10 +19,10 @@ export const navUrls = [
 		shortname: 'SRCH',
 		url: '/search'
 	},
-	{
-		icon: Flag,
-		title: 'Report',
-		shortname: 'RPRT',
-		url: '/report'
-	}
+	// {
+	// 	icon: Flag,
+	// 	title: 'Report',
+	// 	shortname: 'RPRT',
+	// 	url: '/report'
+	// }
 ];

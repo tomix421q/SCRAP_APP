@@ -1,18 +1,31 @@
-import { error, fail, type Action } from '@sveltejs/kit';
+import { error, fail, type Action, type ActionFailure } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prismaClient from '@/server/prisma';
+import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 
 export const load: PageServerLoad = async (event) => {
+	const page = Number(event.url.searchParams.get('page') ?? '1');
+	const limit = 50;
+	const skip = (page - 1) * limit;
 	try {
 		const [allProcesses, allProjects, allHalls] = await Promise.all([
-			prismaClient.process.findMany({ orderBy: { id: 'desc' } }),
+			prismaClient.process.findMany({
+				skip,
+				take: limit,
+				orderBy: { id: 'desc' },
+				include: { project: true, parts: true }
+			}),
 			prismaClient.project.findMany(),
 			prismaClient.hall.findMany()
 		]);
+		const processCount = await prismaClient.process.count();
+		const totalPages = Math.ceil(processCount / limit);
 		const data = {
 			processes: allProcesses,
 			projects: allProjects,
-			halls: allHalls
+			halls: allHalls,
+			processCount,
+			totalPages
 		};
 		return { data };
 	} catch (err: any) {
@@ -68,6 +81,30 @@ export const actions = {
 				message: `Something is wrong :( Please try again later.`,
 				error: error.message + ' ' + error.code || 'Unknown error'
 			});
+		}
+	},
+	deleteProcess: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
+		const formData = await event.request.formData();
+		const id = formData.get('deleteId');
+
+		if (!id) {
+			return fail(400, { success: false, message: 'Validation', error: 'Id not found.' });
+		}
+
+		try {
+			const deleteItem = await prismaClient.process.delete({ where: { id: Number(id) } });
+
+			return {
+				success: true,
+				message: `Successful deleted id: ${deleteItem.id}, with name ${deleteItem.name}`,
+				error: false
+			};
+		} catch (error: any) {
+			return {
+				success: false,
+				message: 'Something is wrong, Please try again later.',
+				error: error.message + ' ' + error.code || 'Unknown error'
+			};
 		}
 	}
 } satisfies Actions;

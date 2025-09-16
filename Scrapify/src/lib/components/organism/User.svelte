@@ -5,6 +5,7 @@
 	import { afterNavigate, goto, invalidateAll } from '$app/navigation';
 	import { User, UserCircle } from '@lucide/svelte';
 	import type { LayoutData } from '../../../routes/$types';
+	import Separator from '../ui/separator/separator.svelte';
 
 	let { user }: { user: LayoutData } = $props();
 	const userDb = $derived(user.user);
@@ -39,7 +40,7 @@
 		{/if}
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content class=" mt-1" side="bottom" align="center">
-		<DropdownMenu.Group>
+		<DropdownMenu.Group class="flex flex-col gap-1">
 			{#if $session.data?.user.email}
 				<!-- <DropdownMenu.GroupHeading>Account</DropdownMenu.GroupHeading>
 				<DropdownMenu.Separator />
@@ -50,11 +51,12 @@
 				<DropdownMenu.Item
 					><a href="/userprofile/favorite" class="w-full">Favorite</a></DropdownMenu.Item
 				> -->
-				
+
 				{#if isAdmin(userDb)}
 					<DropdownMenu.Item><a href="/admin" class="w-full">Admin Panel</a></DropdownMenu.Item>
 				{/if}
-			
+
+				<Separator />
 				<DropdownMenu.Item>
 					<Button variant="destructive" size="sm" onclick={handleLogout} class="w-full mt-1"
 						>Logout</Button

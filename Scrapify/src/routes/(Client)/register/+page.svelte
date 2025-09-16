@@ -6,6 +6,7 @@
 	import { Eye, EyeOff } from '@lucide/svelte';
 
 	let email = $state('');
+	let cardId = $state<number>(0);
 	let name = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
@@ -27,7 +28,8 @@
 			{
 				email,
 				name,
-				password
+				password,
+				cardId
 			},
 			{
 				onSuccess: (ctx: any) => {
@@ -69,7 +71,7 @@
 				<Input
 					type="text"
 					id="name"
-					class="placeholder:text-lg text-2xl! inputNormalize"
+					class="inputNormalize"
 					bind:value={name}
 					required
 					placeholder="Full name"
@@ -86,7 +88,19 @@
 					disabled={loading}
 					autocomplete="off"
 					placeholder="Your Email"
-					class="inputNormalize placeholder:text-lg text-2xl!"
+					class="inputNormalize"
+				/>
+			</div>
+			<div>
+				<Input
+					type="number"
+					id="cardId"
+					bind:value={cardId}
+					required
+					disabled={loading}
+					autocomplete="off"
+					placeholder="Your card ID"
+					class="inputNormalize"
 				/>
 			</div>
 			<div class="relative">
@@ -97,7 +111,7 @@
 					required
 					disabled={loading}
 					placeholder="Your Password"
-					class="inputNormalize placeholder:text-lg text-2xl!"
+					class="inputNormalize"
 				/>
 				<p class="absolute -top-1 right-0">
 					<Button size="icon" variant="ghost" onclick={() => (showPassword = !showPassword)}>
@@ -117,7 +131,7 @@
 					required
 					disabled={loading}
 					placeholder="Confirm Password"
-					class="inputNormalize placeholder:text-lg text-2xl!"
+					class="inputNormalize"
 				/>
 				<p class="absolute -top-1 right-0">
 					<Button size="icon" variant="ghost" onclick={() => (showPassword = !showPassword)}>

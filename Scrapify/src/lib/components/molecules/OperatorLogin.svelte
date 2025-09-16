@@ -3,8 +3,9 @@
 	import { Button } from '@/components/ui/button';
 	import { Input } from '@/components/ui/input';
 	import { Label } from '@/components/ui/label';
+	import { tick } from 'svelte';
 
-	type Result = 'success' | 'notnumber';
+	type Result = 'success' | 'notnumber' | 'empty';
 
 	let cardId = $state('');
 	let isSubmitting = $state(false);
@@ -17,8 +18,8 @@
 		isSubmitting = false;
 	};
 
-	$effect(() => {
-		if (cardId.length > 0 && isSubmitting) {
+	const handleOperatorLogin = () => {
+		if (cardId.length > 0) {
 			let numCardId = Number(cardId);
 			if (numCardId) {
 				localStorage.setItem('operatorId', cardId);
@@ -27,8 +28,12 @@
 			} else {
 				infoResult = 'notnumber';
 			}
+		} else if (cardId.length === 0) {
+			infoResult = 'empty';
 		}
-		isSubmitting = false;
+	};
+
+	$effect(() => {
 		let lsGetOperator = localStorage.getItem('operatorId');
 		if (lsGetOperator) {
 			cardId = lsGetOperator;
@@ -38,8 +43,8 @@
 </script>
 
 <main class="mx-auto text-center">
-	<section class=" bg-red-500 formNormalize mx-auto lg:w-lg">
-		<h1 class="mx-auto mb-2 text-2xl">Operator card ID</h1>
+	<section class="formNormalize mx-auto lg:w-lg">
+		<h1 class="mx-auto mb-2 text-2xl font-semibold">Card ID</h1>
 		{@render loginInfo()}
 		{#if infoResult === 'success'}
 			<p class="text-2xl text-accent-foreground">
@@ -48,6 +53,7 @@
 			<div>
 				<Button
 					variant="destructive"
+					class="w-full mt-10"
 					onclick={() => {
 						logoutOperator();
 					}}>Odhlasit</Button
@@ -65,8 +71,10 @@
 			</article>
 			<Button
 				size="lg"
+				class="w-full mt-10"
 				onclick={() => {
 					isSubmitting = true;
+					handleOperatorLogin();
 				}}>Login</Button
 			>
 		{/if}
@@ -78,5 +86,7 @@
 		<span class="text-chart-success">Uspesne prihlaseny</span>
 	{:else if infoResult === 'notnumber'}
 		<span class="text-chart-warning">Prosim zadaj iba cisla</span>
+	{:else}
+		<span class="text-chart-warning">Prosim zadaj cisla</span>
 	{/if}
 {/snippet}

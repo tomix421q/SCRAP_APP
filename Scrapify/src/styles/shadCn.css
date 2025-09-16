@@ -44,28 +44,31 @@
 		--chart-5: #475569;
 	}
 	.dark {
-		--background: 160 10% 10%;
+		/* --- ZMENENÉ HODNOTY --- */
+		--background: 160 10% 15%; /* Z 10% na 15% */
+		--card: 160 10% 19%; /* Z 14% na 19%, zachováva +4% rozdiel */
+		--popover: 160 10% 19%;
+		--sidebar-background: 160 10% 17%; /* Z 12% na 17% */
+		--secondary: 160 8% 24%; /* Z 20% na 24% */
+		--muted: 160 8% 28%; /* Z 25% na 28% */
+		--accent: 160 8% 22%; /* Z 18% na 22% */
+		--border: 160 8% 24%; /* Z 20% na 24% */
+		--input: 160 8% 24%; /* Z 20% na 24% */
+		--sidebar-border: 160 8% 24%;
+
+		/* --- PÔVODNÉ HODNOTY (zostávajú rovnaké) --- */
 		--foreground: 0 0% 98%;
-		--card: 160 10% 14%;
 		--card-foreground: 0 0% 98%;
-		--popover: 160 10% 14%;
 		--popover-foreground: 0 0% 98%;
-		--sidebar-background: 160 10% 12%;
 		--sidebar-foreground: 0 0% 98%;
 		--primary: 160 70% 38%;
 		--primary-foreground: 160 70% 96%;
-		--secondary: 160 8% 20%;
 		--secondary-foreground: 0 0% 98%;
-		--muted: 160 8% 25%;
 		--muted-foreground: 0 0% 70%;
-		--accent: 160 8% 18%;
 		--accent-foreground: 0 0% 98%;
 		--destructive: 0 70% 50%;
 		--destructive-foreground: 0 0% 100%;
-		--border: 160 8% 20%;
-		--input: 160 8% 20%;
 		--ring: 160 70% 45%;
-		--sidebar-border: 160 8% 20%;
 		--sidebar-ring: 160 70% 45%;
 		--chart-info: 200 80% 55%;
 		--chart-success: 160 70% 38%;
@@ -146,10 +149,10 @@
 		@apply bg-transparent! border-transparent! outline-none focus:ring-0 focus:ring-transparent! focus:outline-0! focus:outline-transparent border-b-primary! rounded-none!;
 	}
 	.formNormalize {
-		@apply flex flex-col gap-y-6 bg-gradient-to-l from-card to-accent p-6 rounded-3xl border-1 border-primary! border-dashed overflow-hidden shadow-2xl;
+		@apply flex flex-col gap-y-6 bg-gradient-to-b from-card/30 to-chart-4/30 p-2 lg:p-6 rounded-2xl border-[1px] border-primary/20! border-dashed overflow-hidden shadow-2xl backdrop-blur-md!;
 	}
 	.listNormalize {
-		@apply overflow-auto p-5 bg-gradient-to-b from-card to-chart-4 border-dashed border-[1px] border-chart-1! shadow-2xl rounded-2xl;
+		@apply overflow-auto p-2 lg:p-6 bg-gradient-to-b from-card/30 to-chart-4/30 border-dashed border-[1px] border-primary/20! shadow-2xl rounded-2xl backdrop-blur-md;
 	}
 	/* calendar icon  */
 	input[type='date']::-webkit-calendar-picker-indicator {
