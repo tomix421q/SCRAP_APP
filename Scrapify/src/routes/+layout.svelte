@@ -53,7 +53,7 @@
 					>Scrap<br class="group-hover:hidden transition-all duration-1000 ease-in" />ify··</span
 				>
 				<div class="flex flex-col gap-0.5">
-					<span class="mb-auto leading-3 mx-2 text-muted text-xs">Ver. 0.5 Beta</span>
+					<span class="mb-auto leading-3 mx-2 text-muted text-xs">Ver. 0.7 Beta</span>
 					<span class="mb-auto leading-3 mx-2 text-xs text-chart-1">{user?.role}</span>
 					<span class="mb-auto leading-3 mx-2 text-xs text-chart-1">{getUserIdCardFromLc()}</span>
 				</div>
