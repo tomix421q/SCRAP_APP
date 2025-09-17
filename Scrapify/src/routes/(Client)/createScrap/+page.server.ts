@@ -68,7 +68,7 @@ export const actions: Actions = {
 					prismaClient.part.findFirst({ where: { id: parseZod.data.partId } }),
 					prismaClient.scrapCode.findFirst({ where: { id: parseZod.data.scrapId } })
 				]);
-				console.log(findPartId);
+
 				if (!findPartId || !findScrapId) {
 					return fail(404, {
 						success: false,

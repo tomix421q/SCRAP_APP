@@ -11,14 +11,21 @@
 	import { Bug, Github } from '@lucide/svelte';
 	import Separator from '@/components/ui/separator/separator.svelte';
 	import { getUserIdCardFromLc } from '@/index';
+	import { afterNavigate } from '$app/navigation';
 
 	let { children, data }: { children: any; data: LayoutData } = $props();
+	let currentPath = $state('');
 	const { user } = $derived(data);
 
 	$effect(() => {
 		if (user?.cardId) {
 			localStorage.setItem('operatorId', user.cardId.toString());
 		}
+	});
+
+	afterNavigate(() => {
+		// currentPath = window.location.pathname;
+		currentPath = page.url.pathname;
 	});
 
 	// $inspect(data);
@@ -76,25 +83,27 @@
 	</main>
 
 	<!-- FOOTER -->
-	<footer class="min-h-[150px] p-4 mt-64">
-		<Separator class="bg-primary/30" />
-		<div class="flex flex-col justify-center items-center max-w-[1200px] mx-auto">
-			<Button
-				variant="link"
-				href="https://github.com/tomix421q/SCRAP_APP/tree/main/Scrapify"
-				target="_blank"><Github />Project Github</Button
-			>
-			<Button variant="link"
-				><a href="mailto:tomas.zilka@yanfeng.com" class="flex items-center gap-x-2"
-					><Bug />Send bug</a
-				></Button
-			>
+	{#if currentPath !== '/login' && currentPath !== '/register'}
+		<footer class="min-h-[150px] p-4 mt-64">
+			<Separator class="bg-primary/30" />
+			<div class="flex flex-col justify-center items-center max-w-[1200px] mx-auto">
+				<Button
+					variant="link"
+					href="https://github.com/tomix421q/SCRAP_APP/tree/main/Scrapify"
+					target="_blank"><Github />Project Github</Button
+				>
+				<Button variant="link"
+					><a href="mailto:tomas.zilka@yanfeng.com" class="flex items-center gap-x-2"
+						><Bug />Send bug</a
+					></Button
+				>
 
-			<div class="mt-4">
-				{#each navUrls as url}
-					<Button variant="link" href={url.url}>{url.title}</Button>
-				{/each}
+				<div class="mt-4">
+					{#each navUrls as url}
+						<Button variant="link" href={url.url}>{url.title}</Button>
+					{/each}
+				</div>
 			</div>
-		</div>
-	</footer>
+		</footer>
+	{/if}
 </section>

@@ -75,7 +75,7 @@
 	}
 </script>
 <main
-	class="absolute top-0 left-0 flex h-screen w-full flex-col items-center justify-center bg-[url('/image2.jpg')] bg-cover bg-fixed bg-center bg-no-repeat"
+	class="absolute top-0 left-0 flex h-[106vh] w-full flex-col items-center justify-center bg-[url('/image2.jpg')] bg-cover bg-fixed bg-center bg-no-repeat"
 >
 	<section class="bg-secondary/50 backdrop-blur-2xl p-4 rounded-xl shadow-2xl">
 		<h2 class="m-1 text-2xl font-semibold text-center">Login</h2>
