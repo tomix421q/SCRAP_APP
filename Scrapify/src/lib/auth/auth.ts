@@ -13,7 +13,8 @@ export const auth = betterAuth({
 				type: 'number',
 				input: true,
 				unique: true,
-				required: true
+				required: true,
+				fieldName: 'cardId'
 			}
 		}
 	},
