@@ -1,8 +1,8 @@
 import prismaClient from '@/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
-import type { Role } from '@prisma/client';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
+import type { Role } from '@/utils/types';
 
 export const load = (async () => {
 	try {
@@ -17,7 +17,7 @@ export const actions: Actions = {
 	changeUserRole: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
 		const userId = formData.get('userId') as string;
-		const newRole = formData.get('userRole') as string;
+		const newRole = formData.get('userRole') as Role;
 
 		if (!userId || !newRole) {
 			return fail(400, {

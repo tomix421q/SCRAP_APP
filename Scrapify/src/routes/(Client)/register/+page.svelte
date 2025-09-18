@@ -39,11 +39,6 @@
 				onError: (ctx: any) => {
 					if (ctx.error.status === 403) {
 						errorMsg = 'Please verify your email';
-					} else if (
-						ctx.error.details?.meta.target[0] === 'cardId' &&
-						ctx.error.details?.code === 'P2002'
-					) {
-						errorMsg = 'Card ID already in use';
 					} else {
 						errorMsg = ctx.error.message;
 					}
