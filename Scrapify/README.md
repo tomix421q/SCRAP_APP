@@ -11,10 +11,12 @@
 
 # Adjustments
 
-1 - move operator login to main page [done]
-2 - add to db for scrap record description option [done]
-3 - filter project,process,partNumber,scrapCode,data from-to [done]
 
-4 - add -> possibility write decimal numbers to quantity [done]
-5 - facilitate choice part number in write scrap [done]
-6 - add -> remove items in admin pannel [done]
+## Check Status
+
+- [x] Move operator login to main page
+- [x] Add to DB for scrap record description option
+- [x] Filter project, process, part number, scrap code, date from-to
+- [x] Add possibility to write decimal numbers to quantity
+- [x] Facilitate choice of part number when writing scrap
+- [x] Add ability to remove items in admin panel
