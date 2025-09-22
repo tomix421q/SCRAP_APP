@@ -11,15 +11,14 @@
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { enhance } from '$app/forms';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
-	import { Role } from '@prisma/client';
+	import { ROLES, type Role } from '@/utils/types';
 
 	let { form, data }: PageProps = $props();
 	let { allUsers } = $derived(data);
 	let isSubmitting = $state(false);
 	let modalOpen = $state(false);
 
-	const ALL_ROLES = Object.values(Role)
-		.filter((role) => role !== Role.ADMIN)
+	const ALL_ROLES = ROLES.filter((role) => role !== ROLES[3]) // Exclude ADMIN from the list
 		.map((role) => ({
 			id: role,
 			name: role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()

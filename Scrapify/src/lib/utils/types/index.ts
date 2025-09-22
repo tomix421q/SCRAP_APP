@@ -1,5 +1,8 @@
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 
+export const ROLES = ['USER', 'ENGINEER', 'MODERATOR', 'ADMIN'] as const;
+export type Role = (typeof ROLES)[number];
+
 export type PartSide = 'FRONT-LEFT' | 'FRONT-RIGHT' | 'REAR-LEFT' | 'REAR-RIGHT';
 
 export const PART_SIDES: { id: PartSide; name: string }[] = [

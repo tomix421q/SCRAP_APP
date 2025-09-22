@@ -5,7 +5,7 @@ import { createAuthMiddleware, APIError } from 'better-auth/api';
 
 export const auth = betterAuth({
 	database: prismaAdapter(prismaClient, {
-		provider: 'postgresql'
+		provider: 'sqlserver'
 	}),
 	user: {
 		additionalFields: {
@@ -18,6 +18,7 @@ export const auth = betterAuth({
 			}
 		}
 	},
+
 	emailAndPassword: {
 		autoSignIn: true,
 		enabled: true,
@@ -29,12 +30,20 @@ export const auth = betterAuth({
 	},
 	hooks: {
 		before: createAuthMiddleware(async (ctx) => {
+			const isInDbSameCardId = await prismaClient.user.findFirst({
+				where: { cardId: ctx.body?.cardId }
+			});
 			if (ctx.path !== '/sign-up/email') {
 				return;
 			}
 			if (!ctx.body?.email.endsWith('@yanfeng.com')) {
 				throw new APIError('BAD_REQUEST', {
 					message: 'Only @yanfeng.com addresses are allowed'
+				});
+			}
+			if (isInDbSameCardId) {
+				throw new APIError('BAD_REQUEST', {
+					message: 'This card ID already in use'
 				});
 			}
 		}),
