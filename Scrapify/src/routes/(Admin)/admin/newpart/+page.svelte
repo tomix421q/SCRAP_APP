@@ -16,27 +16,19 @@
 	interface CustomPageData {
 		parts: Part[];
 		processes: Process[];
-		projects: Project[];
-		halls: Hall[];
 		totalPages: number;
 		partsCount: number;
 	}
 
 	let { data, form }: PageProps = $props();
-	let { parts, processes, projects, halls, totalPages, partsCount } = $derived(
-		data.data
-	) as CustomPageData;
+	let { parts, processes, totalPages, partsCount } = $derived(data.data) as CustomPageData;
 
 	let isSubmitting = $state(false);
 
 	// id
-	let hallId = $state('');
-	let projectId = $state('');
 	let processId = $state('');
 
 	//reset
-	let resetHallCombo = $state(false);
-	let resetProjectCombo = $state(false);
 	let resetProcessCombo = $state(false);
 	let resetPartSideCombo = $state(false);
 
@@ -60,15 +52,11 @@
 
 				return async ({ update, result }) => {
 					if (result?.type === 'success') {
-						resetHallCombo = true;
-						resetProjectCombo = true;
 						resetProcessCombo = true;
 						resetPartSideCombo = true;
 					}
 					await update();
 					isSubmitting = false;
-					resetHallCombo = false;
-					resetProjectCombo = false;
 					resetProcessCombo = false;
 					resetPartSideCombo = false;
 				};
@@ -79,29 +67,7 @@
 			<div>
 				<ResultInfo data={form} />
 			</div>
-			<!-- hall COMBO -->
-			<article class="flex justify-between items-center gap-2">
-				<Label for="hallId" class="text-sm md:text-lg">Hall</Label>
-				<div class="flex gap-2">
-					<Combobox dataBox={halls} bind:value={hallId} reset={resetHallCombo} id="hallId" />
-					<Button size="icon" href="/admin/newhall"><Plus /></Button>
-				</div>
-				<input type="hidden" name="hallId" required bind:value={hallId} />
-			</article>
-			<!-- project COMBO -->
-			<article class="flex justify-between items-center gap-2">
-				<Label for="projectId" class="text-sm md:text-lg">Project</Label>
-				<div class="flex gap-2">
-					<Combobox
-						dataBox={projects}
-						bind:value={projectId}
-						reset={resetProjectCombo}
-						id="projectId"
-					/>
-					<Button size="icon" href="/admin/newproject"><Plus /></Button>
-				</div>
-				<input type="hidden" name="projectId" required bind:value={projectId} />
-			</article>
+
 			<!-- process COMBO -->
 			<article class="flex justify-between items-center gap-2">
 				<Label for="processId" class="text-sm md:text-lg">Process</Label>
@@ -119,7 +85,7 @@
 			<!--  -->
 			<!-- Part inputs !!! -->
 			<article class="flex justify-between items-center gap-2">
-				<Label for="partNumber" class="text-sm sm:text-xl">Part number</Label>
+				<Label for="partNumber" class="text-sm md:text-lg">Part number</Label>
 				<Input
 					type="text"
 					name="partNumber"
@@ -131,7 +97,9 @@
 				/>
 			</article>
 			<article class="flex justify-between items-center gap-2">
-				<Label for="partSide" class="text-sm sm:text-xl">Side</Label>
+				<Label for="partSide" class="text-sm md:text-lg"
+					>Side <span class="text-xs text-muted-foreground">[Optional]</span></Label
+				>
 				<div class="flex gap-2 w-[240px]">
 					<Combobox
 						dataBox={PART_SIDES}

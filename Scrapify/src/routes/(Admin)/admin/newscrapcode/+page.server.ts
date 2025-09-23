@@ -44,6 +44,13 @@ export const actions = {
 				message: 'Scrap code number and scrap name are required.Please complete it.'
 			});
 		}
+		if (!processId) {
+			return fail(400, {
+				success: false,
+				error: true,
+				message: 'Process is required. Please select a process.'
+			});
+		}
 		try {
 			const createScrap = await prismaClient.scrapCode.create({
 				data: {

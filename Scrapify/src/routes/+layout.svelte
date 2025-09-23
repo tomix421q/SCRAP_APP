@@ -36,12 +36,12 @@
 	<title>Scrapify</title>
 </svelte:head>
 
-<section>
+<section class="">
 	<div class="fixed inset-0 bg-black/50 -z-40"></div>
 	<img
 		src={bgDesktop}
 		alt="Pozadie prihlasovacej stránky"
-		class="fixed inset-0 h-full w-full object-fill -z-50 max-lg:hidden"
+		class="fixed inset-0 h-full w-full object-cover -z-50 max-lg:hidden"
 	/>
 	<!-- NAV -->
 	<nav class="p-2 mb-6 flex items-center justify-between border-b-1 border-secondary">
@@ -78,7 +78,7 @@
 	</nav>
 
 	<!-- ALL CONTENT RENDER -->
-	<main class="max-w-[1600px] mx-auto px-2 min-h-screen">
+	<main class="max-w-[1600px] mx-auto px-2 md:px-4 lg:px-6 min-h-screen">
 		{@render children?.()}
 	</main>
 

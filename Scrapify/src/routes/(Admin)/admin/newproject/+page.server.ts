@@ -74,13 +74,14 @@ export const actions: Actions = {
 	deleteProject: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
 		const id = formData.get('deleteId');
+		console.log(id);
 
 		if (!id) {
 			return fail(400, { success: false, message: 'Validation', error: 'Id not found.' });
 		}
 
 		try {
-			const deleteItem = await prismaClient.process.delete({ where: { id: Number(id) } });
+			const deleteItem = await prismaClient.project.delete({ where: { id: Number(id) } });
 
 			return {
 				success: true,

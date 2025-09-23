@@ -1,4 +1,4 @@
-import { error, fail, type Action, type ActionFailure } from '@sveltejs/kit';
+import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prismaClient from '@/server/prisma';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
@@ -8,7 +8,7 @@ export const load: PageServerLoad = async (event) => {
 	const limit = 50;
 	const skip = (page - 1) * limit;
 	try {
-		const [allProcesses, allProjects, allHalls] = await Promise.all([
+		const [allProcesses, allProjects] = await Promise.all([
 			prismaClient.process.findMany({
 				skip,
 				take: limit,
@@ -23,7 +23,6 @@ export const load: PageServerLoad = async (event) => {
 		const data = {
 			processes: allProcesses,
 			projects: allProjects,
-			halls: allHalls,
 			processCount,
 			totalPages
 		};
@@ -38,12 +37,11 @@ export const load: PageServerLoad = async (event) => {
 export const actions = {
 	createProcess: async (event) => {
 		const formData = await event.request.formData();
-		const hallId = formData.get('hallId') as string;
 		const projectId = formData.get('projectId') as string;
 		const processName = formData.get('processName') as string;
 		const processDescription = formData.get('processDescription') as string;
 
-		if (!hallId || !projectId) {
+		if (!projectId) {
 			return fail(400, {
 				success: false,
 				error: true,
@@ -52,17 +50,16 @@ export const actions = {
 		}
 
 		try {
-			const [findHall, findProject] = await Promise.all([
-				prismaClient.hall.findFirst({ where: { id: parseInt(hallId, 10) } }),
+			const [findProject] = await Promise.all([
 				prismaClient.project.findFirst({
 					where: { id: parseInt(projectId, 10) }
 				})
 			]);
-			if (!findHall || !findProject) {
+			if (!findProject) {
 				return fail(404, {
 					success: false,
 					error: true,
-					message: `Hall with ID ${hallId} or project with ID ${projectId} not found.`
+					message: `Project with ID ${projectId} not found.`
 				});
 			}
 

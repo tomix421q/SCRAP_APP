@@ -8,6 +8,7 @@
 	import type { Prisma, User } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
+	import { type Role } from '@/utils/types';
 
 	export type ScrapRecordWithRelations = Prisma.ScrapRecordGetPayload<{
 		include: { part: true; scrapCode: true };
@@ -104,9 +105,9 @@
 
 						<Table.Cell
 							class={(operatorId === item.createdBy && isWithinTimeLimit(item.createdAt, 60)) ||
-							userInfo?.role === 'ADMIN' ||
-							userInfo?.role === 'MODERATOR' ||
-							userInfo?.role === 'ENGINEER'
+							(userInfo?.role as Role) === 'ADMIN' ||
+							(userInfo?.role as Role) === 'MODERATOR' ||
+							(userInfo?.role as Role) === 'ENGINEER'
 								? 'block'
 								: 'hidden'}><DeleteBtn id={item.id} actionRoute="?/deleteScrapRecord" /></Table.Cell
 						>

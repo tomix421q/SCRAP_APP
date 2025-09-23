@@ -12,6 +12,7 @@
 	import { enhance } from '$app/forms';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import { ROLES, type Role } from '@/utils/types';
+	import { dateTimmeUTCformatter } from '@/index';
 
 	let { form, data }: PageProps = $props();
 	let { allUsers } = $derived(data);
@@ -72,7 +73,7 @@
 					</div>
 				</CardContent>
 				<CardFooter>
-					<p>{user.createdAt.toUTCString()}</p>
+					<p>{dateTimmeUTCformatter(user.createdAt)}</p>
 				</CardFooter>
 			</Card>
 		{/each}

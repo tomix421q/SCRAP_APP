@@ -6,23 +6,23 @@ import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
-	const limit = 10;
+	const limit = 100;
 	const skip = (page - 1) * limit;
 
 	const filters = {
-		partNumber: event.url.searchParams.get('partNumber'),
+		partNumber: event.url.searchParams.get('partNumber')?.trim(),
 		partId: Number(event.url.searchParams.get('partId')),
-		scrapCode: event.url.searchParams.get('scrapCode'),
+		scrapCode: event.url.searchParams.get('scrapCode')?.trim(),
 		processName: Number(event.url.searchParams.get('processName')),
-		dateFrom: event.url.searchParams.get('dateFrom'),
-		dateTo: event.url.searchParams.get('dateTo')
+		dateFrom: event.url.searchParams.get('dateFrom')?.trim(),
+		dateTo: event.url.searchParams.get('dateTo')?.trim()
 	};
 
 	const where: Prisma.ScrapRecordWhereInput = {};
 	const partWhere: Prisma.PartWhereInput = {};
 	if (filters.partNumber) {
 		if (!where.part) where.part = {};
-		partWhere.partNumber = { contains: filters.partNumber, mode: 'insensitive' };
+		partWhere.partNumber = { contains: filters.partNumber };
 	}
 	if (filters.partId) {
 		partWhere.id = filters.partId;
@@ -35,7 +35,7 @@ export const load: PageServerLoad = async (event) => {
 		where.part = partWhere;
 	}
 	if (filters.scrapCode) {
-		where.scrapCode = { code: { contains: filters.scrapCode, mode: 'insensitive' } };
+		where.scrapCode = { code: { contains: filters.scrapCode } };
 	}
 	// Date filter
 	const createdAtFilter: Prisma.DateTimeFilter = {};

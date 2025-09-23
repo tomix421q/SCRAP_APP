@@ -85,7 +85,7 @@
 				}}
 				class="formNormalize"
 			>
-				<h2 class="text-center font-semibold text-2xl text-chart-1">Vytvorit scrap</h2>
+				<h2 class="text-center font-semibold text-2xl text-primary">Vytvorit scrap</h2>
 				<!-- Result -->
 				<div>
 					<ResultInfo data={form} />
@@ -94,7 +94,9 @@
 				<!-- -->
 				<!-- process COMBO -->
 				<article class="flex justify-between items-center gap-2">
-					<Label for="processId" class="text-sm md:text-lg">Process</Label>
+					<Label for="processId" class="text-sm md:text-lg"
+						>Process <span class="text-xs text-chart-info tracking-widest">[Filter]</span></Label
+					>
 
 					<div class="flex gap-2">
 						<Button
@@ -151,7 +153,7 @@
 				<article class="flex justify-between items-center gap-2">
 					<Label for="description" class="text-sm md:text-lg">Opis</Label>
 					<Input
-						placeholder="Description (optional)"
+						placeholder="Description"
 						name="description"
 						id="description"
 						class="inputNormalize max-w-[250px]"

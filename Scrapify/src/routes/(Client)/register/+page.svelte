@@ -34,7 +34,7 @@
 			},
 			{
 				onSuccess: (ctx: any) => {
-					goto('/login');
+					goto('/login', { invalidateAll: true });
 				},
 				onError: (ctx: any) => {
 					if (ctx.error.status === 403) {

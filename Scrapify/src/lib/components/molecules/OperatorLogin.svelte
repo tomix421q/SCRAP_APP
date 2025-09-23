@@ -3,7 +3,7 @@
 	import { Button } from '@/components/ui/button';
 	import { Input } from '@/components/ui/input';
 	import { Label } from '@/components/ui/label';
-	import { tick } from 'svelte';
+	import type { PageData } from '../../../routes/(Client)/$types';
 
 	type Result = 'success' | 'notnumber' | 'empty';
 
@@ -34,21 +34,25 @@
 	};
 
 	$effect(() => {
-		let lsGetOperator = localStorage.getItem('operatorId');
+		let lsGetOperator: string | null = localStorage.getItem('operatorId');
+
 		if (lsGetOperator) {
 			cardId = lsGetOperator;
 			infoResult = 'success';
+		} else {
+			infoResult = 'notnumber';
+			cardId = '';
 		}
 	});
 </script>
 
-<main class="mx-auto text-center">
-	<section class="formNormalize mx-auto lg:w-lg">
-		<h1 class="mx-auto mb-2 text-2xl font-semibold">Card ID</h1>
+<main class="mx-auto text-center w-full">
+	<section class="formNormalize mx-auto lg:w-xl">
+		<h1 class="mx-auto text-2xl font-semibold text-primary">Card ID</h1>
 		{@render loginInfo()}
 		{#if infoResult === 'success'}
-			<p class="text-2xl text-accent-foreground">
-				Prihlaseny operator: <span class="text-primary font-bold text-3xl">{cardId}</span>
+			<p class=" text-accent-foreground">
+				Prihlaseny operator: <span class="text-primary font-bold text-xl">{cardId}</span>
 			</p>
 			<div>
 				<Button
@@ -61,7 +65,7 @@
 			</div>
 		{:else}
 			<article class="flex justify-between items-center gap-2">
-				<Label class="text-sm md:text-lg">Card ID</Label>
+				<Label class="text-sm md:text-lg text-primary!">Card ID</Label>
 				<Input
 					type="text"
 					class="inputNormalize max-w-[240px]"
@@ -83,7 +87,7 @@
 
 {#snippet loginInfo()}
 	{#if infoResult === 'success'}
-		<span class="text-chart-success">Uspesne prihlaseny</span>
+		<span class="text-chart-info">Uspesne prihlaseny</span>
 	{:else if infoResult === 'notnumber'}
 		<span class="text-chart-warning">Prosim zadaj iba cisla</span>
 	{:else}

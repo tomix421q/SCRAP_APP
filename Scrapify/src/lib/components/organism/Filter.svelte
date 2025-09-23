@@ -65,7 +65,7 @@
 <main>
 	<Card class="bg-transparent formNormalize">
 		<CardHeader>
-			<CardTitle class="text-2xl tracking-widest text-center">Filter</CardTitle>
+			<CardTitle class="text-2xl tracking-widest text-center text-primary">Filter</CardTitle>
 		</CardHeader>
 
 		<CardContent class="space-y-6 lg:flex lg:gap-x-24">

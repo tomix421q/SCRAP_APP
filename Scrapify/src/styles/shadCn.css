@@ -13,7 +13,7 @@
 		border-color: var(--color-gray-200, currentColor);
 	}
 	:root {
-		--background: 0 0% 100%;
+		--background: 240 5.9% 10%;
 		--foreground: 222.2 84% 4.9%;
 		--card: 0 0% 100%;
 		--card-foreground: 222.2 84% 4.9%;
@@ -45,15 +45,15 @@
 	}
 	.dark {
 		/* --- ZMENENÉ HODNOTY --- */
-		--background: 160 10% 15%; /* Z 10% na 15% */
-		--card: 160 10% 19%; /* Z 14% na 19%, zachováva +4% rozdiel */
+		--background: 0 0% 9%;
+		--card: 160 10% 19%;
 		--popover: 160 10% 19%;
-		--sidebar-background: 160 10% 17%; /* Z 12% na 17% */
-		--secondary: 160 8% 24%; /* Z 20% na 24% */
-		--muted: 160 8% 28%; /* Z 25% na 28% */
-		--accent: 160 8% 22%; /* Z 18% na 22% */
-		--border: 160 8% 24%; /* Z 20% na 24% */
-		--input: 160 8% 24%; /* Z 20% na 24% */
+		--sidebar-background: 160 10% 17%;
+		--secondary: 160 8% 24%;
+		--muted: 160 8% 28%;
+		--accent: 160 8% 22%;
+		--border: 160 8% 24%;
+		--input: 160 8% 24%;
 		--sidebar-border: 160 8% 24%;
 
 		/* --- PÔVODNÉ HODNOTY (zostávajú rovnaké) --- */

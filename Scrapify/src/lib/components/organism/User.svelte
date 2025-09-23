@@ -14,9 +14,10 @@
 	let open = $state(false);
 
 	async function handleLogout() {
+		localStorage.removeItem('operatorId');
 		authClient.signOut();
-		await invalidateAll();
 		goto('/', { replaceState: true });
+		await invalidateAll();
 	}
 
 	const isAdmin = (user: typeof userDb | null): boolean => {

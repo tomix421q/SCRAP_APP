@@ -6,31 +6,21 @@
 	import ToNavigateBtn from '@/components/atoms/ToNavigateBtn.svelte';
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import { Plus } from '@lucide/svelte';
-	import type { Hall, Process, Project } from '@prisma/client';
 	import type { PageProps } from './$types';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import NewProcessTable from '@/components/organism/Tables/NewProcessTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
 
-	// interface CustomPageData {
-	// 	processes: Process[];
-	// 	projects: Project[];
-	// 	halls: Hall[];
-	// }
-
 	let { data, form }: PageProps = $props();
-	let { processes, projects, halls, totalPages, processCount } = $derived(data.data);
+	let { processes, projects, totalPages, processCount } = $derived(data.data);
 
 	let isSubmitting = $state(false);
 
 	// id
-	let hallId = $state('');
 	let projectId = $state('');
 
 	// reset
-	let resetHallCombo = $state(false);
 	let resetProjectCombo = $state(false);
-
 	let projectName = $state('');
 	let projectDescription = $state('');
 
@@ -49,12 +39,10 @@
 				return async ({ update, result }) => {
 					// await new Promise((resolve) => setTimeout(resolve, 5000));
 					if (result?.type === 'success') {
-						resetHallCombo = true;
 						resetProjectCombo = true;
 					}
 					await update();
 					isSubmitting = false;
-					resetHallCombo = false;
 					resetProjectCombo = false;
 				};
 			}}
@@ -64,16 +52,7 @@
 			<div>
 				<ResultInfo data={form} />
 			</div>
-			<!--  -->
-			<!-- hall COMBO -->
-			<article class="flex justify-between items-center gap-2">
-				<Label for="hallId" class="text-sm md:text-lg">Hall</Label>
-				<div class="flex gap-2">
-					<Combobox dataBox={halls} bind:value={hallId} reset={resetHallCombo} id="hallId" />
-					<Button size="icon" href="/admin/newhall"><Plus /></Button>
-				</div>
-				<input type="hidden" name="hallId" required bind:value={hallId} />
-			</article>
+
 			<!--  -->
 			<!-- project COMBO -->
 			<article class="flex justify-between items-center gap-2">

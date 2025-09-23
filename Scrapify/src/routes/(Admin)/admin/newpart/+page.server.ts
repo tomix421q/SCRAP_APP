@@ -36,39 +36,39 @@ export const load: PageServerLoad = async (event) => {
 export const actions = {
 	createPart: async (event) => {
 		const formData = await event.request.formData();
-		const hallId = formData.get('hallId') as string;
-		const projectId = formData.get('projectId') as string;
 		const processId = formData.get('processId') as string;
 		const partProdNumberId = formData.get('partNumber') as string;
 		const partSide = formData.get('partSide') as string;
 		console.log(formData);
 
-		if (!hallId || !projectId || !processId) {
+		if (!processId) {
 			return fail(400, {
 				success: false,
 				error: true,
-				message: 'Hall, project and process are required.Please select hall and project.'
+				message: 'Process is required.Please select process.'
 			});
 		}
 		try {
-			const [findHall, findProject, findProcess] = await Promise.all([
-				prismaClient.hall.findFirst({ where: { id: parseInt(hallId, 10) } }),
-				prismaClient.project.findFirst({ where: { id: parseInt(projectId, 10) } }),
-				prismaClient.process.findFirst({ where: { id: parseInt(processId, 10) } })
+			const [findProcess] = await Promise.all([
+				prismaClient.process.findFirst({
+					where: { id: parseInt(processId, 10) },
+					include: { project: true }
+				})
 			]);
-			if (!findHall || !findProject || !findProcess) {
+
+			if (!findProcess) {
 				return fail(404, {
 					success: false,
 					error: true,
-					message: `Hall with ID ${hallId} or project with ID ${projectId} or process with ID ${processId} not found.`
+					message: `Process with ID ${processId} not found.`
 				});
 			}
 			await prismaClient.part.create({
 				data: {
 					processId: findProcess.id,
 					processName: findProcess.name,
-					projectName: findProject.name,
-					hallName: findHall.name,
+					projectName: findProcess.project.name,
+					hallName: findProcess.project.name,
 					partNumber: partProdNumberId,
 					side: partSide
 				}
