@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "NODE_ENV=production vite build",
+		"build": "cross-env NODE_ENV=production vite build",
 		"preview": "NODE_ENV=production vite preview",
 		"postinstall": "prisma generate",
 		"prepare": "svelte-kit sync || echo ''",
@@ -28,6 +28,7 @@
 		"@tailwindcss/vite": "^4.0.0",
 		"@tanstack/table-core": "^8.21.3",
 		"@types/node": "^24.2.1",
+		"cross-env": "^10.0.0",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",
