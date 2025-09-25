@@ -12,15 +12,23 @@
 	import Separator from '@/components/ui/separator/separator.svelte';
 	import { getUserIdCardFromLc } from '@/index';
 	import { afterNavigate } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	let { children, data }: { children: any; data: LayoutData } = $props();
 	let currentPath = $state('');
+	let userIdCardFromLc = $state<string | null>(null);
 	const { user } = $derived(data);
 
-	$effect(() => {
+
+	onMount(() => {
+		// Zápis do localStorage
 		if (user?.cardId) {
 			localStorage.setItem('operatorId', user.cardId.toString());
 		}
+
+		userIdCardFromLc = getUserIdCardFromLc();
+
+      
 	});
 
 	afterNavigate(() => {
@@ -57,7 +65,7 @@
 				<div class="flex flex-col gap-0.5">
 					<span class="mb-auto leading-3 mx-2 text-muted-foreground text-xs">Version 1 Beta</span>
 					<span class="mb-auto leading-3 mx-2 text-xs text-chart-1">{user?.role}</span>
-					<span class="mb-auto leading-3 mx-2 text-xs text-chart-1">{getUserIdCardFromLc()}</span>
+					<span class="mb-auto leading-3 mx-2 text-xs text-chart-1">{userIdCardFromLc}</span>
 				</div>
 			</a>
 		</section>

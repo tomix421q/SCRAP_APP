@@ -2,7 +2,7 @@ import type { LayoutServerLoad } from './$types';
 import prismaClient from '@/server/prisma';
 import { getUserServer } from '@/utils/serverHelp';
 
-export const load = (async (event) => {
+export const load = (async (event : any) => {
 	const { user, session } = await getUserServer({ request: event.request });
 
 	let fullUser = null;
