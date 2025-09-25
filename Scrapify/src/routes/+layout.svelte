@@ -19,16 +19,12 @@
 	let userIdCardFromLc = $state<string | null>(null);
 	const { user } = $derived(data);
 
-
 	onMount(() => {
-		// Zápis do localStorage
 		if (user?.cardId) {
 			localStorage.setItem('operatorId', user.cardId.toString());
 		}
 
 		userIdCardFromLc = getUserIdCardFromLc();
-
-      
 	});
 
 	afterNavigate(() => {

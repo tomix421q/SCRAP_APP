@@ -76,10 +76,10 @@ export const auth = betterAuth({
 	// 	}
 	// },
 	trustedOrigins: [
-		process.env.PUBLIC_APP_BASE_URL || 'http://localhost:3000',
+		process.env.PUBLIC_PROD_URL || 'http://localhost:3000',
 		'http://localhost:3000',
 		'http://127.0.0.1:3000',
-		'http://10.184.145.18'
+		'http://10.184.145.18:3001'
 	]
 	// accountLinking: {
 	// 	enabled: true,
