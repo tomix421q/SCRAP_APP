@@ -3,7 +3,11 @@
 	import { Button } from '@/components/ui/button';
 	import { Input } from '@/components/ui/input';
 	import { Label } from '@/components/ui/label';
-	import type { PageData } from '../../../routes/(Client)/$types';
+	import Card from '../ui/card/card.svelte';
+	import CardHeader from '../ui/card/card-header.svelte';
+	import CardTitle from '../ui/card/card-title.svelte';
+	import CardDescription from '../ui/card/card-description.svelte';
+	import CardContent from '../ui/card/card-content.svelte';
 
 	type Result = 'success' | 'notnumber' | 'empty';
 
@@ -47,42 +51,47 @@
 </script>
 
 <main class="mx-auto text-center w-full">
-	<section class="formNormalize mx-auto lg:w-xl">
-		<h1 class="mx-auto text-2xl font-semibold text-primary">Card ID</h1>
-		{@render loginInfo()}
-		{#if infoResult === 'success'}
-			<p class=" text-accent-foreground">
-				Prihlaseny operator: <span class="text-primary font-bold text-xl">{cardId}</span>
-			</p>
-			<div>
+	<Card class="cardNormalize gap-1 mx-auto lg:w-md rounded-3xl! bg-primary/20">
+		<CardHeader>
+			<CardTitle class="mx-auto text-2xl font-semibold text-primary Card ID">Card ID</CardTitle>
+			<CardDescription>{@render loginInfo()}</CardDescription>
+		</CardHeader>
+		<CardContent>
+			{#if infoResult === 'success'}
+				<p class=" text-accent-foreground">
+					Prihlaseny operator: <span class="text-secondary font-bold! text-lg">{cardId}</span>
+				</p>
+				<div>
+					<Button
+						size="sm"
+						variant="destructive"
+						class="mt-10 w-full"
+						onclick={() => {
+							logoutOperator();
+						}}>Odhlasit</Button
+					>
+				</div>
+			{:else}
+				<article class="flex justify-between items-center gap-2">
+					<Label class="text-sm md:text-lg text-primary!">Card ID</Label>
+					<Input
+						type="text"
+						class="inputNormalize max-w-[240px]"
+						placeholder="Zadaj cislo karty"
+						bind:value={cardId}
+					/>
+				</article>
 				<Button
-					variant="destructive"
+					size="sm"
 					class="w-full mt-10"
 					onclick={() => {
-						logoutOperator();
-					}}>Odhlasit</Button
+						isSubmitting = true;
+						handleOperatorLogin();
+					}}>Login</Button
 				>
-			</div>
-		{:else}
-			<article class="flex justify-between items-center gap-2">
-				<Label class="text-sm md:text-lg text-primary!">Card ID</Label>
-				<Input
-					type="text"
-					class="inputNormalize max-w-[240px]"
-					placeholder="Zadaj cislo karty"
-					bind:value={cardId}
-				/>
-			</article>
-			<Button
-				size="lg"
-				class="w-full mt-10"
-				onclick={() => {
-					isSubmitting = true;
-					handleOperatorLogin();
-				}}>Login</Button
-			>
-		{/if}
-	</section>
+			{/if}
+		</CardContent>
+	</Card>
 </main>
 
 {#snippet loginInfo()}

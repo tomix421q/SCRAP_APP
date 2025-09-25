@@ -43,10 +43,10 @@
 	<DropdownMenu.Content class=" mt-1" side="bottom" align="center">
 		<DropdownMenu.Group class="flex flex-col gap-1">
 			{#if $session.data?.user.email}
-				<!-- <DropdownMenu.GroupHeading>Account</DropdownMenu.GroupHeading>
+				<DropdownMenu.GroupHeading class="text-muted-foreground">Account</DropdownMenu.GroupHeading>
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item><a href="/userprofile" class="w-full">Profile</a></DropdownMenu.Item>
-				<DropdownMenu.Item
+				<DropdownMenu.Item><a href="/user/profile" class="w-full">Profile</a></DropdownMenu.Item>
+				<!-- <DropdownMenu.Item
 					><a href="/userprofile/account" class="w-full">Account</a></DropdownMenu.Item
 				>
 				<DropdownMenu.Item

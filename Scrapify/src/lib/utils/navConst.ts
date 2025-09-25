@@ -1,4 +1,4 @@
-import { Flag, House, NewspaperIcon, Search } from '@lucide/svelte';
+import { Flag, House, NewspaperIcon, Search, User } from '@lucide/svelte';
 
 export const navUrls = [
 	{
@@ -18,7 +18,8 @@ export const navUrls = [
 		title: 'Search',
 		shortname: 'SRCH',
 		url: '/search'
-	},
+	}
+
 	// {
 	// 	icon: Flag,
 	// 	title: 'Report',

@@ -6,7 +6,7 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import { page } from '$app/state';
 	import User from '@/components/organism/User.svelte';
-	import bgDesktop from '@/../lib/assets/landingDesktop.png';
+	import bgDesktop from '@/../lib/assets/background.svg';
 	import type { LayoutData } from './$types';
 	import { Bug, Github } from '@lucide/svelte';
 	import Separator from '@/components/ui/separator/separator.svelte';
@@ -37,39 +37,42 @@
 </svelte:head>
 
 <section class="">
-	<div class="fixed inset-0 bg-black/50 -z-40"></div>
+	<div class="fixed inset-0 bg-black/60 -z-40"></div>
 	<img
 		src={bgDesktop}
 		alt="Pozadie prihlasovacej stránky"
-		class="fixed inset-0 h-full w-full object-cover -z-50 max-lg:hidden"
+		class="fixed inset-0 h-full w-full object-cover -z-50 max-lg:hidden animate-move"
 	/>
+
+	<!--  -->
 	<!-- NAV -->
-	<nav class="p-2 mb-6 flex items-center justify-between border-b-1 border-secondary">
+	<nav class="p-2 mb-6 flex items-center justify-between">
 		<!-- Logo -->
 		<section>
 			<a href="/" class="flex items-center group">
 				<img src={favicon} alt="Scrapify icon" class="size-10" />
 				<span class="text-sm uppercase font-bold"
-					>Scrap<br class="group-hover:hidden transition-all duration-1000 ease-in" />ify··</span
+					>Scrap<br class="group-hover:hidden transition-all duration-300 ease-in" />ify</span
 				>
 				<div class="flex flex-col gap-0.5">
-					<span class="mb-auto leading-3 mx-2 text-muted text-xs">Ver. 0.7 Beta</span>
+					<span class="mb-auto leading-3 mx-2 text-muted-foreground text-xs">Version 1 Beta</span>
 					<span class="mb-auto leading-3 mx-2 text-xs text-chart-1">{user?.role}</span>
 					<span class="mb-auto leading-3 mx-2 text-xs text-chart-1">{getUserIdCardFromLc()}</span>
 				</div>
 			</a>
 		</section>
 		<!-- Menu -->
-		<section class="hidden lg:flex gap-4">
+		<section class="hidden lg:flex gap-6 items-center">
 			{#each navUrls as url}
 				{@const isActive = page.url.pathname === url.url}
 
 				<Button
 					href={url.url}
+					size="sm"
 					variant="link"
-					class="flex font-semibold text-white {isActive ? ' bg-primary' : ''}"
+					class="flex font-normal tracking-wide text-white {isActive ? ' bg-primary' : ''}"
 				>
-					<url.icon class="size-6" />
+					<!-- <url.icon class="size-6" /> -->
 					<p class="lg:text-lg">{url.title}</p>
 				</Button>
 			{/each}
