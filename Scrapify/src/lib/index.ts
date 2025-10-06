@@ -38,3 +38,8 @@ export function getUserIdCardFromLc(): string | null {
 	}
 	return null;
 }
+
+export function sleep(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+

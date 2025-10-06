@@ -2,6 +2,10 @@
 
 ## Check Status
 
+- [] add user logs
+- [] operator in db
+- [x] quantity info in search
+- [x] Add edit choice
 - [x] Move operator login to main page
 - [x] Add to DB for scrap record description option
 - [x] Filter project, process, part number, scrap code, date from-to
@@ -15,6 +19,7 @@
 - Use the following commands for ongoing database management:
   - `npx prisma migrate dev` for development migrations.
   - `npx prisma migrate reset` to reset the database.
+  - `npx prisma generate` generate client db code.
   - `npx prisma migrate deploy` to apply migrations in production.
   - `npx prisma migrate status` to check migration status.
   - `npx prisma db pull` to sync your Prisma schema with the database.

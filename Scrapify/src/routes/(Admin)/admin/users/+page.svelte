@@ -31,13 +31,13 @@
 	const colorUserByRole = (role: string): string => {
 		switch (role) {
 			case 'ADMIN':
-				return 'bg-chart-2';
+				return 'bg-black';
 			case 'ENGINEER':
-				return 'bg-chart-2/40';
+				return 'bg-chart-2';
 			case 'MODERATOR':
-				return 'bg-chart-2/70';
+				return 'bg-gray-800';
 			default:
-				return 'bg-chart-2/20';
+				return 'bg-primary';
 		}
 	};
 
@@ -53,16 +53,18 @@
 
 	<h1 class="text-5xl mb-10">Registered users</h1>
 
-	<section class="gap-2 lg:gap-10 flex flex-col lg:flex-row">
+	<section class="gap-6 flex-wrap flex mx-auto!">
 		{#each allUsers as user}
-			<Card class="w-full lg:w-lg {colorUserByRole(user.role)}">
+			<Card class="w-full lg:w-xs bg-chart-4/30 cardNormalize">
 				<CardHeader>
 					<CardTitle>{user.name} <br /> {user.email}</CardTitle>
 					<CardDescription>{user.id}</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div class="flex bg-black justify-between items-center rounded-sm p-2">
-						<p class=" text-warning w-fit font-semibold text-xl">
+					<div
+						class="flex {colorUserByRole(user.role)} justify-between items-center rounded-sm p-2"
+					>
+						<p class="w-fit font-bold">
 							{user.role}
 						</p>
 						<div>
@@ -88,7 +90,7 @@
 			modalOpen = !modalOpen;
 		}}
 	>
-		<AlertDialog.Trigger>Change role</AlertDialog.Trigger>
+		<AlertDialog.Trigger class=" underline">Change role</AlertDialog.Trigger>
 
 		<AlertDialog.Content class="bg-transparent border-none">
 			<form

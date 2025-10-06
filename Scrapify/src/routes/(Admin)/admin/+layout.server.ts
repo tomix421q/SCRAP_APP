@@ -1,8 +1,6 @@
-import { auth } from '@/auth/auth';
-import type { PageServerLoad } from './newhall/$types';
 import { getUserServer } from '@/utils/serverHelp';
 import type { LayoutServerLoad } from './$types';
-import { error, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import prismaClient from '@/server/prisma';
 import type { Role } from '@/utils/types';
 

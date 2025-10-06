@@ -35,7 +35,7 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions = {
-	createProcess: async (event) => {
+	createProcess: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
 		const projectId = formData.get('projectId') as string;
 		const processName = formData.get('processName') as string;
@@ -45,7 +45,14 @@ export const actions = {
 			return fail(400, {
 				success: false,
 				error: true,
-				message: 'Hall and project are required.Please select hall and project.'
+				message: 'Project is required.Please select or create project.'
+			});
+		}
+		if (processName.length > 20 || processDescription.length > 200) {
+			return fail(400, {
+				success: false,
+				error: 'Name max 20 characters,description max 200 characters.',
+				message: 'Validation error'
 			});
 		}
 
@@ -78,6 +85,61 @@ export const actions = {
 				message: `Something is wrong :( Please try again later.`,
 				error: error.message + ' ' + error.code || 'Unknown error'
 			});
+		}
+	},
+	editProcess: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
+		const formData = await event.request.formData();
+		const processId = formData.get('processId') as string;
+		const projectId = formData.get('projectId') as string;
+		const processName = formData.get('processName') as string;
+		const processDescription = formData.get('processDescription') as string;
+
+		if (!projectId) {
+			return fail(400, {
+				success: false,
+				error: true,
+				message: 'Project is required.Please select or create project.'
+			});
+		}
+		if (processName.length > 20 || processDescription.length > 200) {
+			return fail(400, {
+				success: false,
+				error: 'Name max 20 characters,description max 200 characters.',
+				message: 'Validation error'
+			});
+		}
+
+		try {
+			const findProject = await prismaClient.project.findFirst({
+				where: { id: Number(projectId) }
+			});
+			const findProcess = await prismaClient.process.findFirst({
+				where: { id: Number(processId) }
+			});
+			if (!findProject || !findProcess) {
+				return fail(404, {
+					success: false,
+					error: true,
+					message: `Project with id ${projectId} or process with id ${findProcess?.id} not found.`
+				});
+			} else {
+				await prismaClient.process.update({
+					where: {
+						id: findProcess.id
+					},
+					data: {
+						name: processName,
+						description: processDescription
+					}
+				});
+				return { success: true, message: `Process with ID ${processId} edited successfully.` };
+			}
+		} catch (error: any) {
+			return {
+				success: false,
+				message: `Something is wrong :( Please try again later.`,
+				error: error.message + ' ' + error.code || 'Unknown error'
+			};
 		}
 	},
 	deleteProcess: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {

@@ -4,6 +4,9 @@
 	import type { Part, Prisma, Process, ScrapCode } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
+	import { editScrapData } from '@/stores/stores';
+	import Button from '@/components/ui/button/button.svelte';
+	import { SquarePenIcon } from '@lucide/svelte';
 
 	// export type ProcessWithRelations = Prisma.ProcessGetPayload<{
 	// 	include: { project: true; parts: true };
@@ -22,6 +25,11 @@
 
 	const session = authClient.useSession();
 	const userId = $derived($session.data?.user.id);
+
+	function handleEditScrapRec(item: ScrapCode) {
+		editScrapData.set(item);
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
 
 	// $inspect(processes);
 </script>
@@ -51,17 +59,6 @@
 			</Table.Header>
 			<Table.Body class="">
 				{#each scrapCodes as item (item)}
-					<!-- {@const createdDate = item.createdAt.toLocaleString()} -->
-					<!-- {@const formatCreatedDate = new Intl.DateTimeFormat('sk-Sk', {
-						year: 'numeric',
-						month: '2-digit',
-						day: '2-digit',
-						hour: '2-digit',
-						minute: '2-digit',
-						second: '2-digit',
-						timeZone: 'UTC'
-					}).format(item.createdAt)} -->
-
 					<Table.Row>
 						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.active}</Table.Cell>
@@ -69,19 +66,20 @@
 						<Table.Cell class="w-[100px]">{item.name}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.processId}</Table.Cell>
 						<Table.Cell class="w-[100px]">{@render description(item.description!)}</Table.Cell>
-
-						<Table.Cell class="w-[50px]"
-							><EditDeleteBtns id={item.id} actionRoute={'?/deleteScrapCode'} /></Table.Cell
-						>
-						<!-- <Table.Cell class="w-[100px] text-primary">{item.part.partNumber}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.part.color}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.part.side ? item.part.side : '?'}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.part.processName}</Table.Cell>
-						<Table.Cell class="w-[50px]">{item.quantity}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.createdBy}</Table.Cell>
-						<Table.Cell class="w-[100px] text-xs"
-							>{dateTimmeUTCformatter(item.createdAt)}</Table.Cell
-						> -->
+						<!-- ACTIONS BTNS -->
+						<Table.Cell class="w-[50px]">
+							<div class="flex justify-end gap-2">
+								<Button
+									onclick={() => handleEditScrapRec(item)}
+									variant="ghost"
+									size="icon"
+									title="Edit"
+									class="text-chart-warning hover:text-chart-warning"
+									><SquarePenIcon class="size-5!" /></Button
+								>
+								<EditDeleteBtns id={item.id} actionRoute={'?/deleteScrapCode'} />
+							</div>
+						</Table.Cell>
 					</Table.Row>
 				{/each}
 			</Table.Body>

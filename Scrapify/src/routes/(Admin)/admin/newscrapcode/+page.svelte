@@ -10,17 +10,51 @@
 	import { Plus } from '@lucide/svelte';
 	import NewScrapCodeTable from '@/components/organism/Tables/NewScrapCodeTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
+	import { currentConfirmDeleteId, editScrapData } from '@/stores/stores';
+	import { onMount } from 'svelte';
 
 	let { data, form }: PageProps = $props();
 	let { scrapCodes, processes, scrapCodeCount, totalPages } = $derived(data.data);
-
 	let isSubmitting = $state(false);
-	let resetProcessCombo = $state(false);
 
+	// ids
+	let idEditScrapCode = $state<number>();
 	let processId = $state('');
 	let scrapcodeNum = $state('');
 	let scrapcodeName = $state('');
 	let scrapDescription = $state('');
+
+	//reset combo
+	let resetProcessCombo = $state(false);
+
+	function clearEditForm() {
+		idEditScrapCode = undefined;
+		processId = '';
+		scrapcodeNum = '';
+		scrapcodeName = '';
+		scrapDescription = '';
+		$editScrapData = undefined;
+	}
+
+	$effect(() => {
+		if ($editScrapData) {
+			form = null;
+			idEditScrapCode = $editScrapData.id;
+			if ($editScrapData.processId) processId = $editScrapData.processId.toString();
+			scrapcodeNum = $editScrapData.code;
+			scrapcodeName = $editScrapData.name;
+			if ($editScrapData.description) scrapDescription = $editScrapData.description;
+		}
+
+		if ($currentConfirmDeleteId) {
+			clearEditForm();
+		}
+	});
+
+	onMount(() => {
+		clearEditForm();
+		$currentConfirmDeleteId = undefined;
+	});
 
 	// $inspect(scrapCodes);
 </script>
@@ -31,25 +65,42 @@
 	<!-- FORM -->
 	<section class="w-full sm:w-lg">
 		<form
-			action="?/createScrap"
+			action={idEditScrapCode ? '?/editScrap' : '?/createScrap'}
 			method="POST"
 			class="formNormalize"
 			use:enhance={() => {
 				isSubmitting = true;
 				return async ({ update, result }) => {
+					if (result.type === 'success') {
+						resetProcessCombo = true;
+					}
 					await update();
 					isSubmitting = false;
+					resetProcessCombo = false;
+					clearEditForm();
 				};
 			}}
 		>
-			<h1 class="mx-auto mb-6 text-2xl">Create new screp code</h1>
+			<h1 class="mx-auto mb-6 text-2xl">
+				{idEditScrapCode ? 'Edit scrap code' : 'Create screp code'}
+			</h1>
 			<div>
 				<ResultInfo data={form} />
 			</div>
+			<!-- if edit  -->
+			<input type="text" hidden name="scrapCodeId" bind:value={idEditScrapCode} />
+
 			<!--  -->
 			<!-- process COMBO -->
 			<article class="flex justify-between items-center gap-2">
 				<Label for="processId" class="text-sm md:text-lg">Process</Label>
+				<!-- if edit -->
+				{#if idEditScrapCode}
+					{@const actuallProcess = processes.find((process) => process.id === Number(processId))}
+					<p class=" ml-auto text-sm text-chart-1">
+						<span>{actuallProcess ? actuallProcess.name : 'Unknown process'}</span>
+					</p>
+				{/if}
 				<div class="flex gap-2">
 					<Combobox
 						dataBox={processes}
@@ -102,9 +153,12 @@
 				{#if isSubmitting}
 					<span>Submitting...</span>
 				{:else}
-					Create screp code
+					{idEditScrapCode ? 'Edit scrap code' : 'Create scrap code'}
 				{/if}
 			</Button>
+			{#if idEditScrapCode}
+				<Button variant="destructive" onclick={() => clearEditForm()}>Close Edit</Button>
+			{/if}
 		</form>
 	</section>
 

@@ -1,6 +1,7 @@
 import z from 'zod';
 
 export const scrapRecordSchema = z.object({
+	scrapRecordId: z.string().optional(),
 	partId: z.coerce.number().int().positive('Vyber prosim diel.'),
 	scrapId: z.coerce.number().int().positive('Vyber prosim scrap code.'),
 	description: z.string().min(1, 'Opis musi obsahovat aspon 1 znak.'),

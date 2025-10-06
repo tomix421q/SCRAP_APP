@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Download } from '@lucide/svelte';
+	import { Download, SquarePenIcon } from '@lucide/svelte';
 	import Button from '../../ui/button/button.svelte';
 	import * as Table from '@/components/ui/table';
 	import * as HoverCard from '@/components/ui/hover-card/index';
@@ -9,6 +9,7 @@
 	import { authClient } from '@/auth/auth-client';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 	import { type Role } from '@/utils/types';
+	import { editSearchData } from '@/stores/stores';
 
 	export type ScrapRecordWithRelations = Prisma.ScrapRecordGetPayload<{
 		include: { part: true; scrapCode: true };
@@ -17,11 +18,13 @@
 	let {
 		findRecords,
 		totalRecords,
+		partsQnt = undefined,
 		headerText,
 		userInfo
 	}: {
 		findRecords: ScrapRecordWithRelations[];
 		totalRecords?: number;
+		partsQnt?: number | null;
 		headerText?: string;
 		userInfo: User | null;
 	} = $props();
@@ -30,22 +33,36 @@
 	const userId = $derived($session.data?.user.id);
 	let operatorId = $state('');
 
+	function handleEditSearchScrap(item: ScrapRecordWithRelations) {
+		editSearchData.set(item);
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
 	$effect(() => {
 		let getId = localStorage.getItem('operatorId');
 		operatorId = getId ? getId : 'empty';
 	});
 
-	// $inspect(userInfo);
+	// $inspect($editSearchData);
 </script>
 
 <main>
 	<div class="text-sm my-10 listNormalize">
-		<div class="mb-2 space-y-2 md:flex w-full justify-between">
-			<p class=" tracking-widest space-x-1">
-				<span>Total: </span><span class="font-bold text-chart-3 text-xl"
-					>{totalRecords ? totalRecords : '0'}</span
-				>
-			</p>
+		<!-- HEADER -->
+		<div class="mb-2 gap-x-10 md:flex w-full justify-between">
+			<article class="flex text-muted items-center gap-10 tracking-widest font-bold">
+				<p>
+					<span>Total records: </span><span class="text-chart-3 text-lg"
+						>{totalRecords ? totalRecords : '0'}</span
+					>
+				</p>
+				<p class={partsQnt !== undefined ? 'block' : 'hidden'}>
+					<span>Quantity: </span><span class="text-chart-3 text-lg"
+						>{partsQnt ? partsQnt : '0'}</span
+					>
+				</p>
+			</article>
+
 			<h2 class="lg:text-lg tracking-widest font-bold">{headerText}</h2>
 
 			{#if userId}
@@ -78,17 +95,6 @@
 			</Table.Header>
 			<Table.Body class="">
 				{#each findRecords as item (item)}
-					{@const createdDate = item.createdAt.toLocaleString()}
-					{@const formatCreatedDate = new Intl.DateTimeFormat('sk-Sk', {
-						year: 'numeric',
-						month: '2-digit',
-						day: '2-digit',
-						hour: '2-digit',
-						minute: '2-digit',
-						second: '2-digit',
-						timeZone: 'UTC'
-					}).format(item.createdAt)}
-
 					<Table.Row>
 						<Table.Cell class="w-[100px] text-primary">{item.scrapCode.code}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.scrapCode.name}</Table.Cell>
@@ -102,15 +108,37 @@
 						<Table.Cell class="w-[100px] text-xs"
 							>{dateTimmeUTCformatter(item.createdAt)}</Table.Cell
 						>
-
-						<Table.Cell
-							class={(operatorId === item.createdBy && isWithinTimeLimit(item.createdAt, 60)) ||
-							(userInfo?.role as Role) === 'ADMIN' ||
-							(userInfo?.role as Role) === 'MODERATOR' ||
-							(userInfo?.role as Role) === 'ENGINEER'
-								? 'block'
-								: 'hidden'}><DeleteBtn id={item.id} actionRoute="?/deleteScrapRecord" /></Table.Cell
-						>
+						<!-- ACTIONS BTNS  -->
+						<Table.Cell>
+							<div class="flex justify-end gap-2">
+								<section
+									class={(userInfo?.role as Role) === 'ADMIN' ||
+									(userInfo?.role as Role) === 'MODERATOR' ||
+									(userInfo?.role as Role) === 'ENGINEER'
+										? 'block'
+										: 'hidden'}
+								>
+									<Button
+										onclick={() => handleEditSearchScrap(item)}
+										variant="ghost"
+										size="icon"
+										title="Edit"
+										class="text-chart-warning hover:text-chart-warning"
+										><SquarePenIcon class="size-5!" /></Button
+									>
+								</section>
+								<section
+									class={(operatorId === item.createdBy && isWithinTimeLimit(item.createdAt, 60)) ||
+									(userInfo?.role as Role) === 'ADMIN' ||
+									(userInfo?.role as Role) === 'MODERATOR' ||
+									(userInfo?.role as Role) === 'ENGINEER'
+										? 'block'
+										: 'hidden'}
+								>
+									<DeleteBtn id={item.id} actionRoute="?/deleteScrapRecord" />
+								</section>
+							</div>
+						</Table.Cell>
 					</Table.Row>
 				{/each}
 			</Table.Body>

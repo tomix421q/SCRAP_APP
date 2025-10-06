@@ -5,13 +5,16 @@
 	import { CheckIcon, ChevronsUpDownIcon } from '@lucide/svelte';
 	import { cn } from '@/components/ui/utils';
 	import { tick } from 'svelte';
+	import { isEditing } from '@/stores/stores';
+
+	// global store is $isEditing - state for editing something
 
 	type NameLabel = 'name' | 'codeName' | 'partnumSideColor';
 
 	let {
 		dataBox,
 		value = $bindable(),
-		reset,
+		reset = $bindable(),
 		id = '',
 		nameLabel = 'name'
 	}: {
@@ -23,10 +26,11 @@
 	} = $props();
 	let open = $state(false);
 	let InternalValue = $state('');
+	let editMode = $state(false);
 	let triggerRef = $state<HTMLButtonElement>(null!);
 
 	// const selectedLabel = $derived(dataBox?.find((f: any) => f.id === InternalValue)?.name);
-	const selectedLabel = $derived.by<string | undefined>(() => {
+	let selectedLabel = $derived.by<string | undefined>(() => {
 		const foundItem = dataBox?.find((f: any) => f.id === InternalValue);
 		if (!foundItem) {
 			return undefined;
@@ -62,10 +66,16 @@
 		if (reset) {
 			InternalValue = '';
 			value = '';
+			reset = false;
 		}
+		if ($isEditing && editMode === false) {
+			editMode = true;
+			InternalValue = '';
+		}
+		if ($isEditing === false) editMode = false;
 	});
 
-	// $inspect(selectedLabel);
+	// $inspect(InternalValue);
 </script>
 
 <div>
@@ -91,7 +101,7 @@
 				<Command.Input placeholder="Search ..." class="h-4! inputNormalize" />
 
 				<Command.List class="mt-4">
-					<Command.Empty>Not found.</Command.Empty>
+					<Command.Empty>Empty</Command.Empty>
 					<Command.Group>
 						{#each dataBox as item}
 							<Command.Item

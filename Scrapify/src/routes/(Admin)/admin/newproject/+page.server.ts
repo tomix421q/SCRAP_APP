@@ -26,7 +26,7 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions: Actions = {
-	createProject: async (event) => {
+	createProject: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
 		const hallId = formData.get('hallId') as string;
 		const projectName = formData.get('projectName') as string;
@@ -37,6 +37,13 @@ export const actions: Actions = {
 				success: false,
 				error: true,
 				message: 'Hall is required. Please select a hall.'
+			});
+		}
+		if (projectName.length > 20 || projectDescription.length > 200) {
+			return fail(400, {
+				success: false,
+				error: 'Name max 20 characters,description max 200 characters.',
+				message: 'Validation error'
 			});
 		}
 		try {
@@ -63,6 +70,73 @@ export const actions: Actions = {
 				success: true,
 				message: 'Project created successfully'
 			};
+		} catch (error: any) {
+			return fail(500, {
+				success: false,
+				message: `Something is wrong :( Please try again later.`,
+				error: error.message + ' ' + error.code || 'Unknown error'
+			});
+		}
+	},
+	editProject: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
+		const formData = await event.request.formData();
+		const hallId = formData.get('hallId') as string;
+		const projectName = formData.get('projectName') as string;
+		const projectDescription = formData.get('projectDescription') as string;
+		const projectId = formData.get('projectId') as string;
+
+		if (!hallId) {
+			return fail(400, {
+				success: false,
+				error: true,
+				message: 'Hall is required. Please select a hall.'
+			});
+		}
+		if (projectName.length > 20 || projectDescription.length > 200) {
+			return fail(400, {
+				success: false,
+				error: 'Name max 20 characters,description max 200 characters.',
+				message: 'Validation error'
+			});
+		}
+		try {
+			const findHall = await prismaClient.hall.findFirst({
+				where: {
+					id: parseInt(hallId, 10)
+				}
+			});
+			if (!findHall) {
+				return fail(404, {
+					success: false,
+					message: 'Hall with this ID does not exist.',
+					error: true
+				});
+			}
+			const findProject = await prismaClient.project.findFirst({
+				where: { id: Number(projectId) }
+			});
+			if (!findProject) {
+				return fail(404, {
+					success: false,
+					error: true,
+					message: `Project with ID : ${projectId} not found.`
+				});
+			} else {
+				await prismaClient.project.update({
+					where: {
+						id: findProject.id
+					},
+					data: {
+						hallId: findHall.id,
+						name: projectName,
+						description: projectDescription
+					}
+				});
+				return {
+					success: true,
+					message: `Project with ID ${projectId} edited successfully.`
+				};
+			}
 		} catch (error: any) {
 			return fail(500, {
 				success: false,

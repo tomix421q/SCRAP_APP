@@ -12,7 +12,7 @@
 	import { tick } from 'svelte';
 
 	let { data, form }: PageProps = $props();
-	let { processes, parts, scrapCodes, scrapRecords } = $derived(data.data);
+	let { processes, parts, scrapCodes, scrapRecords, totalPartsQnt } = $derived(data.data);
 	const user = $derived(data.user);
 
 	let isSubmitting = $state(false);
@@ -35,7 +35,7 @@
 		}
 	};
 
-	const filterOptions: { processId: string } = $state({
+	let filterOptions: { processId: string } = $state({
 		processId: ''
 	});
 

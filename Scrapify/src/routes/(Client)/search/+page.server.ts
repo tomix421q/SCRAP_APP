@@ -3,6 +3,8 @@ import type { Actions, PageServerLoad } from './$types';
 import type { Prisma } from '@prisma/client';
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
+import { sleep } from '@/index';
+import { scrapRecordSchema } from '@/utils/zod';
 
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
@@ -51,7 +53,7 @@ export const load: PageServerLoad = async (event) => {
 	}
 
 	try {
-		const [findRecords, totalRecords, allProcesses] = await Promise.all([
+		const [findRecords, totalRecords, allProcesses, totalPartQnt] = await Promise.all([
 			prismaClient.scrapRecord.findMany({
 				where,
 				include: { part: true, scrapCode: true },
@@ -59,14 +61,37 @@ export const load: PageServerLoad = async (event) => {
 				take: limit,
 				orderBy: { createdAt: 'desc' }
 			}),
-
 			prismaClient.scrapRecord.count({ where }),
-			prismaClient.process.findMany({ select: { name: true, id: true }, orderBy: { id: 'asc' } })
+			prismaClient.process.findMany({ select: { name: true, id: true }, orderBy: { id: 'asc' } }),
+			prismaClient.scrapRecord.aggregate({
+				where,
+				_sum: {
+					quantity: true
+				}
+			})
 		]);
 
 		const totalPages = Math.ceil(totalRecords / limit);
-		// console.log(findRecords);
-		return { findRecords, totalRecords, totalPages, allProcesses };
+
+		// Lazy load
+		const allPartsPromise = (async () => {
+			return prismaClient.part.findMany();
+		})();
+
+		const scrapCodesPromise = (async () => {
+			return prismaClient.scrapCode.findMany();
+		})();
+
+		// console.log(totalPartQnt);
+		return {
+			findRecords,
+			totalRecords,
+			totalPages,
+			allProcesses,
+			totalPartQnt,
+			allPartsPromise,
+			scrapCodesPromise
+		};
 	} catch (err: any) {
 		throw error(500, {
 			message: `${err}`
@@ -75,6 +100,88 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions: Actions = {
+	editSearchScrapRecord: async (event) => {
+		const formData = await event.request.formData();
+
+		const formDataRaw = {
+			scrapRecordId: formData.get('scrapRecordId'),
+			partId: formData.get('partId'),
+			scrapId: formData.get('scrapCodeId'),
+			description: formData.get('description'),
+			quantity: formData.get('quantity'),
+			operatorId: formData.get('operatorId')
+		};
+		const parseZod = scrapRecordSchema.safeParse(formDataRaw);
+		if (!formDataRaw.scrapRecordId) {
+			return fail(400, {
+				success: false,
+				message: 'Validation error',
+				error: `Scrap record id:${formDataRaw.scrapRecordId} not found.`
+			});
+		}
+		if (!parseZod.success) {
+			const fieldErrors = parseZod.error.flatten().fieldErrors;
+			return fail(400, {
+				success: false,
+				message: 'Validation error',
+				error: fieldErrors
+			});
+		}
+
+		try {
+			if (parseZod.success) {
+				const [findScrapRecord, findPartId, findScrapId] = await Promise.all([
+					prismaClient.scrapRecord.findFirst({
+						where: { id: Number(parseZod.data.scrapRecordId) }
+					}),
+					prismaClient.part.findFirst({ where: { id: parseZod.data.partId } }),
+					prismaClient.scrapCode.findFirst({ where: { id: parseZod.data.scrapId } })
+				]);
+
+				if (!findScrapId) {
+					return fail(404, {
+						success: false,
+						error: true,
+						message: `Scrap record with id ${parseZod.data.scrapRecordId} not found in DB.`
+					});
+				}
+				if (!findPartId || !findScrapId) {
+					return fail(404, {
+						success: false,
+						error: true,
+						message: `Part with id ${parseZod.data.partId} or ${parseZod.data.scrapId} not found in DB.`
+					});
+				}
+
+				if (findScrapRecord && findPartId && findScrapId) {
+					await prismaClient.scrapRecord.update({
+						where: {
+							id: findScrapRecord.id
+						},
+						data: {
+							partId: findPartId.id,
+							scrapCodeId: findScrapId.id,
+							description: parseZod.data.description,
+							quantity: parseZod.data.quantity,
+							createdBy: parseZod.data.operatorId
+						}
+					});
+
+					return {
+						success: true,
+						message: `Scrap record with id ${findScrapRecord.id} updated successfully.`
+					};
+				}
+			} else {
+			}
+		} catch (error: any) {
+			return fail(500, {
+				success: false,
+				error: error.message || 'Unknown error',
+				message: `Something is wrong :( Please try again later. ${error.message ? `Error ${error.message}` : error}`
+			});
+		}
+	},
 	deleteScrapRecord: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
 		const id = formData.get('deleteId');

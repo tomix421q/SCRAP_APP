@@ -24,7 +24,7 @@ export const load: PageServerLoad = async (event) => {
 			totalPages,
 			partsCount
 		};
-
+		console.log(allParts);
 		return { data };
 	} catch (err: any) {
 		throw error(500, {
@@ -39,7 +39,6 @@ export const actions = {
 		const processId = formData.get('processId') as string;
 		const partProdNumberId = formData.get('partNumber') as string;
 		const partSide = formData.get('partSide') as string;
-		console.log(formData);
 
 		if (!processId) {
 			return fail(400, {
@@ -48,11 +47,18 @@ export const actions = {
 				message: 'Process is required.Please select process.'
 			});
 		}
+		if (partProdNumberId.length > 100) {
+			return fail(400, {
+				success: false,
+				error: 'Max 100 characters for part number.',
+				message: 'Validation error'
+			});
+		}
 		try {
 			const [findProcess] = await Promise.all([
 				prismaClient.process.findFirst({
 					where: { id: parseInt(processId, 10) },
-					include: { project: true }
+					include: { project: {include : {hall : true}}  }
 				})
 			]);
 
@@ -68,12 +74,77 @@ export const actions = {
 					processId: findProcess.id,
 					processName: findProcess.name,
 					projectName: findProcess.project.name,
-					hallName: findProcess.project.name,
+					hallName: findProcess.project.hall.name,
 					partNumber: partProdNumberId,
 					side: partSide
 				}
 			});
 			return { success: true, message: 'Part created successfully.' };
+		} catch (error: any) {
+			return fail(500, {
+				success: false,
+				error: error.message || 'Unknown error',
+				message: `Something is wrong :( Please try again later. ${error.message ? `Error ${error.message}` : error}`
+			});
+		}
+	},
+	editPart: async (event) => {
+		const formData = await event.request.formData();
+		const partId = formData.get('partId') as string;
+		const processId = formData.get('processId') as string;
+		const partProdNumberId = formData.get('partNumber') as string;
+		const partSide = formData.get('partSide') as string;
+
+		if (!processId) {
+			return fail(400, {
+				success: false,
+				error: true,
+				message: 'Process is required.Please select process.'
+			});
+		}
+		if (partProdNumberId.length > 100) {
+			return fail(400, {
+				success: false,
+				error: 'Max 100 characters for part number.',
+				message: 'Validation error'
+			});
+		}
+		try {
+			const [findPart, findProcess] = await Promise.all([
+				prismaClient.part.findFirst({ where: { id: Number(partId) } }),
+				prismaClient.process.findFirst({
+					where: { id: parseInt(processId, 10) },
+					include: { project: true }
+				})
+			]);
+			if (!findPart) {
+				return fail(404, {
+					success: false,
+					error: true,
+					message: `Part with ID ${partId} not found.`
+				});
+			}
+			if (!findProcess) {
+				return fail(404, {
+					success: false,
+					error: true,
+					message: `Process with ID ${processId} not found.`
+				});
+			}
+			await prismaClient.part.update({
+				where: {
+					id: findPart.id
+				},
+				data: {
+					processId: findProcess.id,
+					processName: findProcess.name,
+					projectName: findProcess.project.name,
+					hallName: findProcess.project.name,
+					partNumber: partProdNumberId,
+					side: partSide
+				}
+			});
+			return { success: true, message: `Part with ID ${partId} edited successfully.` };
 		} catch (error: any) {
 			return fail(500, {
 				success: false,

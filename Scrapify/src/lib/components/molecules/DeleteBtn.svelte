@@ -2,8 +2,7 @@
 	import { Check, Trash, X } from '@lucide/svelte';
 	import { Button } from '../ui/button';
 	import { enhance } from '$app/forms';
-	import { currentConfirmDeleteId } from '@/stores/stores';
-	import Card from '../ui/card/card.svelte';
+	import { currentConfirmDeleteId, isEditing } from '@/stores/stores';
 
 	let { id, actionRoute }: { id: number; actionRoute: string } = $props();
 
@@ -18,6 +17,10 @@
 		isConfirmState = false;
 		currentConfirmDeleteId.set(undefined);
 	};
+
+	$effect(() => {
+		if ($isEditing) handleCancelConfirm();
+	});
 
 	// $inspect(takeConfirmId);
 </script>

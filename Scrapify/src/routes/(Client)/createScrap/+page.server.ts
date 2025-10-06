@@ -2,7 +2,6 @@ import prismaClient from '@/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import { scrapRecordSchema } from '@/utils/zod';
-import type { Prisma } from '@prisma/client';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 
 export const load: PageServerLoad = async (event) => {
@@ -25,12 +24,17 @@ export const load: PageServerLoad = async (event) => {
 			take: 20,
 			where: { part: { processId: processId } }
 		});
-
+		const totalPartsQnt = await prismaClient.scrapRecord.aggregate({
+			_sum: {
+				quantity: true
+			}
+		});
 		const data = {
 			processes: allProcess,
 			parts: allParts,
 			scrapCodes: scrapCodes,
-			scrapRecords: scrapRecords
+			scrapRecords: scrapRecords,
+			totalPartsQnt
 		};
 		return { data };
 	} catch (err: any) {

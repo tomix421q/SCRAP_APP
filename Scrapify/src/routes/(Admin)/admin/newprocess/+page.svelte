@@ -10,29 +10,60 @@
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import NewProcessTable from '@/components/organism/Tables/NewProcessTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
+	import { currentConfirmDeleteId, editProcessData } from '@/stores/stores';
+	import { onMount } from 'svelte';
 
 	let { data, form }: PageProps = $props();
 	let { processes, projects, totalPages, processCount } = $derived(data.data);
-
 	let isSubmitting = $state(false);
 
 	// id
+	let idEditProcess = $state<number>();
 	let projectId = $state('');
+	let processName = $state('');
+	let processDescription = $state('');
 
 	// reset
 	let resetProjectCombo = $state(false);
-	let projectName = $state('');
-	let projectDescription = $state('');
+
+	function clearEditForm() {
+		idEditProcess = undefined;
+		projectId = '';
+		processName = '';
+		processDescription = '';
+		$editProcessData = undefined;
+	}
+
+	$effect(() => {
+		if ($editProcessData) {
+			form = null;
+			idEditProcess = $editProcessData.id;
+			projectId = $editProcessData.projectId.toString();
+			processName = $editProcessData.name;
+			if ($editProcessData.description) processDescription = $editProcessData.description;
+		}
+
+		if ($currentConfirmDeleteId) {
+			clearEditForm();
+		}
+	});
+
+	onMount(() => {
+		clearEditForm();
+		$currentConfirmDeleteId = undefined;
+	});
 
 	// $inspect(processes);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
 <main class="flex flex-col lg:flex-wrap gap-10 mx-auto">
+	<!--  -->
+	<!-- CREATE & EDIT PROCESS -->
 	<section class="w-full sm:w-lg">
 		<form
 			method="POST"
-			action="?/createProcess"
+			action={idEditProcess ? '?/editProcess' : '?/createProcess'}
 			use:enhance={() => {
 				isSubmitting = true;
 
@@ -44,19 +75,29 @@
 					await update();
 					isSubmitting = false;
 					resetProjectCombo = false;
+					clearEditForm();
 				};
 			}}
 			class="formNormalize"
 		>
-			<h1 class="mx-auto mb-6 text-2xl">Create new process</h1>
+			<h1 class="mx-auto mb-6 text-2xl">{idEditProcess ? 'Edit process' : 'Create new process'}</h1>
 			<div>
 				<ResultInfo data={form} />
 			</div>
+			<!-- if edit  -->
+			<input type="text" hidden name="processId" bind:value={idEditProcess} />
 
 			<!--  -->
 			<!-- project COMBO -->
 			<article class="flex justify-between items-center gap-2">
 				<Label for="projectId" class="text-sm md:text-lg">Project</Label>
+				<!-- if edit -->
+				{#if idEditProcess}
+					{@const actuallProject = projects.find((project) => project.id === Number(projectId))}
+					<p class=" ml-auto text-sm text-chart-1">
+						<span>{actuallProject ? actuallProject.name : 'Unknown project'}</span>
+					</p>
+				{/if}
 				<div class="flex gap-2">
 					<Combobox
 						dataBox={projects}
@@ -76,7 +117,7 @@
 					type="text"
 					name="processName"
 					id="processName"
-					bind:value={projectName}
+					bind:value={processName}
 					placeholder="Insert process name"
 					class="inputNormalize max-w-[240px]"
 					required
@@ -88,7 +129,7 @@
 					type="text"
 					name="processDescription"
 					id="processDescription"
-					bind:value={projectDescription}
+					bind:value={processDescription}
 					class="inputNormalize max-w-[240px]"
 					placeholder="Process description (optional)"
 				/>
@@ -97,9 +138,12 @@
 				{#if isSubmitting}
 					<span>Submitting...</span>
 				{:else}
-					Create project
+					{idEditProcess ? 'Edit process' : 'Create process'}
 				{/if}
 			</Button>
+			{#if idEditProcess}
+				<Button variant="destructive" onclick={() => clearEditForm()}>Close Edit</Button>
+			{/if}
 		</form>
 	</section>
 

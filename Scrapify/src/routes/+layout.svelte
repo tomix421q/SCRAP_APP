@@ -8,12 +8,14 @@
 	import User from '@/components/organism/User.svelte';
 	import bgDesktop from '@/../lib/assets/background.svg';
 	import type { LayoutData } from './$types';
-	import { Bug, Github } from '@lucide/svelte';
+	import { Bug, Github, Menu } from '@lucide/svelte';
 	import Separator from '@/components/ui/separator/separator.svelte';
 	import { getUserIdCardFromLc } from '@/index';
 	import { afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import MobileMenu from '@/components/molecules/MobileMenu.svelte';
 
+	// let navigatee = $derived(navigating.complete);
 	let { children, data }: { children: any; data: LayoutData } = $props();
 	let currentPath = $state('');
 	let userIdCardFromLc = $state<string | null>(null);
@@ -32,7 +34,7 @@
 		currentPath = page.url.pathname;
 	});
 
-	// $inspect(data);
+	// $inspect();
 </script>
 
 <svelte:head>
@@ -59,29 +61,36 @@
 					>Scrap<br class="group-hover:hidden transition-all duration-300 ease-in" />ify</span
 				>
 				<div class="flex flex-col gap-0.5">
-					<span class="mb-auto leading-3 mx-2 text-muted-foreground text-xs">Version 1 Beta</span>
+					<span class="mb-auto leading-3 mx-2 text-muted-foreground text-xs">Version 2.0</span>
 					<span class="mb-auto leading-3 mx-2 text-xs text-chart-1">{user?.role}</span>
 					<span class="mb-auto leading-3 mx-2 text-xs text-chart-1">{userIdCardFromLc}</span>
 				</div>
 			</a>
 		</section>
 		<!-- Menu -->
-		<section class="hidden lg:flex gap-6 items-center">
-			{#each navUrls as url}
-				{@const isActive = page.url.pathname === url.url}
+		<div class="flex gap-2">
+			<!-- Menu desktop -->
+			<section class="hidden lg:flex gap-6 items-center">
+				{#each navUrls as url}
+					{@const isActive = page.url.pathname === url.url}
 
-				<Button
-					href={url.url}
-					size="sm"
-					variant="link"
-					class="flex font-normal tracking-wide text-white {isActive ? ' bg-primary' : ''}"
-				>
-					<!-- <url.icon class="size-6" /> -->
-					<p class="lg:text-lg">{url.title}</p>
-				</Button>
-			{/each}
+					<Button
+						href={url.url}
+						size="sm"
+						variant="link"
+						class="flex font-normal tracking-wide text-white {isActive ? ' bg-primary' : ''}"
+					>
+						<!-- <url.icon class="size-6" /> -->
+						<p class="lg:text-lg">{url.title}</p>
+					</Button>
+				{/each}
+			</section>
 			<User user={data} />
-		</section>
+			<!-- Menu mobile -->
+			<section class="flex lg:hidden items-center">
+				<MobileMenu />
+			</section>
+		</div>
 	</nav>
 
 	<!-- ALL CONTENT RENDER -->

@@ -4,6 +4,9 @@
 	import type { Hall, Part, Process, Project } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
+	import { editPartData } from '@/stores/stores';
+	import Button from '@/components/ui/button/button.svelte';
+	import { SquarePenIcon } from '@lucide/svelte';
 
 	let {
 		parts,
@@ -20,7 +23,12 @@
 	const session = authClient.useSession();
 	const userId = $derived($session.data?.user.id);
 
-	// $inspect(userId)
+	function handleEditPartRec(item: Part) {
+		editPartData.set(item);
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
+	// $inspect(parts)
 </script>
 
 <main>
@@ -43,27 +51,10 @@
 					<Table.Head class="w-[100px]">Hall</Table.Head>
 					<Table.Head class="w-[100px]">Side?</Table.Head>
 					<Table.Head colspan={1} class="text-end">Actions</Table.Head>
-					<!-- <Table.Head class="w-[100px]">Part Side</Table.Head>
-					<Table.Head class="w-[100px]">Processs Name</Table.Head>
-					<Table.Head class="w-[50px]">Quantity</Table.Head>
-					<Table.Head class="w-[100px]">Scrap description</Table.Head>
-					<Table.Head class="w-[100px]">Created by</Table.Head>
-					<Table.Head class="w-[100px]">Created At</Table.Head> -->
 				</Table.Row>
 			</Table.Header>
 			<Table.Body class="">
 				{#each parts as item (item)}
-					<!-- {@const createdDate = item.createdAt.toLocaleString()} -->
-					<!-- {@const formatCreatedDate = new Intl.DateTimeFormat('sk-Sk', {
-						year: 'numeric',
-						month: '2-digit',
-						day: '2-digit',
-						hour: '2-digit',
-						minute: '2-digit',
-						second: '2-digit',
-						timeZone: 'UTC'
-					}).format(item.createdAt)} -->
-
 					<Table.Row>
 						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.partNumber}</Table.Cell>
@@ -71,18 +62,20 @@
 						<Table.Cell class="w-[100px]">{item.projectName}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.hallName}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.side}</Table.Cell>
-						<Table.Cell class="w-[50px]"
-							><EditDeleteBtns id={item.id} actionRoute={'?/deletePart'} /></Table.Cell
-						>
-						<!-- <Table.Cell class="w-[100px] text-primary">{item.part.partNumber}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.part.color}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.part.side ? item.part.side : '?'}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.part.processName}</Table.Cell>
-						<Table.Cell class="w-[50px]">{item.quantity}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.createdBy}</Table.Cell>
-						<Table.Cell class="w-[100px] text-xs"
-							>{dateTimmeUTCformatter(item.createdAt)}</Table.Cell
-						> -->
+
+						<Table.Cell class="w-[50px]">
+							<div class="flex justify-end gap-2">
+								<Button
+									onclick={() => handleEditPartRec(item)}
+									variant="ghost"
+									size="icon"
+									title="Edit"
+									class="text-chart-warning hover:text-chart-warning"
+									><SquarePenIcon class="size-5!" /></Button
+								>
+								<EditDeleteBtns id={item.id} actionRoute={'?/deletePart'} />
+							</div>
+						</Table.Cell>
 					</Table.Row>
 				{/each}
 			</Table.Body>

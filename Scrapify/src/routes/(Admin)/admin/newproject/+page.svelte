@@ -10,48 +10,91 @@
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import NewProjectTable from '@/components/organism/Tables/NewProjectTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
+	import { currentConfirmDeleteId, editProjectData, isEditing } from '@/stores/stores';
+	import { onMount } from 'svelte';
 
 	let { form, data }: PageProps = $props();
 	let { projects, halls, totalPages, projectsCount } = $derived(data.data);
-
 	let isSubmitting = $state(false);
+
+	let idEditProject = $state<number>();
 	let hallId = $state('');
-	let resetHallCombo = $state(false);
 	let projectName = $state('');
 	let projectDescription = $state('');
+
+	let resetHallCombo = $state(false);
+
+	function clearEditForm() {
+		idEditProject = undefined;
+		hallId = '';
+		projectName = '';
+		projectDescription = '';
+		$editProjectData = undefined;
+	}
+
+	$effect(() => {
+		if ($editProjectData) {
+			form = null;
+			idEditProject = $editProjectData.id;
+			hallId = $editProjectData.hallId.toString();
+			projectName = $editProjectData.name;
+			if ($editProjectData.description) projectDescription = $editProjectData.description;
+		}
+
+		if ($currentConfirmDeleteId) {
+			clearEditForm();
+		}
+	});
+
+	onMount(() => {
+		clearEditForm();
+		$currentConfirmDeleteId = undefined;
+	});
+
+	// $inspect($isEditing);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
 <main class="flex flex-col lg:flex-wrap gap-10">
 	<!--  -->
-	<!-- CREATE PROJECT -->
+	<!-- CREATE & EDIT PROJECT -->
 	<section class="w-full sm:w-lg">
 		<form
 			method="POST"
-			action="?/createProject"
+			action={idEditProject ? '?/editProject' : '?/createProject'}
 			use:enhance={() => {
 				isSubmitting = true;
 
 				return async ({ update, result }) => {
-					// await new Promise((resolve) => setTimeout(resolve, 5000));
 					if (result?.type === 'success') {
 						resetHallCombo = true;
 					}
 					await update();
 					isSubmitting = false;
 					resetHallCombo = false;
+					clearEditForm();
 				};
 			}}
 			class="formNormalize"
 		>
-			<h1 class="mx-auto mb-6 text-2xl">Create new project</h1>
+			<h1 class="mx-auto mb-6 text-2xl">{idEditProject ? 'Edit Project' : 'Create new project'}</h1>
 			<div>
 				<ResultInfo data={form} />
 			</div>
+			<!-- if edit  -->
+			<input type="text" hidden name="projectId" bind:value={idEditProject} />
+
 			<!--  -->
 			<!-- hall COMBO -->
 			<article class="flex justify-between items-center gap-2">
 				<Label for="hallId" class="text-sm md:text-lg">Hall</Label>
+				<!-- if edit -->
+				{#if idEditProject}
+					{@const actualHall = halls.find((hall) => hall.id === Number(hallId))}
+					<p class=" ml-auto text-sm text-chart-1">
+						<span>{actualHall ? actualHall.name : 'Unknown hall'}</span>
+					</p>
+				{/if}
 				<div class="flex gap-2">
 					<Combobox dataBox={halls} bind:value={hallId} reset={resetHallCombo} id="hallId" />
 					<Button size="icon" href="/admin/newhall"><Plus /></Button>
@@ -87,9 +130,12 @@
 				{#if isSubmitting}
 					<span>Submitting...</span>
 				{:else}
-					Create project
+					{idEditProject ? 'Edit project' : 'Create project'}
 				{/if}
 			</Button>
+			{#if idEditProject}
+				<Button variant="destructive" onclick={() => clearEditForm()}>Close Edit</Button>
+			{/if}
 		</form>
 	</section>
 

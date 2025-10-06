@@ -81,8 +81,8 @@
 
 /* SHADCN COLORS */
 @theme inline {
-	--animate-wiggle: gentle-sway 10s ease-in-out infinite;
-	--animate-move: gentle-move 10s ease-in infinite;
+	--animate-wiggle: gentle-sway 30s ease-in-out infinite;
+	--animate-move: gentle-move 30s ease-in infinite;
 	--font-sans:
 		'Inter Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
 		'Segoe UI Symbol', 'Noto Color Emoji';
@@ -155,7 +155,7 @@
 		@apply overflow-auto p-2 lg:p-6 bg-gradient-to-b from-card/30 to-chart-4/30 border-dashed border-[1px] border-primary/20! shadow-2xl rounded-2xl backdrop-blur-md;
 	}
 	.cardNormalize {
-		@apply bg-card/50 backdrop-blur-lg! max-w-lg hover:ring-2 ring-primary/30 ease-in duration-200 shadow-2xl shadow-primary/20;
+		@apply bg-card/50 backdrop-blur-lg! max-w-lg hover:ring-2 ring-primary/30 ease-in duration-200 shadow-2xl shadow-primary/20 rounded-3xl!;
 	}
 	/* calendar icon  */
 	input[type='date']::-webkit-calendar-picker-indicator {
@@ -168,7 +168,7 @@
 		transform: perspective(800px) rotateY(0deg); /* Začíname rovno */
 	}
 	50% {
-		transform: perspective(800px) rotateY(1deg); /* Otočíme sa mierne doprava */
+		transform: perspective(800px) rotateY(2deg); /* Otočíme sa mierne doprava */
 	}
 	100% {
 		transform: perspective(800px) rotateY(0deg); /* Vrátime sa späť do stredu */
@@ -176,10 +176,10 @@
 }
 @keyframes gentle-move {
 	0% {
-		transform: scale(1) ; /* Začíname rovno */
+		transform: scale(1); /* Začíname rovno */
 	}
 	50% {
-		transform: scale(1.008); /* Otočíme sa mierne doprava */
+		transform: scale(1.039); /* Otočíme sa mierne doprava */
 	}
 	100% {
 		transform: scale(1); /* Vrátime sa späť do stredu */

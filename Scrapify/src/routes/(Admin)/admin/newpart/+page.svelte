@@ -12,6 +12,8 @@
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import NewPartTable from '@/components/organism/Tables/NewPartTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
+	import { currentConfirmDeleteId, editPartData } from '@/stores/stores';
+	import { onMount } from 'svelte';
 
 	interface CustomPageData {
 		parts: Part[];
@@ -22,31 +24,56 @@
 
 	let { data, form }: PageProps = $props();
 	let { parts, processes, totalPages, partsCount } = $derived(data.data) as CustomPageData;
-
 	let isSubmitting = $state(false);
 
 	// id
+	let idEditPart = $state<number>();
 	let processId = $state('');
+	let partProdNumberId = $state('');
+	let partSide = $state('') as PartSide;
 
 	//reset
 	let resetProcessCombo = $state(false);
 	let resetPartSideCombo = $state(false);
 
-	let partProdNumberId = $state('');
-	let partSide = $state('') as PartSide;
-	// let partColor = $state('');
+	function clearEditForm() {
+		idEditPart = undefined;
+		processId = '';
+		partProdNumberId = '';
+		partSide = '' as PartSide;
+		$editPartData = undefined;
+	}
 
-	// $inspect(partsCount);
+	$effect(() => {
+		if ($editPartData) {
+			form = null;
+			idEditPart = $editPartData.id;
+			processId = $editPartData.processId.toString();
+			partProdNumberId = $editPartData.partNumber;
+			partSide = $editPartData.side as PartSide;
+		}
+
+		if ($currentConfirmDeleteId) {
+			clearEditForm();
+		}
+	});
+
+	onMount(() => {
+		clearEditForm();
+		$currentConfirmDeleteId = undefined;
+	});
+
+	// $inspect(processId);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
 <main class="flex flex-col lg:flex-wrap gap-10">
 	<!--  -->
-	<!-- FORM -->
+	<!-- CREATE & EDIT PART -->
 	<section class="w-full sm:w-lg">
 		<form
 			method="POST"
-			action="?/createPart"
+			action={idEditPart ? '?/editPart' : '?/createPart'}
 			use:enhance={() => {
 				isSubmitting = true;
 
@@ -59,18 +86,27 @@
 					isSubmitting = false;
 					resetProcessCombo = false;
 					resetPartSideCombo = false;
+					clearEditForm();
 				};
 			}}
 			class="formNormalize"
 		>
-			<h1 class="mx-auto mb-6 text-2xl">Create new part</h1>
+			<h1 class="mx-auto mb-6 text-2xl">{idEditPart ? 'Edit part' : 'Create new part'}</h1>
 			<div>
 				<ResultInfo data={form} />
 			</div>
+			<!-- if edit  -->
+			<input type="text" hidden name="partId" bind:value={idEditPart} />
 
 			<!-- process COMBO -->
 			<article class="flex justify-between items-center gap-2">
 				<Label for="processId" class="text-sm md:text-lg">Process</Label>
+				{#if idEditPart}
+					{@const actuallPart = processes.find((process) => process.id === Number(processId))}
+					<p class=" ml-auto text-sm text-chart-1">
+						<span>{actuallPart ? actuallPart.name : 'Unknown part'}</span>
+					</p>
+				{/if}
 				<div class="flex gap-2">
 					<Combobox
 						dataBox={processes}
@@ -100,6 +136,11 @@
 				<Label for="partSide" class="text-sm md:text-lg"
 					>Side <span class="text-xs text-muted-foreground">[Optional]</span></Label
 				>
+				{#if idEditPart}
+					<p class=" ml-auto text-sm text-chart-1">
+						<span>{partSide ? partSide : 'Empty'}</span>
+					</p>
+				{/if}
 				<div class="flex gap-2 w-[240px]">
 					<Combobox
 						dataBox={PART_SIDES}
@@ -114,9 +155,12 @@
 				{#if isSubmitting}
 					<span>Submitting...</span>
 				{:else}
-					Create part
+					{idEditPart ? 'Edit part' : 'Create part'}
 				{/if}
 			</Button>
+			{#if idEditPart}
+				<Button variant="destructive" onclick={() => clearEditForm()}>Close Edit</Button>
+			{/if}
 		</form>
 	</section>
 

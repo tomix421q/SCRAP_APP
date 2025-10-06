@@ -4,6 +4,9 @@
 	import type { Project } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
+	import { editProjectData } from '@/stores/stores';
+	import { SquarePenIcon } from '@lucide/svelte';
+	import Button from '@/components/ui/button/button.svelte';
 
 	let {
 		projects,
@@ -20,7 +23,12 @@
 	const session = authClient.useSession();
 	const userId = $derived($session.data?.user.id);
 
-	// $inspect(userId)
+	function handleEditProjectRec(item: Project) {
+		editProjectData.set(item);
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
+	// $inspect($editProjectData);
 </script>
 
 <main>
@@ -46,35 +54,25 @@
 			</Table.Header>
 			<Table.Body class="">
 				{#each projects as item (item)}
-					<!-- {@const createdDate = item.createdAt.toLocaleString()} -->
-					<!-- {@const formatCreatedDate = new Intl.DateTimeFormat('sk-Sk', {
-						year: 'numeric',
-						month: '2-digit',
-						day: '2-digit',
-						hour: '2-digit',
-						minute: '2-digit',
-						second: '2-digit',
-						timeZone: 'UTC'
-					}).format(item.createdAt)} -->
-
 					<Table.Row>
 						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.name}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.hallId}</Table.Cell>
 						<Table.Cell class="w-[100px]">{@render description(item.description!)}</Table.Cell>
-
-						<Table.Cell class="w-[50px]"
-							><EditDeleteBtns id={item.id} actionRoute={'?/deleteProject'} /></Table.Cell
-						>
-						<!-- <Table.Cell class="w-[100px] text-primary">{item.part.partNumber}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.part.color}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.part.side ? item.part.side : '?'}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.part.processName}</Table.Cell>
-						<Table.Cell class="w-[50px]">{item.quantity}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.createdBy}</Table.Cell>
-						<Table.Cell class="w-[100px] text-xs"
-							>{dateTimmeUTCformatter(item.createdAt)}</Table.Cell
-						> -->
+						<!-- ACTIONS BTNS-->
+						<Table.Cell class="w-[50px]">
+							<div class="flex justify-end gap-2">
+								<Button
+									onclick={() => handleEditProjectRec(item)}
+									variant="ghost"
+									size="icon"
+									title="Edit"
+									class="text-chart-warning hover:text-chart-warning"
+									><SquarePenIcon class="size-5!" /></Button
+								>
+								<EditDeleteBtns id={item.id} actionRoute={'?/deleteProject'} />
+							</div>
+						</Table.Cell>
 					</Table.Row>
 				{/each}
 			</Table.Body>
