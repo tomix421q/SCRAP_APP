@@ -149,10 +149,10 @@
 		@apply bg-transparent! border-transparent! outline-none focus:ring-0 focus:ring-transparent! focus:outline-0! focus:outline-transparent border-b-primary! rounded-none!;
 	}
 	.formNormalize {
-		@apply flex flex-col gap-y-6 bg-gradient-to-b from-card/30 to-chart-4/30 p-2 lg:p-6 rounded-2xl border-[1px] border-primary/20! border-dashed overflow-hidden shadow-2xl backdrop-blur-md!;
+		@apply flex flex-col gap-y-6 bg-gradient-to-b from-card/30 to-chart-4/30 p-2 lg:p-6 rounded-2xl border-[1px] border-primary/20! border-dashed overflow-hidden shadow-2xl backdrop-blur-lg!;
 	}
 	.listNormalize {
-		@apply overflow-auto p-2 lg:p-6 bg-gradient-to-b from-card/30 to-chart-4/30 border-dashed border-[1px] border-primary/20! shadow-2xl rounded-2xl backdrop-blur-md;
+		@apply overflow-auto p-2 lg:p-6 bg-gradient-to-b from-card/30 to-chart-4/30 border-dashed border-[1px] border-primary/20! shadow-2xl rounded-2xl backdrop-blur-lg;
 	}
 	.cardNormalize {
 		@apply bg-card/50 backdrop-blur-lg! max-w-lg hover:ring-2 ring-primary/30 ease-in duration-200 shadow-2xl shadow-primary/20 rounded-3xl!;

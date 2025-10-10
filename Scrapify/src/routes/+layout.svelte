@@ -11,7 +11,7 @@
 	import { Bug, Github, Menu } from '@lucide/svelte';
 	import Separator from '@/components/ui/separator/separator.svelte';
 	import { getUserIdCardFromLc } from '@/index';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import MobileMenu from '@/components/molecules/MobileMenu.svelte';
 
@@ -20,13 +20,18 @@
 	let currentPath = $state('');
 	let userIdCardFromLc = $state<string | null>(null);
 	const { user } = $derived(data);
+	let getActuallTime = $state<Date>(new Date());
 
 	onMount(() => {
 		if (user?.cardId) {
 			localStorage.setItem('operatorId', user.cardId.toString());
 		}
-
 		userIdCardFromLc = getUserIdCardFromLc();
+
+		const intervalId = setInterval(() => {
+			getActuallTime = new Date();
+		}, 60000);
+		return () => clearInterval(intervalId);
 	});
 
 	afterNavigate(() => {
@@ -34,7 +39,19 @@
 		currentPath = page.url.pathname;
 	});
 
-	// $inspect();
+	$effect(() => {
+		if (getActuallTime.getHours() === 14 && getActuallTime.getMinutes() === 0) {
+			localStorage.removeItem('operatorId');
+		}
+		if (getActuallTime.getHours() === 22 && getActuallTime.getMinutes() === 0) {
+			localStorage.removeItem('operatorId');
+		}
+		if (getActuallTime.getHours() === 6 && getActuallTime.getMinutes() === 0) {
+			localStorage.removeItem('operatorId');
+		}
+	});
+
+	// $inspect(actPage);
 </script>
 
 <svelte:head>
@@ -43,7 +60,7 @@
 </svelte:head>
 
 <section class="">
-	<div class="fixed inset-0 bg-black/60 -z-40"></div>
+	<div class="fixed inset-0 bg-black/80 -z-40"></div>
 	<img
 		src={bgDesktop}
 		alt="Pozadie prihlasovacej stránky"

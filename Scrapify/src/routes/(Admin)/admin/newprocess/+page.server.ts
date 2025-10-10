@@ -2,6 +2,7 @@ import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import prismaClient from '@/server/prisma';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
+import { writeToLogger } from '@/utils/serverHelp';
 
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
@@ -70,12 +71,18 @@ export const actions = {
 				});
 			}
 
-			await prismaClient.process.create({
+			const createProcess = await prismaClient.process.create({
 				data: {
 					projectId: findProject.id,
 					name: processName,
 					description: processDescription
 				}
+			});
+			writeToLogger({
+				request: event.request,
+				action: 'CREATE',
+				entityType: 'Process',
+				entityId: createProcess.id
 			});
 			return { success: true, message: 'Process created successfully.' };
 		} catch (error: any) {
@@ -123,7 +130,7 @@ export const actions = {
 					message: `Project with id ${projectId} or process with id ${findProcess?.id} not found.`
 				});
 			} else {
-				await prismaClient.process.update({
+				const updateProcess = await prismaClient.process.update({
 					where: {
 						id: findProcess.id
 					},
@@ -131,6 +138,12 @@ export const actions = {
 						name: processName,
 						description: processDescription
 					}
+				});
+				writeToLogger({
+					request: event.request,
+					action: 'EDIT',
+					entityType: 'Process',
+					entityId: updateProcess.id
 				});
 				return { success: true, message: `Process with ID ${processId} edited successfully.` };
 			}
@@ -153,6 +166,12 @@ export const actions = {
 		try {
 			const deleteItem = await prismaClient.process.delete({ where: { id: Number(id) } });
 
+			writeToLogger({
+				request: event.request,
+				action: 'DELETE',
+				entityType: 'Process',
+				entityId: deleteItem.id
+			});
 			return {
 				success: true,
 				message: `Successful deleted id: ${deleteItem.id}, with name ${deleteItem.name}`,

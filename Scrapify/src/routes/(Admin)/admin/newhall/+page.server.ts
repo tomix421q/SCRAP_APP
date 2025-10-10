@@ -2,6 +2,7 @@ import prismaClient from '@/server/prisma';
 import { error, fail, type ActionFailure, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
+import { writeToLogger } from '@/utils/serverHelp';
 
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
@@ -44,11 +45,17 @@ export const actions: Actions = {
 		}
 
 		try {
-			await prismaClient.hall.create({
+			const createHall = await prismaClient.hall.create({
 				data: {
 					name: hallName,
 					description: hallDescription
 				}
+			});
+			writeToLogger({
+				request: event.request,
+				action: 'CREATE',
+				entityType: 'Hall',
+				entityId: createHall.id
 			});
 			return { success: true, message: 'Hall created successfully' };
 		} catch (error: any) {
@@ -83,7 +90,7 @@ export const actions: Actions = {
 					message: `Hall with ID : ${hallId} not found.`
 				});
 			} else {
-				await prismaClient.hall.update({
+				const editHall = await prismaClient.hall.update({
 					where: {
 						id: findHall.id
 					},
@@ -91,6 +98,12 @@ export const actions: Actions = {
 						name: hallName,
 						description: hallDescription
 					}
+				});
+				writeToLogger({
+					request: event.request,
+					action: 'EDIT',
+					entityType: 'Hall',
+					entityId: editHall.id
 				});
 				return { success: true, message: `Hall with ID ${hallId} edited successfully.` };
 			}
@@ -114,6 +127,12 @@ export const actions: Actions = {
 		try {
 			const deleteHall = await prismaClient.hall.delete({ where: { id: Number(id) } });
 
+			writeToLogger({
+				request: event.request,
+				action: 'DELETE',
+				entityType: 'Hall',
+				entityId: deleteHall.id
+			});
 			return {
 				success: true,
 				message: `Successful deleted id: ${deleteHall.id}, hall name: ${deleteHall.name}.`,

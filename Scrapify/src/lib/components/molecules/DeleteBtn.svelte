@@ -42,7 +42,11 @@
 		}}
 	>
 		<!-- Confirm zone -->
-		<div class={$currentConfirmDeleteId === id ? 'flex items-center' : 'hidden'}>
+		<div
+			class={$currentConfirmDeleteId === id
+				? 'flex items-center bg-black pl-2 rounded-lg'
+				: 'hidden'}
+		>
 			<p class="mr-1">Are you sure?</p>
 			<Button type="submit" disabled={isSubmitting} variant="ghost" size="icon" title="Delete"
 				><Check class="size-5! text-chart-success" /></Button
@@ -65,4 +69,4 @@
 	</form>
 </main>
 
-<!-- FOR FUTURE -->
+<!-- FOR FUTURE --> 

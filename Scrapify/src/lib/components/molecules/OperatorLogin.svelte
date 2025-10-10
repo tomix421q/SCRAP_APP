@@ -3,103 +3,126 @@
 	import { Button } from '@/components/ui/button';
 	import { Input } from '@/components/ui/input';
 	import { Label } from '@/components/ui/label';
-	import Card from '../ui/card/card.svelte';
-	import CardHeader from '../ui/card/card-header.svelte';
-	import CardTitle from '../ui/card/card-title.svelte';
-	import CardDescription from '../ui/card/card-description.svelte';
-	import CardContent from '../ui/card/card-content.svelte';
-
-	type Result = 'success' | 'notnumber' | 'empty';
+	import ResultInfo, { type ResultInfoData } from './ResultInfo.svelte';
 
 	let cardId = $state('');
 	let isSubmitting = $state(false);
-	let infoResult = $state<Result>();
+	let infoResult = $state<ResultInfoData>();
+
+	let verifiedOperator = $state(false);
+
+	async function handleLoginOperator(event: SubmitEvent) {
+		event.preventDefault();
+		const form = event.target as HTMLFormElement;
+		const formData = new FormData(form);
+		isSubmitting = true;
+
+		try {
+			const dataToSend = Object.fromEntries(formData);
+			const response = await fetch('/api/operators', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(dataToSend)
+			});
+
+			const apiResult: ResultInfoData = await response.json();
+			if (!response.ok || !apiResult.success) {
+				if (!apiResult.success) {
+					infoResult = apiResult;
+				} else {
+					infoResult = {
+						success: false,
+						error: response.statusText,
+						message: response.status.toString()
+					};
+				}
+			} else {
+				infoResult = apiResult;
+				setOperatorToLc();
+				form.reset();
+			}
+		} catch (err: any) {
+			infoResult = {
+				success: false,
+				error: err.message || 'Unknown error',
+				message: 'Internal Fault'
+			};
+		} finally {
+			isSubmitting = false;
+		}
+	}
 
 	const logoutOperator = () => {
 		localStorage.removeItem('operatorId');
-		infoResult = 'notnumber';
 		cardId = '';
-		isSubmitting = false;
+		verifiedOperator = false;
 	};
 
-	const handleOperatorLogin = () => {
-		if (cardId.length > 0) {
-			let numCardId = Number(cardId);
-			if (numCardId) {
-				localStorage.setItem('operatorId', cardId);
-				infoResult = 'success';
-				goto('/createScrap');
-			} else {
-				infoResult = 'notnumber';
-			}
-		} else if (cardId.length === 0) {
-			infoResult = 'empty';
+	function setOperatorToLc() {
+		verifiedOperator = true;
+		if (verifiedOperator) {
+			localStorage.setItem('operatorId', cardId);
+			goto('/createScrap');
 		}
-	};
+	}
 
 	$effect(() => {
-		let lsGetOperator: string | null = localStorage.getItem('operatorId');
-
-		if (lsGetOperator) {
-			cardId = lsGetOperator;
-			infoResult = 'success';
-		} else {
-			infoResult = 'notnumber';
-			cardId = '';
+		let isOperator = localStorage.getItem('operatorId');
+		if (isOperator) {
+			verifiedOperator = true;
+			cardId = isOperator;
 		}
 	});
+
+	// $inspect(actuallTime);
 </script>
 
-<main class="mx-auto text-center w-full">
-	<Card class="cardNormalize gap-1 mx-auto lg:w-md rounded-3xl! bg-primary/20">
-		<CardHeader>
-			<CardTitle class="mx-auto text-2xl font-semibold text-primary Card ID">Card ID</CardTitle>
-			<CardDescription>{@render loginInfo()}</CardDescription>
-		</CardHeader>
-		<CardContent>
-			{#if infoResult === 'success'}
-				<p class=" text-accent-foreground">
-					Prihlaseny operator: <span class="text-secondary font-bold! text-lg">{cardId}</span>
-				</p>
-				<div>
-					<Button
-						size="sm"
-						variant="destructive"
-						class="mt-10 w-full"
-						onclick={() => {
-							logoutOperator();
-						}}>Odhlasit</Button
-					>
-				</div>
-			{:else}
-				<article class="flex justify-between items-center gap-2">
-					<Label class="text-sm md:text-lg text-primary!">Card ID</Label>
-					<Input
-						type="text"
-						class="inputNormalize max-w-[240px]"
-						placeholder="Zadaj cislo karty"
-						bind:value={cardId}
-					/>
-				</article>
+<main class="mx-auto text-center w-full sm:w-xl">
+	{#if verifiedOperator}
+		<div class="listNormalize bg-secondary/30 lg:text-xl">
+			<p class=" text-accent-foreground">
+				Prihlaseny operator: <span class="text-primary font-semibold text-2xl">{cardId}</span>
+			</p>
+			<div>
 				<Button
 					size="sm"
-					class="w-full mt-10"
+					variant="destructive"
+					class="mt-10 w-full"
 					onclick={() => {
-						isSubmitting = true;
-						handleOperatorLogin();
-					}}>Login</Button
+						logoutOperator();
+					}}>Odhlasit</Button
 				>
-			{/if}
-		</CardContent>
-	</Card>
-</main>
-
-{#snippet loginInfo()}
-	{#if infoResult === 'success'}
-		<span class="text-chart-info">Uspesne prihlaseny</span>
-	{:else if infoResult === 'notnumber'}
-		<span class="text-chart-warning">Prosim zadaj iba cisla</span>
+			</div>
+		</div>
 	{:else}
-		<span class="text-chart-warning">Prosim zadaj cisla</span>
+		<form method="POST" onsubmit={handleLoginOperator} class="formNormalize bg-primary/10 gap-4">
+			<h1 class="mx-auto text-2xl">Card ID</h1>
+			<div>
+				<ResultInfo data={infoResult} />
+			</div>
+
+			<article class="flex justify-between items-center gap-2">
+				<Label for="cardId" class="text-xl">ID karty</Label>
+				<Input
+					type="text"
+					name="cardId"
+					bind:value={cardId}
+					placeholder="Cislo karty"
+					class="inputNormalize max-w-[240px]"
+					id="cardId"
+					required
+				/>
+			</article>
+
+			<Button type="submit" class="mt-10 ">
+				{#if isSubmitting}
+					<span>Submitting...</span>
+				{:else}
+					Prihlasit
+				{/if}
+			</Button>
+		</form>
 	{/if}
-{/snippet}
+</main>

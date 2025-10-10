@@ -25,3 +25,23 @@ export interface DataAndResultData<T> extends ResultInfoData {
 	data: T[];
 	totalPages: number;
 }
+
+export type LoggerActionType =
+	| 'CREATE'
+	| 'EDIT'
+	| 'DELETE'
+	| 'LOGIN'
+	| 'LOGOUT'
+	| 'VIEW'
+	| 'EXPORT'
+	| 'ASSIGN';
+
+export type LoggerEntityType =
+	| 'Hall'
+	| 'Part'
+	| 'Process'
+	| 'Project'
+	| 'ScrapCode'
+	| 'Operator'
+	| 'User'
+	| 'ScrapRecord';

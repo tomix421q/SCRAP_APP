@@ -2,31 +2,32 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 	import Card from '@/components/ui/card/card.svelte';
-	import type { LayoutProps, PageProps } from './$types';
-	import { ChartColumnBigIcon, Hash, PartyPopperIcon, Puzzle } from '@lucide/svelte';
-	import Logger from '@/components/organism/Logger.svelte';
+	import type { PageProps } from './$types';
+	import { ChartColumnBigIcon, Hash, Puzzle } from '@lucide/svelte';
+	import Logger, { type ActivityLogsWithRelations } from '@/components/organism/Logger.svelte';
 
 	let { data }: PageProps = $props();
-	let { totalUsers, totalScrapCode, totalParts } = $derived(data);
+	let { totalUsers, totalScrapCode, totalParts, totalOperators, totalLogs, totalPagesLogs } =
+		$derived(data);
 
 	// $inspect(data.totalUsers);
 </script>
 
 <main>
 	<Card
-		class="text-4xl mb-8 lg:text-6xl uppercase font-bold text-primary tracking-wide cardNormalize bg-chart-2/10 min-w-full"
+		class="text-2xl mb-8 lg:text-6xl uppercase font-bold text-primary tracking-wide cardNormalize bg-chart-2/10 min-w-full"
 	>
 		<CardHeader>
 			<CardTitle>Admin Dashboard</CardTitle>
 		</CardHeader>
 	</Card>
 
-	<div class="grid lg:grid-cols-2 items-start gap-12 lg:gap-6">
+	<div class="grid lg:grid-cols-2 gap-12 lg:gap-6">
 		<!-- Create zone -->
 		<Card class="cardNormalize bg-chart-2/10 min-w-full">
 			<CardHeader>
 				<CardTitle
-					class="text-3xl font-bold tracking-widest bg-gradient-to-r from-chart-1 to-chart-3 bg-clip-text text-transparent"
+					class="text-2xl font-bold tracking-widest bg-gradient-to-r from-chart-1 to-chart-3 bg-clip-text text-transparent"
 					>Create zone</CardTitle
 				>
 				<CardDescription>Create zone</CardDescription>
@@ -42,16 +43,16 @@
 				</div>
 				<div class="mx-auto space-y-2">
 					<section class="mx-auto flex items-center">
-						<Hash class="size-22 text-primary/50" />
+						<Hash class="size-10 md:size-22 text-primary/50" />
 						<div class="flex flex-col items-center w-full">
-							<span class="text-2xl">Scrap codes</span>
+							<span class="text-lg lg:text-2xl">Scrap codes</span>
 							<span class="text-primary font-bold text-4xl">{totalScrapCode}</span>
 						</div>
 					</section>
 					<section class="mx-auto flex items-center">
-						<Puzzle class="size-22 text-primary/50" />
+						<Puzzle class="size-10 md:size-22 text-primary/50" />
 						<div class="flex flex-col items-center w-full">
-							<span class="text-2xl">Parts</span>
+							<span class="text-lg lg:text-2xl">Parts</span>
 							<span class="text-primary font-bold text-4xl">{totalParts}</span>
 						</div>
 					</section>
@@ -63,7 +64,7 @@
 		<Card class="cardNormalize bg-chart-2/10 min-w-full!">
 			<CardHeader>
 				<CardTitle
-					class="text-3xl font-bold tracking-widest bg-gradient-to-r from-chart-1 to-chart-3 bg-clip-text text-transparent"
+					class="text-2xl font-bold tracking-widest bg-gradient-to-r from-chart-1 to-chart-3 bg-clip-text text-transparent"
 					>User zone</CardTitle
 				>
 				<CardDescription>Info about user roles and register operator card ID</CardDescription>
@@ -72,21 +73,21 @@
 			<CardContent class="grid grid-cols-2 gap-4 text-3xl">
 				<div class="flex flex-col gap-4">
 					<Button size="lg" href="/admin/users">Users</Button>
-					<Button size="lg" href="/admin/users">Register operator</Button>
+					<Button size="lg" href="/admin/operatorregister">Register operator</Button>
 				</div>
 				<div class="mx-auto space-y-2">
 					<section class="mx-auto flex items-center">
-						<ChartColumnBigIcon class="size-22 text-primary/50" />
+						<ChartColumnBigIcon class="size-10 lg:size-22 text-primary/50" />
 						<div class="flex flex-col items-center w-full">
-							<span class="text-2xl">Users</span>
+							<span class="text-lg lg:text-2xl">Users</span>
 							<span class="text-primary font-bold text-4xl">{totalUsers}</span>
 						</div>
 					</section>
 					<section class="mx-auto flex items-center">
-						<ChartColumnBigIcon class="size-22 text-primary/50" />
+						<ChartColumnBigIcon class="size-10 lg:size-22 text-primary/50" />
 						<div class="flex flex-col items-center w-full">
-							<span class="text-2xl">Operators</span>
-							<span class="text-primary font-bold text-4xl">{totalUsers}</span>
+							<span class="text-lg lg:text-2xl">Operators</span>
+							<span class="text-primary font-bold text-4xl">{totalOperators}</span>
 						</div>
 					</section>
 				</div>
@@ -94,18 +95,30 @@
 		</Card>
 
 		<!-- Log zone -->
-		<Card class="cardNormalize bg-chart-2/10 lg:col-span-3 min-w-full">
-			<CardHeader>
-				<CardTitle
-					class="text-3xl font-bold tracking-widest bg-gradient-to-r from-chart-1 to-chart-3 bg-clip-text text-transparent"
-				>
-					Activity
-				</CardTitle>
+		<Card class="cardNormalize bg-chart-2/10 lg:col-span-3 min-w-4xl ">
+			<div class="flex justify-between">
+				<CardHeader class="lg:w-xs">
+					<CardTitle
+						class="text-2xl font-bold tracking-widest bg-gradient-to-r from-chart-1 to-chart-3 bg-clip-text text-transparent"
+					>
+						Activity
+					</CardTitle>
 
-				<CardDescription>User activity logger</CardDescription>
-			</CardHeader>
-			<CardContent class="flex flex-col gap-4">
-				<span><Logger data={totalParts} /></span>
+					<CardDescription>User activity logger</CardDescription>
+				</CardHeader>
+				<article class="mr-8">
+					<p class="lg:text-xl font-semibold text-muted flex flex-col text-center">
+						<span>Total Logs</span> <span class="text-primary text-2xl">{totalLogs}</span>
+					</p>
+				</article>
+			</div>
+
+			<CardContent class="flex flex-col gap-4 ">
+				{#await data.getLogsPromise}
+					<span>Loading logs...</span>
+				{:then logs}
+					<Logger data={logs as ActivityLogsWithRelations[]} totalPages={totalPagesLogs} />
+				{/await}
 			</CardContent>
 		</Card>
 	</div>

@@ -20,7 +20,7 @@
 
 {#if data}
 	<section class="my-4 flex relative" transition:slide>
-		{#if data.success}
+		{#if data?.success}
 			<div
 				class="w-full p-4 mb-1 bg-chart-success/30 backdrop-blur-sm text-chart-success rounded-md"
 			>
@@ -30,9 +30,9 @@
 			<div
 				class="w-full p-4 bg-destructive/30 backdrop-blur-sm text-destructive rounded-md space-y-2"
 			>
-				<p class="font-semibold">{data.message}</p>
+				<p class="font-semibold">{data?.message}</p>
 
-				{#if data.error}
+				{#if data?.error}
 					{#if typeof data.error === 'string'}
 						<p>{data.error}</p>
 					{/if}
@@ -50,15 +50,15 @@
 				{/if}
 			</div>
 		{/if}
-		<div class="absolute right-0 top-0 z-50">
+		<div class="absolute -right-2 -top-2 z-50">
 			<Button
 				variant="ghost"
 				size="icon"
 				title="Close"
-				class="text-destructive/80 rounded-full hover:text-warning m-1"
+				class="text-destructive rounded-full  hover:bg-secondary transition-all ease-in"
 				onclick={() => {
 					clearResult();
-				}}><X class=" size-5!" /></Button
+				}}><X class=" size-4!" /></Button
 			>
 		</div>
 	</section>

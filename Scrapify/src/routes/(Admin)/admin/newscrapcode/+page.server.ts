@@ -2,6 +2,7 @@ import { error, fail, type ActionFailure, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import prismaClient from '@/server/prisma';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
+import { writeToLogger } from '@/utils/serverHelp';
 
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
@@ -83,6 +84,13 @@ export const actions = {
 			if (!createScrap) {
 				return fail(500, { success: false, error: true, message: `Problem with create in db.` });
 			}
+
+			writeToLogger({
+				request: event.request,
+				action: 'CREATE',
+				entityType: 'ScrapCode',
+				entityId: createScrap.id
+			});
 			return { success: true, error: true, message: 'Scrap code created successfully.' };
 		} catch (error: any) {
 			console.log(error);
@@ -137,7 +145,7 @@ export const actions = {
 					message: `Scrap code with id ${scrapCodeId} or process with id ${processId} not found.`
 				});
 			} else {
-				await prismaClient.scrapCode.update({
+				const editSc = await prismaClient.scrapCode.update({
 					where: {
 						id: Number(findScrapCode.id)
 					},
@@ -147,6 +155,13 @@ export const actions = {
 						name: scrapcodeName,
 						description: scrapDescription
 					}
+				});
+
+				writeToLogger({
+					request: event.request,
+					action: 'EDIT',
+					entityType: 'ScrapCode',
+					entityId: editSc.id
 				});
 				return {
 					success: true,
@@ -167,7 +182,7 @@ export const actions = {
 	deleteScrapCode: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
 		const id = formData.get('deleteId');
-		console.log(id);
+	
 		if (!id) {
 			return fail(400, { success: false, message: 'Validation', error: 'Id not found.' });
 		}
@@ -175,6 +190,12 @@ export const actions = {
 		try {
 			const deleteItem = await prismaClient.scrapCode.delete({ where: { id: Number(id) } });
 
+			writeToLogger({
+				request: event.request,
+				action: 'DELETE',
+				entityType: 'ScrapCode',
+				entityId: deleteItem.id
+			});
 			return {
 				success: true,
 				message: `Successful deleted id: ${deleteItem.id}, with name ${deleteItem.name}`,

@@ -3,6 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import { scrapRecordSchema } from '@/utils/zod';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
+import { writeToLogger } from '@/utils/serverHelp';
 
 export const load: PageServerLoad = async (event) => {
 	const filters = {
@@ -113,6 +114,12 @@ export const actions: Actions = {
 				where: { id: Number(id) }
 			});
 
+			writeToLogger({
+				request: event.request,
+				action: 'DELETE',
+				entityType: 'ScrapCode',
+				entityId: deleteScrapRecord.id
+			});
 			return {
 				success: true,
 				message: `Successful deleted id: ${deleteScrapRecord.id}.`,

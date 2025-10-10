@@ -125,7 +125,7 @@ partId Int
 scrapCodeId Int
 description String?
 quantity Float
-createdBy Int
+createdBy String
 createdAt DateTime @default(now())
 part Part @relation(fields: [partId], references: [id],onDelete: Cascade)
 scrapCode ScrapCode @relation(fields: [scrapCodeId], references: [id],onDelete: Cascade)
@@ -150,6 +150,7 @@ scrapCode ScrapCode @relation(fields: [scrapCodeId], references: [id],onDelete: 
 
 model Operator {
   id        Int      @id @default(autoincrement())
+  createdBy String
   fullName  String
   cardId    Int @unique
   createdAt DateTime @default(now())

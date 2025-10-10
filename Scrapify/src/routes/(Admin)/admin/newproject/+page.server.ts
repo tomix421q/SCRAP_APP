@@ -2,6 +2,7 @@ import prismaClient from '@/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
+import { writeToLogger } from '@/utils/serverHelp';
 
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
@@ -59,12 +60,18 @@ export const actions: Actions = {
 					error: true
 				});
 			}
-			await prismaClient.project.create({
+			const createProject = await prismaClient.project.create({
 				data: {
 					hallId: findHall.id,
 					name: projectName,
 					description: projectDescription
 				}
+			});
+			writeToLogger({
+				request: event.request,
+				action: 'CREATE',
+				entityType: 'Project',
+				entityId: createProject.id
 			});
 			return {
 				success: true,
@@ -122,7 +129,7 @@ export const actions: Actions = {
 					message: `Project with ID : ${projectId} not found.`
 				});
 			} else {
-				await prismaClient.project.update({
+				const editProject = await prismaClient.project.update({
 					where: {
 						id: findProject.id
 					},
@@ -131,6 +138,12 @@ export const actions: Actions = {
 						name: projectName,
 						description: projectDescription
 					}
+				});
+				writeToLogger({
+					request: event.request,
+					action: 'EDIT',
+					entityType: 'Project',
+					entityId: editProject.id
 				});
 				return {
 					success: true,
@@ -148,7 +161,6 @@ export const actions: Actions = {
 	deleteProject: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
 		const id = formData.get('deleteId');
-		console.log(id);
 
 		if (!id) {
 			return fail(400, { success: false, message: 'Validation', error: 'Id not found.' });
@@ -157,6 +169,12 @@ export const actions: Actions = {
 		try {
 			const deleteItem = await prismaClient.project.delete({ where: { id: Number(id) } });
 
+			writeToLogger({
+				request: event.request,
+				action: 'DELETE',
+				entityType: 'Project',
+				entityId: deleteItem.id
+			});
 			return {
 				success: true,
 				message: `Successful deleted id: ${deleteItem.id}, with name ${deleteItem.name}`,

@@ -2,6 +2,7 @@ import prismaClient from '@/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
+import { writeToLogger } from '@/utils/serverHelp';
 
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
@@ -24,7 +25,7 @@ export const load: PageServerLoad = async (event) => {
 			totalPages,
 			partsCount
 		};
-		console.log(allParts);
+
 		return { data };
 	} catch (err: any) {
 		throw error(500, {
@@ -58,7 +59,7 @@ export const actions = {
 			const [findProcess] = await Promise.all([
 				prismaClient.process.findFirst({
 					where: { id: parseInt(processId, 10) },
-					include: { project: {include : {hall : true}}  }
+					include: { project: { include: { hall: true } } }
 				})
 			]);
 
@@ -69,7 +70,7 @@ export const actions = {
 					message: `Process with ID ${processId} not found.`
 				});
 			}
-			await prismaClient.part.create({
+			const createPart = await prismaClient.part.create({
 				data: {
 					processId: findProcess.id,
 					processName: findProcess.name,
@@ -78,6 +79,12 @@ export const actions = {
 					partNumber: partProdNumberId,
 					side: partSide
 				}
+			});
+			writeToLogger({
+				request: event.request,
+				action: 'CREATE',
+				entityType: 'Part',
+				entityId: createPart.id
 			});
 			return { success: true, message: 'Part created successfully.' };
 		} catch (error: any) {
@@ -131,7 +138,7 @@ export const actions = {
 					message: `Process with ID ${processId} not found.`
 				});
 			}
-			await prismaClient.part.update({
+			const updatePart = await prismaClient.part.update({
 				where: {
 					id: findPart.id
 				},
@@ -143,6 +150,12 @@ export const actions = {
 					partNumber: partProdNumberId,
 					side: partSide
 				}
+			});
+			writeToLogger({
+				request: event.request,
+				action: 'EDIT',
+				entityType: 'Part',
+				entityId: updatePart.id
 			});
 			return { success: true, message: `Part with ID ${partId} edited successfully.` };
 		} catch (error: any) {
@@ -164,6 +177,12 @@ export const actions = {
 		try {
 			const deleteItem = await prismaClient.part.delete({ where: { id: Number(id) } });
 
+			writeToLogger({
+				request: event.request,
+				action: 'DELETE',
+				entityType: 'Part',
+				entityId: deleteItem.id
+			});
 			return {
 				success: true,
 				message: `Successful deleted id: ${deleteItem.partNumber}.`,

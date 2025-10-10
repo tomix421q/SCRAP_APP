@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import type { RequestHandler } from './$types';
 import prismaClient from '@/server/prisma';
+import { writeToLogger } from '@/utils/serverHelp';
 
 export const GET: RequestHandler = async (event) => {
 	const filters = {
@@ -16,20 +17,20 @@ export const GET: RequestHandler = async (event) => {
 	const partWhere: Prisma.PartWhereInput = {};
 	if (filters.partNumber) {
 		if (!where.part) where.part = {};
-		partWhere.partNumber = { contains: filters.partNumber, mode: 'insensitive' };
+		partWhere.partNumber = { contains: filters.partNumber };
 	}
 	if (filters.partId) {
 		partWhere.id = filters.partId;
 	}
 
 	if (filters.processName) {
-		partWhere.process = { name: { contains: filters.processName, mode: 'insensitive' } };
+		partWhere.process = { name: { contains: filters.processName } };
 	}
 	if (Object.keys(partWhere).length > 0) {
 		where.part = partWhere;
 	}
 	if (filters.scrapCode) {
-		where.scrapCode = { code: { contains: filters.scrapCode, mode: 'insensitive' } };
+		where.scrapCode = { code: { contains: filters.scrapCode } };
 	}
 	// Date filter
 	const createdAtFilter: Prisma.DateTimeFilter = {};
@@ -57,7 +58,6 @@ export const GET: RequestHandler = async (event) => {
 		'Scrap name',
 		'Part Id',
 		'Part Number',
-		'Color',
 		'Side',
 		'Process Name',
 		'Quantity',
@@ -73,7 +73,6 @@ export const GET: RequestHandler = async (event) => {
 			record.scrapCode.name,
 			record.part.id,
 			record.part.partNumber,
-			record.part.color,
 			record.part.side,
 			record.part.processName,
 			record.quantity,
@@ -86,6 +85,13 @@ export const GET: RequestHandler = async (event) => {
 	}
 	const csvString = csvRows.join('\n');
 
+	if (records) {
+		writeToLogger({
+			request: event.request,
+			action: 'EXPORT',
+			entityType: 'ScrapRecord'
+		});
+	}
 	// 5. Vráť CSV ako súbor na stiahnutie
 	return new Response(csvString, {
 		status: 200,

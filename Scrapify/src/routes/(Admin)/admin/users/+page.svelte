@@ -13,6 +13,7 @@
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import { ROLES, type Role } from '@/utils/types';
 	import { dateTimmeUTCformatter } from '@/index';
+	import Separator from '@/components/ui/separator/separator.svelte';
 
 	let { form, data }: PageProps = $props();
 	let { allUsers } = $derived(data);
@@ -48,19 +49,26 @@
 	// $inspect();
 </script>
 
+<ToNavigateBtn text="Back to admin panel" href="/admin" />
 <main>
-	<ToNavigateBtn text="Back to admin panel" href="/admin" />
-
-	<h1 class="text-5xl mb-10">Registered users</h1>
-
-	<section class="gap-6 flex-wrap flex mx-auto!">
+	<div class="flex items-center justify-between mb-6 sm:text-3xl font-semibold">
+		<h1>Registered users</h1>
+		<div>Total : <span class="text-primary">{allUsers.length}</span></div>
+	</div>
+	<section
+		class="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6 justify-center items-center"
+	>
 		{#each allUsers as user}
-			<Card class="w-full lg:w-xs bg-chart-4/30 cardNormalize">
+			<Card class="cardNormalize bg-secondary/30 w-full! sm:w-xs mx-auto">
 				<CardHeader>
-					<CardTitle>{user.name} <br /> {user.email}</CardTitle>
-					<CardDescription>{user.id}</CardDescription>
+					<CardTitle
+						class="text-xl font-bold bg-gradient-to-r from-chart-1 to-chart-3 bg-clip-text text-transparent"
+						>{user.name}
+					</CardTitle>
+					<CardDescription>{user.email} <br /> {user.id}</CardDescription>
 				</CardHeader>
 				<CardContent>
+					<Separator class="mb-4" />
 					<div
 						class="flex {colorUserByRole(user.role)} justify-between items-center rounded-sm p-2"
 					>

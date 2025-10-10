@@ -1,9 +1,9 @@
+import { writeToLogger } from '@/utils/serverHelp';
 import prismaClient from '@/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
 import type { Prisma } from '@prisma/client';
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
-import { sleep } from '@/index';
 import { scrapRecordSchema } from '@/utils/zod';
 
 export const load: PageServerLoad = async (event) => {
@@ -154,7 +154,7 @@ export const actions: Actions = {
 				}
 
 				if (findScrapRecord && findPartId && findScrapId) {
-					await prismaClient.scrapRecord.update({
+					const editSc = await prismaClient.scrapRecord.update({
 						where: {
 							id: findScrapRecord.id
 						},
@@ -167,6 +167,12 @@ export const actions: Actions = {
 						}
 					});
 
+					writeToLogger({
+						request: event.request,
+						action: 'EDIT',
+						entityType: 'ScrapRecord',
+						entityId: editSc.id
+					});
 					return {
 						success: true,
 						message: `Scrap record with id ${findScrapRecord.id} updated successfully.`
@@ -195,6 +201,12 @@ export const actions: Actions = {
 				where: { id: Number(id) }
 			});
 
+			writeToLogger({
+				request: event.request,
+				action: 'DELETE',
+				entityType: 'ScrapRecord',
+				entityId: deleteScrapRecord.id
+			});
 			return {
 				success: true,
 				message: `Successful deleted id: ${deleteScrapRecord.id}.`,

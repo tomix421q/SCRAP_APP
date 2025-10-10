@@ -53,7 +53,7 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	// $inspect(processes);
+	$inspect(projectId);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -69,7 +69,7 @@
 
 				return async ({ update, result }) => {
 					// await new Promise((resolve) => setTimeout(resolve, 5000));
-					if (result?.type === 'success') {
+					if (result?.type === 'success' || result.type === 'failure') {
 						resetProjectCombo = true;
 					}
 					await update();

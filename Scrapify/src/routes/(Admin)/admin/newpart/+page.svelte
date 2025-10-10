@@ -63,7 +63,7 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	// $inspect(processId);
+	$inspect(processId);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -78,7 +78,7 @@
 				isSubmitting = true;
 
 				return async ({ update, result }) => {
-					if (result?.type === 'success') {
+					if (result?.type === 'success' || result?.type === 'failure') {
 						resetProcessCombo = true;
 						resetPartSideCombo = true;
 					}

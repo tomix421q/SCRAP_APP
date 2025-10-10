@@ -1,3 +1,4 @@
+import { writeToLogger } from '@/utils/serverHelp';
 import prismaClient from './../server/prisma';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
@@ -56,6 +57,13 @@ export const auth = betterAuth({
 						data: { role: 'ADMIN' }
 					});
 				}
+				await prismaClient.activityLogs.create({
+					data: {
+						action: 'REGISTER',
+						entityType: ctx.body?.email,
+						entityId: ctx.body.id
+					}
+				});
 			}
 		})
 	},

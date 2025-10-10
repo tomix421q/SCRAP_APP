@@ -80,7 +80,8 @@
 		<Table.Root>
 			<Table.Header>
 				<Table.Row class="bg-muted/90">
-					<Table.Head class="w-[100px]">Scrap Code</Table.Head>
+					<Table.Head class="w-[50px]">ID</Table.Head>
+					<Table.Head class="w-[50px]">Scrap Code</Table.Head>
 					<Table.Head class="w-[100px]">Scrap Name</Table.Head>
 					<Table.Head colspan={1} class="w-[50px]">Part ID</Table.Head>
 					<Table.Head class="w-[100px]">Part Number</Table.Head>
@@ -96,7 +97,8 @@
 			<Table.Body class="">
 				{#each findRecords as item (item)}
 					<Table.Row>
-						<Table.Cell class="w-[100px] text-primary">{item.scrapCode.code}</Table.Cell>
+						<Table.Cell class="text-muted">{item.scrapCode.id}</Table.Cell>
+						<Table.Cell class="text-primary">{item.scrapCode.code}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.scrapCode.name}</Table.Cell>
 						<Table.Cell class="w-[50px]">{item.part.id}</Table.Cell>
 						<Table.Cell class="w-[100px] text-primary">{item.part.partNumber}</Table.Cell>
