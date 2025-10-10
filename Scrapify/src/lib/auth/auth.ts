@@ -67,6 +67,7 @@ export const auth = betterAuth({
 			}
 		})
 	},
+	telemetry: { enabled: false },
 
 	// emailVerification: {
 	// 	autoSignInAfterVerification: true,
