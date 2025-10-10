@@ -20,13 +20,15 @@
 		totalRecords,
 		partsQnt = undefined,
 		headerText,
-		userInfo
+		userInfo,
+		isCreateSection = false
 	}: {
 		findRecords: ScrapRecordWithRelations[];
 		totalRecords?: number;
 		partsQnt?: number | null;
 		headerText?: string;
 		userInfo: User | null;
+		isCreateSection?: boolean;
 	} = $props();
 
 	const session = authClient.useSession();
@@ -125,8 +127,9 @@
 										variant="ghost"
 										size="icon"
 										title="Edit"
-										class="text-chart-warning hover:text-chart-warning"
-										><SquarePenIcon class="size-5!" /></Button
+										class="text-chart-warning hover:text-chart-warning {isCreateSection
+											? 'hidden'
+											: 'block'}"><SquarePenIcon class="size-5!" /></Button
 									>
 								</section>
 								<section
