@@ -7,9 +7,9 @@
 	import { Input } from '@/components/ui/input';
 	import { CopyPlus, X } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
-	import ScrapTable from '@/components/organism/Tables/SearchScrapTable.svelte';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import { tick } from 'svelte';
+	import SearchScrapTable from '@/components/organism/Tables/SearchScrapTable.svelte';
 
 	let { data, form }: PageProps = $props();
 	let { processes, parts, scrapCodes, scrapRecords, totalPartsQnt } = $derived(data.data);
@@ -208,11 +208,12 @@
 	</div>
 
 	<section>
-		<ScrapTable
+		<SearchScrapTable
 			findRecords={scrapRecords}
 			totalRecords={scrapRecords.length}
 			headerText={'Poslednych 20 zaznamov'}
 			userInfo={user}
+			isCreateSection={true}
 		/>
 	</section>
 </main>
