@@ -2,8 +2,10 @@
 
 ## Check Status
 
-- [] add user logs
-- [] operator in db
+- [] repair edit icon visual in search page
+- [] check in create scrap that operator exist
+- [x] add user logs
+- [x] operator in db
 - [x] quantity info in search
 - [x] Add edit choice
 - [x] Move operator login to main page
