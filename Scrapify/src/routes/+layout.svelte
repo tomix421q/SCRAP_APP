@@ -59,7 +59,7 @@
 	<title>Scrapify</title>
 </svelte:head>
 
-<section class="">
+<section>
 	<div class="fixed inset-0 bg-black/80 -z-40"></div>
 	<img
 		src={bgDesktop}
@@ -111,7 +111,7 @@
 	</nav>
 
 	<!-- ALL CONTENT RENDER -->
-	<main class="max-w-[1600px] mx-auto px-2 md:px-4 lg:px-6 min-h-screen">
+	<main class="max-w-[1650px] mx-auto px-2 md:px-3 lg:px-4 min-h-screen">
 		{@render children?.()}
 	</main>
 

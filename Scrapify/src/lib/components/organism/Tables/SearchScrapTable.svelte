@@ -20,15 +20,13 @@
 		totalRecords,
 		partsQnt = undefined,
 		headerText,
-		userInfo,
-		isCreateSection = false
+		userInfo
 	}: {
 		findRecords: ScrapRecordWithRelations[];
 		totalRecords?: number;
 		partsQnt?: number | null;
 		headerText?: string;
 		userInfo: User | null;
-		isCreateSection?: boolean;
 	} = $props();
 
 	const session = authClient.useSession();
@@ -82,7 +80,7 @@
 		<Table.Root>
 			<Table.Header>
 				<Table.Row class="bg-muted/90">
-					<Table.Head class="w-[50px]">ID</Table.Head>
+					<Table.Head class="w-[50px] ">Rec.ID</Table.Head>
 					<Table.Head class="w-[50px]">Scrap Code</Table.Head>
 					<Table.Head class="w-[100px]">Scrap Name</Table.Head>
 					<Table.Head colspan={1} class="w-[50px]">Part ID</Table.Head>
@@ -99,9 +97,9 @@
 			<Table.Body class="">
 				{#each findRecords as item (item)}
 					<Table.Row>
-						<Table.Cell class="text-muted">{item.scrapCode.id}</Table.Cell>
+						<Table.Cell class="text-muted">{item.id}</Table.Cell>
 						<Table.Cell class="text-primary">{item.scrapCode.code}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.scrapCode.name}</Table.Cell>
+						<Table.Cell class="w-[100px]">{@render description(item.scrapCode.name)}</Table.Cell>
 						<Table.Cell class="w-[50px]">{item.part.id}</Table.Cell>
 						<Table.Cell class="w-[100px] text-primary">{item.part.partNumber}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.part.side ? item.part.side : '?'}</Table.Cell>
@@ -115,33 +113,18 @@
 						<!-- ACTIONS BTNS  -->
 						<Table.Cell>
 							<div class="flex justify-end gap-2">
-								<section
-									class={(userInfo?.role as Role) === 'ADMIN' ||
-									(userInfo?.role as Role) === 'MODERATOR' ||
-									(userInfo?.role as Role) === 'ENGINEER'
-										? 'block'
-										: 'hidden'}
-								>
+								{#if (operatorId === item.createdBy && isWithinTimeLimit(item.createdAt, 60)) || (userInfo?.role as Role) === 'ADMIN' || (userInfo?.role as Role) === 'MODERATOR' || (userInfo?.role as Role) === 'ENGINEER'}
 									<Button
 										onclick={() => handleEditSearchScrap(item)}
 										variant="ghost"
 										size="icon"
 										title="Edit"
-										class="text-chart-warning hover:text-chart-warning {isCreateSection
-											? 'hidden'
-											: 'block'}"><SquarePenIcon class="size-5!" /></Button
+										class="text-chart-warning hover:text-chart-warning"
+										><SquarePenIcon class="size-5!" /></Button
 									>
-								</section>
-								<section
-									class={(operatorId === item.createdBy && isWithinTimeLimit(item.createdAt, 60)) ||
-									(userInfo?.role as Role) === 'ADMIN' ||
-									(userInfo?.role as Role) === 'MODERATOR' ||
-									(userInfo?.role as Role) === 'ENGINEER'
-										? 'block'
-										: 'hidden'}
-								>
+
 									<DeleteBtn id={item.id} actionRoute="?/deleteScrapRecord" />
-								</section>
+								{/if}
 							</div>
 						</Table.Cell>
 					</Table.Row>

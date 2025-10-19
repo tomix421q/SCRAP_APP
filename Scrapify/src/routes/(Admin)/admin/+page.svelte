@@ -22,7 +22,7 @@
 		</CardHeader>
 	</Card>
 
-	<div class="grid lg:grid-cols-2 gap-12 lg:gap-6">
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-6">
 		<!-- Create zone -->
 		<Card class="cardNormalize bg-chart-2/10 min-w-full">
 			<CardHeader>
@@ -95,7 +95,7 @@
 		</Card>
 
 		<!-- Log zone -->
-		<Card class="cardNormalize bg-chart-2/10 lg:col-span-3 min-w-4xl ">
+		<Card class="cardNormalize bg-chart-2/10 lg:col-span-3 lg:min-w-4xl ">
 			<div class="flex justify-between">
 				<CardHeader class="lg:w-xs">
 					<CardTitle

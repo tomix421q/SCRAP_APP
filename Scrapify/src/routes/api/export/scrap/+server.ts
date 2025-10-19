@@ -8,7 +8,7 @@ export const GET: RequestHandler = async (event) => {
 		partNumber: event.url.searchParams.get('partNumber'),
 		partId: Number(event.url.searchParams.get('partId')),
 		scrapCode: event.url.searchParams.get('scrapCode'),
-		processName: event.url.searchParams.get('processName'),
+		processName: Number(event.url.searchParams.get('processName')),
 		dateFrom: event.url.searchParams.get('dateFrom'),
 		dateTo: event.url.searchParams.get('dateTo')
 	};
@@ -24,7 +24,7 @@ export const GET: RequestHandler = async (event) => {
 	}
 
 	if (filters.processName) {
-		partWhere.process = { name: { contains: filters.processName } };
+		partWhere.process = { id: { equals: filters.processName } };
 	}
 	if (Object.keys(partWhere).length > 0) {
 		where.part = partWhere;

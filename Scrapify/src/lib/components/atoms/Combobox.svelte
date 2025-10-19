@@ -9,7 +9,7 @@
 
 	// global store is $isEditing - state for editing something
 
-	type NameLabel = 'name' | 'codeName' | 'partnumSideColor';
+	type NameLabel = 'name' | 'codeName' | 'partnumSideColor' | 'nameAndHall';
 
 	let {
 		dataBox,
@@ -25,15 +25,21 @@
 		nameLabel?: NameLabel;
 	} = $props();
 	let open = $state(false);
-	let InternalValue = $state('');
+	let InternalValue = $derived(String(value));
 	let editMode = $state(false);
 	let triggerRef = $state<HTMLButtonElement>(null!);
 
 	// const selectedLabel = $derived(dataBox?.find((f: any) => f.id === InternalValue)?.name);
-	let selectedLabel = $derived.by<string | undefined>(() => {
-		const foundItem = dataBox?.find((f: any) => f.id === InternalValue);
+	const selectedLabel = $derived.by<string | undefined>(() => {
+		const foundItem = dataBox?.find((f: { id: number }) => f.id.toString() === InternalValue);
 		if (!foundItem) {
 			return undefined;
+		}
+
+		// extra info for page createScrap (Process filter)
+		if (foundItem.name && foundItem.project?.hall) {
+			let name = foundItem.name + ' - ' + foundItem.project.hall.name;
+			return name;
 		}
 		if (foundItem.name && foundItem.code) {
 			let name = foundItem.code + ' - ' + foundItem.name;
@@ -55,7 +61,9 @@
 	function closeAndFocusTrigger() {
 		open = false;
 		tick().then(() => {
-			triggerRef.focus();
+			if (triggerRef) {
+				triggerRef.focus();
+			}
 		});
 	}
 
@@ -75,7 +83,7 @@
 		if ($isEditing === false) editMode = false;
 	});
 
-	// $inspect(InternalValue);
+	// $inspect(selectedLabel);
 </script>
 
 <div>
@@ -88,33 +96,39 @@
 					variant="secondary"
 					role="combobox"
 					aria-expanded={open}
-					class="w-[200px] lg:w-[250px] text-md justify-between whitespace-break-spaces {changeCss &&
-						'lg:h-[50px]'}"
+					class="w-[200px] lg:w-[300px] text-md justify-between whitespace-break-spaces {changeCss &&
+						'lg:h-[50px]'} max-sm:py-6!"
 				>
 					{selectedLabel || 'Select item'}
 					<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" />
 				</Button>
 			{/snippet}
 		</Popover.Trigger>
-		<Popover.Content class="w-[200px] lg:w-[250px] p-0 border-primary">
+		<Popover.Content class="w-[200px] lg:w-[300px] p-0 border-primary">
 			<Command.Root>
 				<Command.Input placeholder="Search ..." class="h-4! inputNormalize" />
 
-				<Command.List class="mt-4">
+				<Command.List class="mt-2">
 					<Command.Empty>Empty</Command.Empty>
 					<Command.Group>
 						{#each dataBox as item}
 							<Command.Item
-								value={item.name}
+								class="hover:bg-primary/20!"
+								value={selectedLabel}
 								onSelect={() => {
-									InternalValue = item.id;
+									InternalValue = item.id.toString();
 									closeAndFocusTrigger();
 								}}
 							>
 								<CheckIcon
-									class={cn('mr-2 size-4', InternalValue !== item.id && 'text-transparent')}
+									class={cn(
+										'mr-2 size-4',
+										InternalValue == item.id ? 'text-chart-success' : 'text-transparent'
+									)}
 								/>
-								{@render labelText(item)}
+								<div class="cursor-pointer min-w-full">
+									{@render labelText(item)}
+								</div>
 							</Command.Item>
 						{/each}
 					</Command.Group>
@@ -131,5 +145,7 @@
 		<span>{item.code + ' - ' + item.name}</span>
 	{:else if nameLabel === 'partnumSideColor'}
 		<span>{item.partNumber + ' - ' + item.side}</span>
+	{:else if nameLabel === 'nameAndHall'}
+		<span>{item.name + ' - ' + item.project.hall.name}</span>
 	{/if}
 {/snippet}

@@ -19,16 +19,16 @@
 </script>
 
 {#if data}
-	<section class="my-4 flex relative" transition:slide>
+	<section class="w-full mx-auto my-4 flex relative" transition:slide>
 		{#if data?.success}
 			<div
-				class="w-full p-4 mb-1 bg-chart-success/30 backdrop-blur-sm text-chart-success rounded-md"
+				class="w-full p-4 mb-1 bg-chart-success/20 backdrop-blur-2xl text-chart-success rounded-lg"
 			>
 				{data.message}
 			</div>
 		{:else}
 			<div
-				class="w-full p-4 bg-destructive/30 backdrop-blur-sm text-destructive rounded-md space-y-2"
+				class="w-full p-4 bg-destructive/20 backdrop-blur-2xl text-destructive rounded-lg space-y-2"
 			>
 				<p class="font-semibold">{data?.message}</p>
 

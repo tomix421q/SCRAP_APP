@@ -53,7 +53,7 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	$inspect(projectId);
+	// $inspect(projectId);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />

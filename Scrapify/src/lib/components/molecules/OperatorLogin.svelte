@@ -2,8 +2,9 @@
 	import { goto } from '$app/navigation';
 	import { Button } from '@/components/ui/button';
 	import { Input } from '@/components/ui/input';
-	import { Label } from '@/components/ui/label';
 	import ResultInfo, { type ResultInfoData } from './ResultInfo.svelte';
+	import Separator from '../ui/separator/separator.svelte';
+	import Label from '../ui/label/label.svelte';
 
 	let cardId = $state('');
 	let isSubmitting = $state(false);
@@ -79,50 +80,70 @@
 	// $inspect(actuallTime);
 </script>
 
-<main class="mx-auto text-center w-full sm:w-xl">
+<main class="mx-auto text-center w-full lg:w-4xl">
 	{#if verifiedOperator}
-		<div class="listNormalize bg-secondary/30 lg:text-xl">
-			<p class=" text-accent-foreground">
-				Prihlaseny operator: <span class="text-primary font-semibold text-2xl">{cardId}</span>
-			</p>
-			<div>
-				<Button
-					size="sm"
-					variant="destructive"
-					class="mt-10 w-full"
-					onclick={() => {
-						logoutOperator();
-					}}>Odhlasit</Button
+		<div class="formNormalize bg-primary/30 lg:text-xl">
+			<section class="grid lg:grid-cols-2 gap-6">
+				<h3 class="m-auto text-4xl lg:text-7xl font-bold uppercase tracking-wider"
+					>Card ID</h3
 				>
-			</div>
+
+				<div class="flex justify-center gap-6">
+					<Separator orientation="vertical" class={'hidden lg:block'} />
+					<p class="m-auto w-full text-4xl lg:text-6xl font-bold text-primary text-start">
+						{cardId}
+					</p>
+
+					<Button
+						variant="destructive"
+						class=" my-auto"
+						size="lg"
+						onclick={() => {
+							logoutOperator();
+						}}>Odhlasit</Button
+					>
+				</div>
+			</section>
 		</div>
 	{:else}
-		<form method="POST" onsubmit={handleLoginOperator} class="formNormalize bg-primary/10 gap-4">
-			<h1 class="mx-auto text-2xl">Card ID</h1>
+		<form
+			method="POST"
+			onsubmit={handleLoginOperator}
+			class="formNormalize bg-secondary/30 gap-4 rounded-3xl"
+		>
 			<div>
 				<ResultInfo data={infoResult} />
 			</div>
 
-			<article class="flex justify-between items-center gap-2">
-				<Label for="cardId" class="text-xl">ID karty</Label>
-				<Input
-					type="text"
-					name="cardId"
-					bind:value={cardId}
-					placeholder="Cislo karty"
-					class="inputNormalize max-w-[240px]"
-					id="cardId"
-					required
-				/>
-			</article>
+			<section class="grid lg:grid-cols-2 gap-6">
+				<Label for="cardId" class="m-auto text-4xl lg:text-7xl font-bold uppercase tracking-wider"
+					>Card ID</Label
+				>
+				<div class="flex justify-center gap-6">
+					<Separator orientation="vertical" />
+					<article class="flex justify-between items-center gap-2">
+						<!-- <Label for="cardId" class="text-xl">ID karty</Label> -->
+						<Input
+							type="number"
+							name="cardId"
+							autocomplete={'off'}
+							bind:value={cardId}
+							placeholder="Zadaj ID karty"
+							class="inputNormalize max-w-[240px] text-3xl!"
+							id="cardId"
+							required
+						/>
+					</article>
 
-			<Button type="submit" class="mt-10 ">
-				{#if isSubmitting}
-					<span>Submitting...</span>
-				{:else}
-					Prihlasit
-				{/if}
-			</Button>
+					<Button type="submit" class="mt-10 my-auto" variant="default" size="lg">
+						{#if isSubmitting}
+							<span>Submitting...</span>
+						{:else}
+							Login
+						{/if}
+					</Button>
+				</div>
+			</section>
 		</form>
 	{/if}
 </main>
