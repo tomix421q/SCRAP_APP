@@ -2,7 +2,8 @@
 
 ## Check Status
 
-- [] increase all forms
+- [x] create favorite process in create scrap
+- [x] increase all forms
 - [x] fixed bug in download scrap record csv when is selected in filters some process
 - [x] allow operator make edit scrap record for 20min(like delete btn)
 - [x] repair edit icon visual in search page
