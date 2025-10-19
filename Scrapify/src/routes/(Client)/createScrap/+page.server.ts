@@ -4,7 +4,6 @@ import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import { scrapRecordSchema } from '@/utils/zod';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import { writeToLogger } from '@/utils/serverHelp';
-import { success } from 'zod';
 
 export const load: PageServerLoad = async (event) => {
 	const filters = {
