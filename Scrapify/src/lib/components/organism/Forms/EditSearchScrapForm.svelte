@@ -74,7 +74,7 @@
 			clearEditForm();
 		};
 	}}
-	class="formNormalize w-full gap-4"
+	class="formNormalize max-w-xl gap-4"
 >
 	<h2 class="text-center font-semibold text-2xl text-warning mb-6">Edit scrap</h2>
 

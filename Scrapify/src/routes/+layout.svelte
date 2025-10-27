@@ -2,6 +2,7 @@
 	import './../styles/shadCn.css';
 	import './../styles/app.css';
 	import favicon from '$lib/assets/ico.png';
+	import logo from '$lib/assets/logo.png';
 	import { navUrls } from '@/utils/navConst';
 	import Button from '@/components/ui/button/button.svelte';
 	import { page } from '$app/state';
@@ -73,10 +74,8 @@
 		<!-- Logo -->
 		<section>
 			<a href="/" class="flex items-center group">
-				<img src={favicon} alt="Scrapify icon" class="size-10" />
-				<span class="text-sm uppercase font-bold"
-					>Scrap<br class="group-hover:hidden transition-all duration-300 ease-in" />ify</span
-				>
+				<img src={logo} alt="Scrapify icon" class="w-32 bg-white rounded-lg pr-1" />
+
 				<div class="flex flex-col gap-0.5">
 					<span class="mb-auto leading-3 mx-2 text-muted-foreground text-xs">Version 2.2</span>
 					<span class="mb-auto leading-3 mx-2 text-xs text-chart-1">{user?.role}</span>

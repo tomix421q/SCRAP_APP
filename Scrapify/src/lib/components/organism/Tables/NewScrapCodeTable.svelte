@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Table from '@/components/ui/table';
 	import * as HoverCard from '@/components/ui/hover-card/index';
-	import type { Part, Prisma, Process, ScrapCode } from '@prisma/client';
+	import type { ScrapCode } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
 	import { editScrapData } from '@/stores/stores';

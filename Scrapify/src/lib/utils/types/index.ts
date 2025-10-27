@@ -1,4 +1,5 @@
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
+import type { Prisma } from '@prisma/client';
 
 export const ROLES = ['USER', 'ENGINEER', 'MODERATOR', 'ADMIN'] as const;
 export type Role = (typeof ROLES)[number];
@@ -45,3 +46,17 @@ export type LoggerEntityType =
 	| 'Operator'
 	| 'User'
 	| 'ScrapRecord';
+
+//in create scrap form,
+type ProcessWithRelationsPayload = Prisma.ProcessGetPayload<{
+	include: {
+		project: {
+			include: {
+				hall: {
+					select: { name: true };
+				};
+			};
+		};
+	};
+}>;
+export type ProcessWithRelations = ProcessWithRelationsPayload;

@@ -1,0 +1,92 @@
+Date : 2025-10-20 13:27:40
+Directory : /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src
+Total : 33 files,  1233 codes, 36 comments, 86 blanks, all 1355 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| Svelte     |         16 |        624 |         30 |         54 |        708 |
+| TypeScript |         17 |        609 |          6 |         32 |        647 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++--------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                     | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                        |         33 |      1,233 |         36 |         86 |      1,355 |
+| . (Files)                                                                                                                |          1 |          1 |          3 |         -1 |          3 |
+| lib                                                                                                                      |         13 |        596 |         31 |         54 |        681 |
+| lib/auth                                                                                                                 |          1 |          9 |          0 |          0 |          9 |
+| lib/components                                                                                                           |          9 |        526 |         31 |         51 |        608 |
+| lib/components/atoms                                                                                                     |          1 |         15 |          0 |          1 |         16 |
+| lib/components/molecules                                                                                                 |          4 |        107 |          4 |         13 |        124 |
+| lib/components/organism                                                                                                  |          4 |        404 |         27 |         37 |        468 |
+| lib/components/organism (Files)                                                                                          |          1 |         48 |          0 |          7 |         55 |
+| lib/components/organism/Forms                                                                                            |          2 |        363 |         27 |         29 |        419 |
+| lib/components/organism/Tables                                                                                           |          1 |         -7 |          0 |          1 |         -6 |
+| lib/utils                                                                                                                |          3 |         61 |          0 |          3 |         64 |
+| lib/utils (Files)                                                                                                        |          1 |         42 |          0 |          1 |         43 |
+| lib/utils/types                                                                                                          |          1 |         18 |          0 |          2 |         20 |
+| lib/utils/zod                                                                                                            |          1 |          1 |          0 |          0 |          1 |
+| routes                                                                                                                   |         19 |        636 |          2 |         33 |        671 |
+| routes (Files)                                                                                                           |          2 |         76 |          1 |          4 |         81 |
+| routes/(Admin)                                                                                                           |         10 |        380 |          4 |         22 |        406 |
+| routes/(Admin)/admin                                                                                                     |         10 |        380 |          4 |         22 |        406 |
+| routes/(Admin)/admin (Files)                                                                                             |          2 |         35 |          0 |          2 |         37 |
+| routes/(Admin)/admin/newhall                                                                                             |          1 |         19 |          0 |          0 |         19 |
+| routes/(Admin)/admin/newpart                                                                                             |          1 |         18 |          0 |          1 |         19 |
+| routes/(Admin)/admin/newprocess                                                                                          |          1 |         19 |          0 |          0 |         19 |
+| routes/(Admin)/admin/newproject                                                                                          |          1 |         18 |          0 |          0 |         18 |
+| routes/(Admin)/admin/newscrapcode                                                                                        |          1 |         18 |          0 |          3 |         21 |
+| routes/(Admin)/admin/operatorregister                                                                                    |          2 |        243 |          4 |         18 |        265 |
+| routes/(Admin)/admin/users                                                                                               |          1 |         10 |          0 |         -2 |          8 |
+| routes/(Client)                                                                                                          |          5 |        133 |         -3 |          3 |        133 |
+| routes/(Client) (Files)                                                                                                  |          1 |          3 |          3 |         -2 |          4 |
+| routes/(Client)/createScrap                                                                                              |          2 |         11 |         -8 |         -4 |         -1 |
+| routes/(Client)/search                                                                                                   |          2 |        119 |          2 |          9 |        130 |
+| routes/api                                                                                                               |          2 |         47 |          0 |          4 |         51 |
+| routes/api/export                                                                                                        |          1 |          6 |          0 |          0 |          6 |
+| routes/api/export/scrap                                                                                                  |          1 |          6 |          0 |          0 |          6 |
+| routes/api/operators                                                                                                     |          1 |         41 |          0 |          4 |         45 |
++--------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++--------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                                                 | language   | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/hooks.server.ts                                          | TypeScript |          1 |          3 |         -1 |          3 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/auth/auth.ts                                         | TypeScript |          9 |          0 |          0 |          9 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/atoms/Combobox.svelte                     | Svelte     |         15 |          0 |          1 |         16 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/molecules/DeleteBtn.svelte                | Svelte     |          4 |          0 |          0 |          4 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/molecules/LandingStatistic.svelte         | Svelte     |         64 |          3 |          7 |         74 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/molecules/OperatorLogin.svelte            | Svelte     |         37 |          1 |          6 |         44 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/molecules/ResultInfo.svelte               | Svelte     |          2 |          0 |          0 |          2 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Forms/CreateScrapForm.svelte     | Svelte     |        203 |         15 |         13 |        231 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Forms/EditSearchScrapForm.svelte | Svelte     |        160 |         12 |         16 |        188 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Logger.svelte                    | Svelte     |         48 |          0 |          7 |         55 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Tables/SearchScrapTable.svelte   | Svelte     |         -7 |          0 |          1 |         -6 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/utils/serverHelp.ts                                  | TypeScript |         42 |          0 |          1 |         43 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/utils/types/index.ts                                 | TypeScript |         18 |          0 |          2 |         20 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/utils/zod/index.ts                                   | TypeScript |          1 |          0 |          0 |          1 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/+page.server.ts                     | TypeScript |         22 |          0 |          1 |         23 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/+page.svelte                        | Svelte     |         13 |          0 |          1 |         14 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newhall/+page.server.ts             | TypeScript |         19 |          0 |          0 |         19 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newpart/+page.server.ts             | TypeScript |         18 |          0 |          1 |         19 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newprocess/+page.server.ts          | TypeScript |         19 |          0 |          0 |         19 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newproject/+page.server.ts          | TypeScript |         18 |          0 |          0 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newscrapcode/+page.server.ts        | TypeScript |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/operatorregister/+page.server.ts    | TypeScript |        108 |          1 |          8 |        117 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/operatorregister/+page.svelte       | Svelte     |        135 |          3 |         10 |        148 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/users/+page.svelte                  | Svelte     |         10 |          0 |         -2 |          8 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/+page.svelte                             | Svelte     |          3 |          3 |         -2 |          4 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/createScrap/+page.server.ts              | TypeScript |        102 |          0 |          3 |        105 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/createScrap/+page.svelte                 | Svelte     |        -91 |         -8 |         -7 |       -106 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/search/+page.server.ts                   | TypeScript |        105 |          1 |          8 |        114 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/search/+page.svelte                      | Svelte     |         14 |          1 |          1 |         16 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/+layout.server.ts                                 | TypeScript |         62 |          1 |          2 |         65 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/+layout.svelte                                    | Svelte     |         14 |          0 |          2 |         16 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/api/export/scrap/+server.ts                       | TypeScript |          6 |          0 |          0 |          6 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/api/operators/+server.ts                          | TypeScript |         41 |          0 |          4 |         45 |
+| Total                                                                                                                    |            |      1,233 |         36 |         86 |      1,355 |
++--------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

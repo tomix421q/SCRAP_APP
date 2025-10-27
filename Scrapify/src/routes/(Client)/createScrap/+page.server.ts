@@ -164,7 +164,6 @@ export const actions: Actions = {
 					prismaClient.operator.findFirst({ where: { cardId: Number(parseZod.data.operatorId) } }),
 					prismaClient.user.findFirst({ where: { cardId: Number(parseZod.data.operatorId) } })
 				]);
-				console.log(isOperator, isUser);
 				if (!findPartId || !findScrapId) {
 					return fail(404, {
 						success: false,

@@ -1,6 +1,6 @@
 import type { ScrapRecordWithRelations } from '@/components/organism/Tables/SearchScrapTable.svelte';
 import { type Hall, type Part, type Process, type Project, type ScrapCode } from '@prisma/client';
-import { derived, get, writable, type Readable } from 'svelte/store';
+import { derived, writable, type Readable } from 'svelte/store';
 
 export const currentConfirmDeleteId = writable<number | undefined>(undefined);
 
@@ -31,3 +31,6 @@ export const isEditing: Readable<boolean> = derived(
 		);
 	}
 );
+
+// FAVORITE STORE
+export const favoriteProcesses = writable<{ id: string; name: string }[]>([]);

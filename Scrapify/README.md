@@ -1,5 +1,11 @@
 # Adjustments
 
+- add when click next page (in pagination) scroll top
+- add some filter in admin parts etc.
+- add feature in users (admin panel) to delete user
+- make some improvment in CardID (landing) sometimes is problem with with login user (working only on reload page)
+- toggle filter (in search)
+
 ## Check Status
 
 - [x] create favorite process in create scrap
@@ -7,7 +13,7 @@
 - [x] fixed bug in download scrap record csv when is selected in filters some process
 - [x] allow operator make edit scrap record for 20min(like delete btn)
 - [x] repair edit icon visual in search page
-- [] check in create scrap that operator exist
+- [x] check in create scrap that operator exist
 - [x] add user logs
 - [x] operator in db
 - [x] quantity info in search

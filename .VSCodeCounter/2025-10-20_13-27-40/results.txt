@@ -1,0 +1,244 @@
+Date : 2025-10-20 13:27:40
+Directory : /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src
+Total : 154 files,  7570 codes, 346 comments, 825 blanks, all 8741 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| Svelte     |        104 |      4,872 |        161 |        560 |      5,593 |
+| TypeScript |         45 |      2,482 |        180 |        249 |      2,911 |
+| PostCSS    |          2 |        203 |          5 |         15 |        223 |
+| HTML       |          1 |         11 |          0 |          1 |         12 |
+| XML        |          2 |          2 |          0 |          0 |          2 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                               | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                  |        154 |      7,570 |        346 |        825 |      8,741 |
+| . (Files)                                                                                                                          |          3 |         26 |         10 |          6 |         42 |
+| lib                                                                                                                                |        118 |      3,922 |        212 |        506 |      4,640 |
+| lib (Files)                                                                                                                        |          1 |         35 |          1 |         10 |         46 |
+| lib/assets                                                                                                                         |          2 |          2 |          0 |          0 |          2 |
+| lib/auth                                                                                                                           |          2 |         79 |         24 |          7 |        110 |
+| lib/components                                                                                                                     |        106 |      3,604 |        177 |        456 |      4,237 |
+| lib/components/atoms                                                                                                               |          2 |        147 |          0 |         16 |        163 |
+| lib/components/molecules                                                                                                           |          6 |        444 |          9 |         58 |        511 |
+| lib/components/organism                                                                                                            |         11 |      1,188 |         40 |        111 |      1,339 |
+| lib/components/organism (Files)                                                                                                    |          3 |        231 |          7 |         27 |        265 |
+| lib/components/organism/Forms                                                                                                      |          2 |        363 |         27 |         29 |        419 |
+| lib/components/organism/Tables                                                                                                     |          6 |        594 |          6 |         55 |        655 |
+| lib/components/ui                                                                                                                  |         87 |      1,825 |        128 |        271 |      2,224 |
+| lib/components/ui (Files)                                                                                                          |          1 |         12 |          0 |          3 |         15 |
+| lib/components/ui/alert-dialog                                                                                                     |         10 |        182 |          1 |         30 |        213 |
+| lib/components/ui/button                                                                                                           |          2 |         90 |          1 |          8 |         99 |
+| lib/components/ui/card                                                                                                             |          8 |        150 |          1 |         23 |        174 |
+| lib/components/ui/checkbox                                                                                                         |          2 |         39 |          1 |          4 |         44 |
+| lib/components/ui/command                                                                                                          |         11 |        247 |          1 |         34 |        282 |
+| lib/components/ui/data-table                                                                                                       |          4 |        154 |        115 |         26 |        295 |
+| lib/components/ui/dialog                                                                                                           |          9 |        168 |          1 |         28 |        197 |
+| lib/components/ui/dropdown-menu                                                                                                    |         14 |        310 |          0 |         41 |        351 |
+| lib/components/ui/hover-card                                                                                                       |          3 |         44 |          0 |          9 |         53 |
+| lib/components/ui/input                                                                                                            |          2 |         52 |          1 |          7 |         60 |
+| lib/components/ui/label                                                                                                            |          2 |         23 |          1 |          5 |         29 |
+| lib/components/ui/popover                                                                                                          |          3 |         57 |          1 |          8 |         66 |
+| lib/components/ui/separator                                                                                                        |          2 |         23 |          1 |          5 |         29 |
+| lib/components/ui/table                                                                                                            |          9 |        181 |          1 |         26 |        208 |
+| lib/components/ui/textarea                                                                                                         |          2 |         25 |          1 |          5 |         31 |
+| lib/components/ui/tooltip                                                                                                          |          3 |         68 |          1 |          9 |         78 |
+| lib/server                                                                                                                         |          1 |          9 |          4 |          5 |         18 |
+| lib/stores                                                                                                                         |          1 |         30 |          0 |          4 |         34 |
+| lib/utils                                                                                                                          |          5 |        163 |          6 |         24 |        193 |
+| lib/utils (Files)                                                                                                                  |          2 |         70 |          6 |          8 |         84 |
+| lib/utils/types                                                                                                                    |          1 |         40 |          0 |          8 |         48 |
+| lib/utils/zod                                                                                                                      |          2 |         53 |          0 |          8 |         61 |
+| routes                                                                                                                             |         31 |      3,419 |        119 |        298 |      3,836 |
+| routes (Files)                                                                                                                     |          3 |        215 |         10 |         25 |        250 |
+| routes/(Admin)                                                                                                                     |         17 |      2,151 |         54 |        178 |      2,383 |
+| routes/(Admin)/admin                                                                                                               |         17 |      2,151 |         54 |        178 |      2,383 |
+| routes/(Admin)/admin (Files)                                                                                                       |          3 |        166 |          4 |         19 |        189 |
+| routes/(Admin)/admin/newhall                                                                                                       |          2 |        244 |          8 |         22 |        274 |
+| routes/(Admin)/admin/newpart                                                                                                       |          2 |        344 |          8 |         25 |        377 |
+| routes/(Admin)/admin/newprocess                                                                                                    |          2 |        314 |         10 |         25 |        349 |
+| routes/(Admin)/admin/newproject                                                                                                    |          2 |        311 |         10 |         23 |        344 |
+| routes/(Admin)/admin/newscrapcode                                                                                                  |          2 |        349 |         10 |         29 |        388 |
+| routes/(Admin)/admin/operatorregister                                                                                              |          2 |        243 |          4 |         18 |        265 |
+| routes/(Admin)/admin/users                                                                                                         |          2 |        180 |          0 |         17 |        197 |
+| routes/(Client)                                                                                                                    |          9 |        919 |         52 |         83 |      1,054 |
+| routes/(Client) (Files)                                                                                                            |          1 |         17 |          3 |          3 |         23 |
+| routes/(Client)/createScrap                                                                                                        |          2 |        316 |          7 |         26 |        349 |
+| routes/(Client)/login                                                                                                              |          1 |        135 |         30 |         12 |        177 |
+| routes/(Client)/register                                                                                                           |          1 |        159 |          3 |          8 |        170 |
+| routes/(Client)/report                                                                                                             |          1 |          1 |          0 |          1 |          2 |
+| routes/(Client)/search                                                                                                             |          2 |        248 |          9 |         28 |        285 |
+| routes/(Client)/user                                                                                                               |          1 |         43 |          0 |          5 |         48 |
+| routes/(Client)/user/profile                                                                                                       |          1 |         43 |          0 |          5 |         48 |
+| routes/api                                                                                                                         |          2 |        134 |          3 |         12 |        149 |
+| routes/api/export                                                                                                                  |          1 |         93 |          3 |          8 |        104 |
+| routes/api/export/scrap                                                                                                            |          1 |         93 |          3 |          8 |        104 |
+| routes/api/operators                                                                                                               |          1 |         41 |          0 |          4 |         45 |
+| styles                                                                                                                             |          2 |        203 |          5 |         15 |        223 |
++------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                                                           | language   | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/app.d.ts                                                           | TypeScript |          5 |          7 |          2 |         14 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/app.html                                                           | HTML       |         11 |          0 |          1 |         12 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/hooks.server.ts                                                    | TypeScript |         10 |          3 |          3 |         16 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/assets/background.svg                                          | XML        |          1 |          0 |          0 |          1 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/assets/mainPage.svg                                            | XML        |          1 |          0 |          0 |          1 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/auth/auth-client.ts                                            | TypeScript |          8 |          1 |          2 |         11 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/auth/auth.ts                                                   | TypeScript |         71 |         23 |          5 |         99 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/atoms/Combobox.svelte                               | Svelte     |        139 |          0 |         13 |        152 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/atoms/ToNavigateBtn.svelte                          | Svelte     |          8 |          0 |          3 |         11 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/molecules/DeleteBtn.svelte                          | Svelte     |         61 |          3 |          9 |         73 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/molecules/LandingStatistic.svelte                   | Svelte     |         64 |          3 |          7 |         74 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/molecules/MobileMenu.svelte                         | Svelte     |         41 |          1 |          7 |         49 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/molecules/OperatorLogin.svelte                      | Svelte     |        134 |          1 |         15 |        150 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/molecules/Pagination.svelte                         | Svelte     |         86 |          1 |         12 |         99 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/molecules/ResultInfo.svelte                         | Svelte     |         58 |          0 |          8 |         66 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Filter.svelte                              | Svelte     |        124 |          1 |         10 |        135 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Forms/CreateScrapForm.svelte               | Svelte     |        203 |         15 |         13 |        231 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Forms/EditSearchScrapForm.svelte           | Svelte     |        160 |         12 |         16 |        188 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Logger.svelte                              | Svelte     |         48 |          0 |          7 |         55 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Tables/HallsTable.svelte                   | Svelte     |         80 |          1 |          7 |         88 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Tables/NewPartTable.svelte                 | Svelte     |         88 |          0 |          8 |         96 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Tables/NewProcessTable.svelte              | Svelte     |        119 |          1 |         11 |        131 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Tables/NewProjectTable.svelte              | Svelte     |         84 |          1 |          8 |         93 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Tables/NewScrapCodeTable.svelte            | Svelte     |         90 |          1 |          9 |        100 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/Tables/SearchScrapTable.svelte             | Svelte     |        133 |          2 |         12 |        147 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/organism/User.svelte                                | Svelte     |         59 |          6 |         10 |         75 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/alert-dialog/alert-dialog-action.svelte          | Svelte     |         16 |          0 |          3 |         19 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/alert-dialog/alert-dialog-cancel.svelte          | Svelte     |         16 |          0 |          3 |         19 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/alert-dialog/alert-dialog-content.svelte         | Svelte     |         25 |          0 |          3 |         28 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/alert-dialog/alert-dialog-description.svelte     | Svelte     |         15 |          0 |          3 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/alert-dialog/alert-dialog-footer.svelte          | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/alert-dialog/alert-dialog-header.svelte          | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/alert-dialog/alert-dialog-overlay.svelte         | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/alert-dialog/alert-dialog-title.svelte           | Svelte     |         15 |          0 |          3 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/alert-dialog/alert-dialog-trigger.svelte         | Svelte     |          5 |          0 |          3 |          8 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/alert-dialog/index.ts                            | TypeScript |         36 |          1 |          3 |         40 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/button/button.svelte                             | Svelte     |         75 |          0 |          6 |         81 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/button/index.ts                                  | TypeScript |         15 |          1 |          2 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/card/card-action.svelte                          | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/card/card-content.svelte                         | Svelte     |         13 |          0 |          3 |         16 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/card/card-description.svelte                     | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/card/card-footer.svelte                          | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/card/card-header.svelte                          | Svelte     |         21 |          0 |          3 |         24 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/card/card-title.svelte                           | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/card/card.svelte                                 | Svelte     |         21 |          0 |          3 |         24 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/card/index.ts                                    | TypeScript |         23 |          1 |          2 |         26 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/checkbox/checkbox.svelte                         | Svelte     |         34 |          0 |          3 |         37 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/checkbox/index.ts                                | TypeScript |          5 |          1 |          1 |          7 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/command/command-dialog.svelte                    | Svelte     |         38 |          0 |          3 |         41 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/command/command-empty.svelte                     | Svelte     |         15 |          0 |          3 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/command/command-group.svelte                     | Svelte     |         30 |          0 |          3 |         33 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/command/command-input.svelte                     | Svelte     |         24 |          0 |          3 |         27 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/command/command-item.svelte                      | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/command/command-link-item.svelte                 | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/command/command-list.svelte                      | Svelte     |         15 |          0 |          3 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/command/command-separator.svelte                 | Svelte     |         15 |          0 |          3 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/command/command-shortcut.svelte                  | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/command/command.svelte                           | Svelte     |         20 |          0 |          3 |         23 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/command/index.ts                                 | TypeScript |         36 |          1 |          4 |         41 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/data-table/data-table.svelte.ts                  | TypeScript |         90 |         35 |         17 |        142 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/data-table/flex-render.svelte                    | Svelte     |         32 |          2 |          3 |         37 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/data-table/index.ts                              | TypeScript |          3 |          0 |          1 |          4 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/data-table/render-helpers.ts                     | TypeScript |         29 |         78 |          5 |        112 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dialog/dialog-close.svelte                       | Svelte     |          5 |          0 |          3 |          8 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dialog/dialog-content.svelte                     | Svelte     |         41 |          0 |          3 |         44 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dialog/dialog-description.svelte                 | Svelte     |         15 |          0 |          3 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dialog/dialog-footer.svelte                      | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dialog/dialog-header.svelte                      | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dialog/dialog-overlay.svelte                     | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dialog/dialog-title.svelte                       | Svelte     |         15 |          0 |          3 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dialog/dialog-trigger.svelte                     | Svelte     |          5 |          0 |          3 |          8 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dialog/index.ts                                  | TypeScript |         33 |          1 |          4 |         38 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-checkbox-item.svelte | Svelte     |         39 |          0 |          3 |         42 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-content.svelte       | Svelte     |         25 |          0 |          3 |         28 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-group-heading.svelte | Svelte     |         20 |          0 |          3 |         23 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-group.svelte         | Svelte     |          5 |          0 |          3 |          8 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-item.svelte          | Svelte     |         25 |          0 |          3 |         28 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-label.svelte         | Svelte     |         22 |          0 |          3 |         25 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-radio-group.svelte   | Svelte     |         14 |          0 |          3 |         17 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-radio-item.svelte    | Svelte     |         29 |          0 |          3 |         32 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-separator.svelte     | Svelte     |         15 |          0 |          3 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-shortcut.svelte      | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-sub-content.svelte   | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-sub-trigger.svelte   | Svelte     |         27 |          0 |          3 |         30 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/dropdown-menu-trigger.svelte       | Svelte     |          5 |          0 |          3 |          8 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/dropdown-menu/index.ts                           | TypeScript |         48 |          0 |          2 |         50 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/hover-card/hover-card-content.svelte             | Svelte     |         27 |          0 |          3 |         30 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/hover-card/hover-card-trigger.svelte             | Svelte     |          5 |          0 |          3 |          8 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/hover-card/index.ts                              | TypeScript |         12 |          0 |          3 |         15 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/input/index.ts                                   | TypeScript |          5 |          1 |          2 |          8 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/input/input.svelte                               | Svelte     |         47 |          0 |          5 |         52 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/label/index.ts                                   | TypeScript |          5 |          1 |          2 |          8 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/label/label.svelte                               | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/popover/index.ts                                 | TypeScript |         15 |          1 |          2 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/popover/popover-content.svelte                   | Svelte     |         27 |          0 |          3 |         30 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/popover/popover-trigger.svelte                   | Svelte     |         15 |          0 |          3 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/separator/index.ts                               | TypeScript |          5 |          1 |          2 |          8 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/separator/separator.svelte                       | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/table/index.ts                                   | TypeScript |         26 |          1 |          2 |         29 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/table/table-body.svelte                          | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/table/table-caption.svelte                       | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/table/table-cell.svelte                          | Svelte     |         21 |          0 |          3 |         24 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/table/table-footer.svelte                        | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/table/table-head.svelte                          | Svelte     |         21 |          0 |          3 |         24 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/table/table-header.svelte                        | Svelte     |         18 |          0 |          3 |         21 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/table/table-row.svelte                           | Svelte     |         21 |          0 |          3 |         24 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/table/table.svelte                               | Svelte     |         20 |          0 |          3 |         23 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/textarea/index.ts                                | TypeScript |          5 |          1 |          2 |          8 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/textarea/textarea.svelte                         | Svelte     |         20 |          0 |          3 |         23 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/tooltip/index.ts                                 | TypeScript |         18 |          1 |          3 |         22 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/tooltip/tooltip-content.svelte                   | Svelte     |         45 |          0 |          3 |         48 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/tooltip/tooltip-trigger.svelte                   | Svelte     |          5 |          0 |          3 |          8 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/components/ui/utils.ts                                         | TypeScript |         12 |          0 |          3 |         15 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/index.ts                                                       | TypeScript |         35 |          1 |         10 |         46 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/server/prisma.ts                                               | TypeScript |          9 |          4 |          5 |         18 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/stores/stores.ts                                               | TypeScript |         30 |          0 |          4 |         34 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/utils/navConst.ts                                              | TypeScript |         21 |          6 |          3 |         30 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/utils/serverHelp.ts                                            | TypeScript |         49 |          0 |          5 |         54 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/utils/types/index.ts                                           | TypeScript |         40 |          0 |          8 |         48 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/utils/zod/auth.ts                                              | TypeScript |         41 |          0 |          6 |         47 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/lib/utils/zod/index.ts                                             | TypeScript |         12 |          0 |          2 |         14 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/+layout.server.ts                             | TypeScript |         15 |          1 |          4 |         20 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/+page.server.ts                               | TypeScript |         39 |          0 |          4 |         43 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/+page.svelte                                  | Svelte     |        112 |          3 |         11 |        126 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newhall/+page.server.ts                       | TypeScript |        138 |          0 |         12 |        150 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newhall/+page.svelte                          | Svelte     |        106 |          8 |         10 |        124 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newpart/+page.server.ts                       | TypeScript |        190 |          0 |         10 |        200 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newpart/+page.svelte                          | Svelte     |        154 |          8 |         15 |        177 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newprocess/+page.server.ts                    | TypeScript |        178 |          0 |         11 |        189 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newprocess/+page.svelte                       | Svelte     |        136 |         10 |         14 |        160 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newproject/+page.server.ts                    | TypeScript |        183 |          0 |          9 |        192 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newproject/+page.svelte                       | Svelte     |        128 |         10 |         14 |        152 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newscrapcode/+page.server.ts                  | TypeScript |        197 |          0 |         16 |        213 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/newscrapcode/+page.svelte                     | Svelte     |        152 |         10 |         13 |        175 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/operatorregister/+page.server.ts              | TypeScript |        108 |          1 |          8 |        117 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/operatorregister/+page.svelte                 | Svelte     |        135 |          3 |         10 |        148 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/users/+page.server.ts                         | TypeScript |         52 |          0 |          5 |         57 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Admin)/admin/users/+page.svelte                            | Svelte     |        128 |          0 |         12 |        140 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/+page.svelte                                       | Svelte     |         17 |          3 |          3 |         23 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/createScrap/+page.server.ts                        | TypeScript |        221 |          0 |         15 |        236 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/createScrap/+page.svelte                           | Svelte     |         95 |          7 |         11 |        113 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/login/+page.svelte                                 | Svelte     |        135 |         30 |         12 |        177 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/register/+page.svelte                              | Svelte     |        159 |          3 |          8 |        170 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/report/+page.svelte                                | Svelte     |          1 |          0 |          1 |          2 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/search/+page.server.ts                             | TypeScript |        202 |          3 |         20 |        225 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/search/+page.svelte                                | Svelte     |         46 |          6 |          8 |         60 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/(Client)/user/profile/+page.svelte                          | Svelte     |         43 |          0 |          5 |         48 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/+error.svelte                                               | Svelte     |         24 |          0 |          4 |         28 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/+layout.server.ts                                           | TypeScript |         73 |          1 |          6 |         80 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/+layout.svelte                                              | Svelte     |        118 |          9 |         15 |        142 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/api/export/scrap/+server.ts                                 | TypeScript |         93 |          3 |          8 |        104 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/routes/api/operators/+server.ts                                    | TypeScript |         41 |          0 |          4 |         45 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/styles/app.css                                                     | PostCSS    |         28 |          0 |          7 |         35 |
+| /Users/tomas/Desktop/DEV/__Work-projects/SCRAP_APP/Scrapify/src/styles/shadCn.css                                                  | PostCSS    |        175 |          5 |          8 |        188 |
+| Total                                                                                                                              |            |      7,570 |        346 |        825 |      8,741 |
++------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
