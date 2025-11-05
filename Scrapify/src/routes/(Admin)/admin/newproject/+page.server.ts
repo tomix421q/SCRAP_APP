@@ -14,11 +14,10 @@ export const load: PageServerLoad = async (event) => {
 			take: limit,
 			orderBy: { id: 'desc' }
 		});
-		const halls = await prismaClient.hall.findMany();
 		const projectsCount = await prismaClient.project.count();
 		const totalPages = Math.ceil(projectsCount / limit);
 
-		return { data: { projects, halls, projectsCount, totalPages } };
+		return { data: { projects, projectsCount, totalPages } };
 	} catch (err: any) {
 		throw error(500, {
 			message: `${err}`
@@ -29,17 +28,9 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
 	createProject: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
-		const hallId = formData.get('hallId') as string;
 		const projectName = formData.get('projectName') as string;
 		const projectDescription = formData.get('projectDescription') as string;
 
-		if (!hallId) {
-			return fail(400, {
-				success: false,
-				error: true,
-				message: 'Hall is required. Please select a hall.'
-			});
-		}
 		if (projectName.length > 20 || projectDescription.length > 200) {
 			return fail(400, {
 				success: false,
@@ -48,21 +39,8 @@ export const actions: Actions = {
 			});
 		}
 		try {
-			const findHall = await prismaClient.hall.findFirst({
-				where: {
-					id: parseInt(hallId, 10)
-				}
-			});
-			if (!findHall) {
-				return fail(404, {
-					success: false,
-					message: 'Hall with this ID does not exist.',
-					error: true
-				});
-			}
 			const createProject = await prismaClient.project.create({
 				data: {
-					hallId: findHall.id,
 					name: projectName,
 					description: projectDescription
 				}
@@ -87,18 +65,10 @@ export const actions: Actions = {
 	},
 	editProject: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
-		const hallId = formData.get('hallId') as string;
 		const projectName = formData.get('projectName') as string;
 		const projectDescription = formData.get('projectDescription') as string;
 		const projectId = formData.get('projectId') as string;
 
-		if (!hallId) {
-			return fail(400, {
-				success: false,
-				error: true,
-				message: 'Hall is required. Please select a hall.'
-			});
-		}
 		if (projectName.length > 20 || projectDescription.length > 200) {
 			return fail(400, {
 				success: false,
@@ -107,18 +77,6 @@ export const actions: Actions = {
 			});
 		}
 		try {
-			const findHall = await prismaClient.hall.findFirst({
-				where: {
-					id: parseInt(hallId, 10)
-				}
-			});
-			if (!findHall) {
-				return fail(404, {
-					success: false,
-					message: 'Hall with this ID does not exist.',
-					error: true
-				});
-			}
 			const findProject = await prismaClient.project.findFirst({
 				where: { id: Number(projectId) }
 			});
@@ -134,7 +92,6 @@ export const actions: Actions = {
 						id: findProject.id
 					},
 					data: {
-						hallId: findHall.id,
 						name: projectName,
 						description: projectDescription
 					}

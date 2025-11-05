@@ -48,15 +48,45 @@ export type LoggerEntityType =
 	| 'ScrapRecord';
 
 //in create scrap form,
-type ProcessWithRelationsPayload = Prisma.ProcessGetPayload<{
+// type ProcessWithRelationsPayload = Prisma.ProcessGetPayload<{
+// 	include: {
+// 		project: {
+// 			include: {
+// 				project: {
+// 					include: {
+// 						hall: {
+// 							select: {
+// 								name: true;
+// 							};
+// 						};
+// 					};
+// 				};
+// 			};
+// 		};
+// 	};
+// }>;
+// export type ProcessWithRelations = ProcessWithRelationsPayload;
+
+export type PartWithRelation = Prisma.PartGetPayload<{
 	include: {
-		project: {
-			include: {
-				hall: {
-					select: { name: true };
-				};
-			};
-		};
+		process: { include: { hall: true } };
+		project: true;
 	};
 }>;
-export type ProcessWithRelations = ProcessWithRelationsPayload;
+
+export type ProcessWithRelations = Prisma.ProcessGetPayload<{
+	include: {
+		hall: true;
+	};
+}>;
+export type ProcessWithRelationsAll = Prisma.ProcessGetPayload<{
+	include: {
+		project: { include: { project: true } };
+		parts: { include: { process: true } };
+		hall: true;
+	};
+}>;
+
+export type ScrapRecordWithRelations = Prisma.ScrapRecordGetPayload<{
+	include: { part: { include: { process: true } }; scrapCode: true };
+}>;

@@ -56,7 +56,7 @@ export const load: PageServerLoad = async (event) => {
 		const [findRecords, totalRecords, allProcesses, totalPartQnt] = await Promise.all([
 			prismaClient.scrapRecord.findMany({
 				where,
-				include: { part: true, scrapCode: true },
+				include: { part: { include: { process: true } }, scrapCode: true },
 				skip,
 				take: limit,
 				orderBy: { createdAt: 'desc' }

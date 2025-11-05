@@ -4,12 +4,12 @@
 	import { enhance } from '$app/forms';
 	import { currentConfirmDeleteId, isEditing } from '@/stores/stores';
 
-	let { id, actionRoute }: { id: number; actionRoute: string } = $props();
+	let { id, actionRoute }: { id: number | string; actionRoute: string } = $props();
 
 	let isSubmitting = $state(false);
 	let isConfirmState = $state(false);
 
-	const handleShowConfirm = (confirmId: number) => {
+	const handleShowConfirm = (confirmId: number | string) => {
 		isConfirmState = true;
 		currentConfirmDeleteId.set(confirmId);
 	};
@@ -22,7 +22,7 @@
 		if ($isEditing) handleCancelConfirm();
 	});
 
-	// $inspect(takeConfirmId);
+	// $inspect(id, actionRoute);
 </script>
 
 <main class="flex gap-1 justify-end relative">
@@ -69,4 +69,4 @@
 	</form>
 </main>
 
-<!-- FOR FUTURE --> 
+<!-- FOR FUTURE -->

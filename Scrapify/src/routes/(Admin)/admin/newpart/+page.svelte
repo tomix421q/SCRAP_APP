@@ -1,34 +1,39 @@
 <script lang="ts">
-	import type { Hall, Part, Process, Project } from '@prisma/client';
-	import { PART_SIDES, type PartSide } from '@/utils/types';
+	import type { Part, Process, Project } from '@prisma/client';
+	import { PART_SIDES, type PartSide, type PartWithRelation } from '@/utils/types';
 	import ToNavigateBtn from '@/components/atoms/ToNavigateBtn.svelte';
 	import { enhance } from '$app/forms';
 	import { Label } from '@/components/ui/label';
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Button from '@/components/ui/button/button.svelte';
-	import { Plus } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { Input } from '@/components/ui/input';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import NewPartTable from '@/components/organism/Tables/NewPartTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
-	import { currentConfirmDeleteId, editPartData } from '@/stores/stores';
+	import { currentConfirmDeleteId, editPartData, isEditing } from '@/stores/stores';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 
 	interface CustomPageData {
-		parts: Part[];
+		parts: PartWithRelation[];
+		projects: Project[];
 		processes: Process[];
 		totalPages: number;
 		partsCount: number;
 	}
 
 	let { data, form }: PageProps = $props();
-	let { parts, processes, totalPages, partsCount } = $derived(data.data) as CustomPageData;
+	let { parts, processes, projects, totalPages, partsCount } = $derived(
+		data.data
+	) as CustomPageData;
 	let isSubmitting = $state(false);
 
 	// id
 	let idEditPart = $state<number>();
 	let processId = $state('');
+	let projectId = $state('');
 	let partProdNumberId = $state('');
 	let partSide = $state('') as PartSide;
 
@@ -36,12 +41,16 @@
 	let resetProcessCombo = $state(false);
 	let resetPartSideCombo = $state(false);
 
-	function clearEditForm() {
+	async function clearEditForm() {
 		idEditPart = undefined;
 		processId = '';
+		projectId = '';
 		partProdNumberId = '';
 		partSide = '' as PartSide;
 		$editPartData = undefined;
+		// const url = new URL($page.url)
+		// url.searchParams.delete('processId')
+		// await goto(`${url.pathname}${url.search}`, { keepFocus: true, noScroll: true });
 	}
 
 	$effect(() => {
@@ -49,12 +58,24 @@
 			form = null;
 			idEditPart = $editPartData.id;
 			processId = $editPartData.processId.toString();
+			projectId = $editPartData.projectId.toString();
 			partProdNumberId = $editPartData.partNumber;
 			partSide = $editPartData.side as PartSide;
 		}
-
+	});
+	$effect(() => {
 		if ($currentConfirmDeleteId) {
 			clearEditForm();
+		}
+	});
+	$effect(() => {
+		if (processId) {
+			if (processId !== $editPartData?.processId.toString()) {
+				projectId = '';
+			}
+			const params = new URLSearchParams();
+			params.set('processId', processId.toString());
+			goto(`?${params.toString()}`, { keepFocus: true, noScroll: true });
 		}
 	});
 
@@ -63,14 +84,14 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	$inspect(processId);
+	// $inspect(projectId);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
 <main class="flex flex-col lg:flex-wrap gap-10">
 	<!--  -->
 	<!-- CREATE & EDIT PART -->
-	<section class="w-full sm:w-lg">
+	<section class="w-full">
 		<form
 			method="POST"
 			action={idEditPart ? '?/editPart' : '?/createPart'}
@@ -79,17 +100,15 @@
 
 				return async ({ update, result }) => {
 					if (result?.type === 'success' || result?.type === 'failure') {
-						resetProcessCombo = true;
-						resetPartSideCombo = true;
 					}
 					await update();
 					isSubmitting = false;
-					resetProcessCombo = false;
-					resetPartSideCombo = false;
-					clearEditForm();
+					// if ($isEditing) {
+					// 	clearEditForm();
+					// }
 				};
 			}}
-			class="formNormalize"
+			class="formNormalize sm:w-xl"
 		>
 			<h1 class="mx-auto mb-6 text-2xl">{idEditPart ? 'Edit part' : 'Create new part'}</h1>
 			<div>
@@ -99,24 +118,41 @@
 			<input type="text" hidden name="partId" bind:value={idEditPart} />
 
 			<!-- process COMBO -->
-			<article class="flex justify-between items-center gap-2">
+			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
 				<Label for="processId" class="text-sm md:text-lg">Process</Label>
-				{#if idEditPart}
-					{@const actuallPart = processes.find((process) => process.id === Number(processId))}
-					<p class=" ml-auto text-sm text-chart-1">
-						<span>{actuallPart ? actuallPart.name : 'Unknown part'}</span>
-					</p>
-				{/if}
-				<div class="flex gap-2">
-					<Combobox
-						dataBox={processes}
-						bind:value={processId}
-						reset={resetProcessCombo}
-						id="processId"
-					/>
-					<Button size="icon" href="/admin/newprocess"><Plus /></Button>
-				</div>
+				<Combobox
+					dataBox={processes}
+					bind:value={processId}
+					reset={resetProcessCombo}
+					id="processId"
+				/>
 				<input type="hidden" name="processId" required bind:value={processId} />
+			</article>
+			<!--  -->
+			<!-- project dynamic combo -->
+			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
+				<Label for="projectId" class="text-sm md:text-lg">Project</Label>
+				<Combobox
+					dataBox={projects}
+					bind:value={projectId}
+					reset={resetProcessCombo}
+					id="projectId"
+				/>
+				<input type="hidden" name="projectId" required bind:value={projectId} />
+			</article>
+			<!--  -->
+			<!-- Side [optional] -->
+			<article class="flex flex-col justify-between lg:items-center gap-2 lg:flex-row">
+				<Label for="partSide" class="text-sm md:text-lg"
+					>Side <span class="text-xs text-chart-info">[Optional]</span></Label
+				>
+				<Combobox
+					dataBox={PART_SIDES}
+					bind:value={partSide}
+					reset={resetPartSideCombo}
+					id={'partSide'}
+				/>
+				<input type="hidden" name="partSide" required bind:value={partSide} />
 			</article>
 			<!--  -->
 			<!-- Part inputs !!! -->
@@ -128,29 +164,11 @@
 					id="partNumber"
 					bind:value={partProdNumberId}
 					placeholder="Insert part number"
-					class="inputNormalize max-w-[240px]"
+					class="inputNormalize lg:w-[350px]"
 					required
 				/>
 			</article>
-			<article class="flex justify-between items-center gap-2">
-				<Label for="partSide" class="text-sm md:text-lg"
-					>Side <span class="text-xs text-muted-foreground">[Optional]</span></Label
-				>
-				{#if idEditPart}
-					<p class=" ml-auto text-sm text-chart-1">
-						<span>{partSide ? partSide : 'Empty'}</span>
-					</p>
-				{/if}
-				<div class="flex gap-2 w-[240px]">
-					<Combobox
-						dataBox={PART_SIDES}
-						bind:value={partSide}
-						reset={resetPartSideCombo}
-						id={'partSide'}
-					/>
-				</div>
-				<input type="hidden" name="partSide" required bind:value={partSide} />
-			</article>
+
 			<Button type="submit" class="mt-10 ">
 				{#if isSubmitting}
 					<span>Submitting...</span>

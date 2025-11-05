@@ -46,7 +46,6 @@
 				<Table.Row class="bg-chart-4/40 *:text-chart-1">
 					<Table.Head class="w-[100px]">ID</Table.Head>
 					<Table.Head class="w-[100px]">Name</Table.Head>
-					<Table.Head class="w-[100px]">Hall ID</Table.Head>
 					<Table.Head class="w-[100px]">Description</Table.Head>
 
 					<Table.Head colspan={1} class="text-end">Actions</Table.Head>
@@ -57,7 +56,6 @@
 					<Table.Row>
 						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.name}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.hallId}</Table.Cell>
 						<Table.Cell class="w-[100px]">{@render description(item.description!)}</Table.Cell>
 						<!-- ACTIONS BTNS-->
 						<Table.Cell class="w-[50px]">

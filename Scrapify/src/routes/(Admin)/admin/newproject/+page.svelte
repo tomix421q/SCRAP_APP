@@ -5,20 +5,17 @@
 	import { enhance } from '$app/forms';
 	import type { PageProps } from './$types';
 	import ToNavigateBtn from '@/components/atoms/ToNavigateBtn.svelte';
-	import Combobox from '@/components/atoms/Combobox.svelte';
-	import { Plus } from '@lucide/svelte';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import NewProjectTable from '@/components/organism/Tables/NewProjectTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
-	import { currentConfirmDeleteId, editProjectData, isEditing } from '@/stores/stores';
+	import { currentConfirmDeleteId, editProjectData } from '@/stores/stores';
 	import { onMount } from 'svelte';
 
 	let { form, data }: PageProps = $props();
-	let { projects, halls, totalPages, projectsCount } = $derived(data.data);
+	let { projects, totalPages, projectsCount } = $derived(data.data);
 	let isSubmitting = $state(false);
 
 	let idEditProject = $state<number>();
-	let hallId = $state('');
 	let projectName = $state('');
 	let projectDescription = $state('');
 
@@ -26,7 +23,6 @@
 
 	function clearEditForm() {
 		idEditProject = undefined;
-		hallId = '';
 		projectName = '';
 		projectDescription = '';
 		$editProjectData = undefined;
@@ -36,7 +32,6 @@
 		if ($editProjectData) {
 			form = null;
 			idEditProject = $editProjectData.id;
-			hallId = $editProjectData.hallId.toString();
 			projectName = $editProjectData.name;
 			if ($editProjectData.description) projectDescription = $editProjectData.description;
 		}
@@ -84,23 +79,6 @@
 			<!-- if edit  -->
 			<input type="text" hidden name="projectId" bind:value={idEditProject} />
 
-			<!--  -->
-			<!-- hall COMBO -->
-			<article class="flex justify-between items-center gap-2">
-				<Label for="hallId" class="text-sm md:text-lg">Hall</Label>
-				<!-- if edit -->
-				{#if idEditProject}
-					{@const actualHall = halls.find((hall) => hall.id === Number(hallId))}
-					<p class=" ml-auto text-sm text-chart-1">
-						<span>{actualHall ? actualHall.name : 'Unknown hall'}</span>
-					</p>
-				{/if}
-				<div class="flex gap-2">
-					<Combobox dataBox={halls} bind:value={hallId} reset={resetHallCombo} id="hallId" />
-					<Button size="icon" href="/admin/newhall"><Plus /></Button>
-				</div>
-				<input type="hidden" name="hallId" required bind:value={hallId} />
-			</article>
 			<!--  -->
 			<!-- project -->
 			<article class="flex justify-between items-center gap-2">

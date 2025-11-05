@@ -67,6 +67,8 @@
 			goto('/');
 		}
 	};
+
+	// $inspect(processes);
 </script>
 
 <main>
@@ -180,7 +182,7 @@
 				placeholder="Description"
 				name="description"
 				id="description"
-				class="inputNormalize max-w-[250px]"
+				class="inputNormalize max-w-[350px]"
 				bind:value={description}
 			/>
 		</article>
@@ -192,7 +194,7 @@
 				placeholder="Quantity"
 				name="quantity"
 				id="quantity"
-				class="inputNormalize max-w-[250px]"
+				class="inputNormalize max-w-[350px]"
 				bind:value={quantity}
 			/>
 		</article>
@@ -200,7 +202,7 @@
 		<!-- input createdBy -->
 		<article class="flex justify-between items-center gap-2">
 			<Label for="operatorId" class="text-sm md:text-lg">Operator ID</Label>
-			<div class="flex w-[290px]">
+			<div class="flex w-[350px]">
 				<Button
 					size="icon"
 					variant="ghost"

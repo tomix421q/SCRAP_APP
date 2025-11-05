@@ -106,11 +106,11 @@
 				</article>
 			</div>
 			<div class="space-y-6 md:space-y-3">
-				<article class="lg:flex justify-between items-center gap-2 max-w-[300px]">
+				<article class="lg:flex justify-between items-center gap-2">
 					<Label class="text-sm w-[200px]">Date from</Label>
 					<Input type="date" class="inputNormalize" bind:value={filterOptions.dateFrom} />
 				</article>
-				<article class="lg:flex justify-between items-center gap-2 max-w-[300px]">
+				<article class="lg:flex justify-between items-center gap-2">
 					<Label class="text-sm w-[200px]">Date To</Label>
 					<Input type="date" class="inputNormalize" bind:value={filterOptions.dateTo} />
 				</article>

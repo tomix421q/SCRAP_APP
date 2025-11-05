@@ -5,7 +5,7 @@
 	import Input from '@/components/ui/input/input.svelte';
 	import Label from '@/components/ui/label/label.svelte';
 	import { currentConfirmDeleteId, editSearchData } from '@/stores/stores';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import type { ActionData } from '../../../../routes/(Client)/search/$types';
 
 	let { data, form }: { data: any; form: ActionData } = $props();
@@ -53,6 +53,8 @@
 		// clearEditForm();
 		$currentConfirmDeleteId = undefined;
 	});
+
+	// $inspect(partId);
 </script>
 
 <form
@@ -66,7 +68,6 @@
 				resetPartCombo = true;
 				resetScrapCodeCombo = true;
 			}
-
 			await update();
 			isSubmitting = false;
 			resetPartCombo = false;
@@ -74,7 +75,7 @@
 			clearEditForm();
 		};
 	}}
-	class="formNormalize max-w-xl gap-4"
+	class="formNormalize"
 >
 	<h2 class="text-center font-semibold text-2xl text-warning mb-6">Edit scrap</h2>
 
@@ -87,13 +88,6 @@
 			<span>Loading...</span>
 		{:then parts}
 			<Label for="partId" class="text-sm md:text-lg">Part</Label>
-			<!-- if edit -->
-			{#if idEditScrapRecord}
-				{@const actuallPart = parts.find((part: any) => part.id === Number(partId))}
-				<p class=" ml-auto text-sm text-chart-1">
-					<span>{actuallPart ? actuallPart.partNumber : 'Unknown PN'}</span>
-				</p>
-			{/if}
 			<div class="flex gap-2">
 				<Combobox
 					dataBox={parts}
@@ -113,14 +107,6 @@
 			<span>Loading...</span>
 		{:then scrapCodes}
 			<Label for="scrapCodeId" class="text-sm md:text-lg">Scrap Code</Label>
-			{#if idEditScrapRecord}
-				{@const actuallScrapCode = scrapCodes.find(
-					(scrapCode: any) => scrapCode.id === Number(scrapId)
-				)}
-				<p class=" ml-auto text-sm text-chart-1">
-					<span>{actuallScrapCode ? actuallScrapCode.code : 'Unknown scrap'}</span>
-				</p>
-			{/if}
 			<div class="flex gap-2">
 				<Combobox
 					dataBox={scrapCodes}
@@ -142,7 +128,7 @@
 			placeholder="Description"
 			name="description"
 			id="description"
-			class="inputNormalize max-w-[250px]"
+			class="inputNormalize max-w-[350px]"
 			bind:value={description}
 		/>
 	</article>
@@ -154,7 +140,7 @@
 			placeholder="Quantity"
 			name="quantity"
 			id="quantity"
-			class="inputNormalize max-w-[250px]"
+			class="inputNormalize max-w-[350px]"
 			bind:value={quantity}
 		/>
 	</article>
@@ -162,15 +148,14 @@
 	<!-- input createdBy -->
 	<article class="flex justify-between items-center gap-2">
 		<Label for="operatorId" class="text-sm md:text-lg">Operator ID</Label>
-		<div class="flex w-[290px]">
-			<Input
-				placeholder="Operator id"
-				name="operatorId"
-				id="operatorId"
-				class="inputNormalize ml-2"
-				bind:value={operatorId}
-			/>
-		</div>
+
+		<Input
+			placeholder="Operator id"
+			name="operatorId"
+			id="operatorId"
+			class="inputNormalize max-w-[350px]"
+			bind:value={operatorId}
+		/>
 	</article>
 
 	<div class="flex justify-center w-full gap-4 items-center mt-4">

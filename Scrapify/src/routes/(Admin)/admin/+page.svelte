@@ -15,7 +15,7 @@
 
 <main>
 	<Card
-		class="text-2xl mb-8 lg:text-6xl uppercase font-bold text-primary tracking-wide cardNormalize bg-chart-2/10 min-w-full"
+		class="text-2xl mb-8 lg:text-6xl uppercase font-bold text-primary tracking-wide cardNormalize min-w-full bg-transparent"
 	>
 		<CardHeader>
 			<CardTitle>Admin Dashboard</CardTitle>
@@ -24,7 +24,7 @@
 
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-6">
 		<!-- Create zone -->
-		<Card class="cardNormalize bg-chart-2/10 min-w-full">
+		<Card class="cardNormalize min-w-full bg-transparent">
 			<CardHeader>
 				<CardTitle
 					class="text-2xl font-bold tracking-widest bg-gradient-to-r from-chart-1 to-chart-3 bg-clip-text text-transparent"
@@ -61,7 +61,7 @@
 		</Card>
 
 		<!-- User zone -->
-		<Card class="cardNormalize bg-chart-2/10 min-w-full!">
+		<Card class="cardNormalize min-w-full! bg-transparent">
 			<CardHeader>
 				<CardTitle
 					class="text-2xl font-bold tracking-widest bg-gradient-to-r from-chart-1 to-chart-3 bg-clip-text text-transparent"
@@ -95,7 +95,7 @@
 		</Card>
 
 		<!-- Log zone -->
-		<Card class="cardNormalize bg-chart-2/10 lg:col-span-3 lg:min-w-4xl ">
+		<Card class="cardNormalize lg:col-span-3 lg:min-w-4xl bg-transparent">
 			<div class="flex justify-between">
 				<CardHeader class="lg:w-xs">
 					<CardTitle

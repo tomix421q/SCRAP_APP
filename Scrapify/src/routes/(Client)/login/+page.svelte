@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { authClient } from '$lib/auth/auth-client.js';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';

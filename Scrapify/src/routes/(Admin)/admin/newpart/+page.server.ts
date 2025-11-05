@@ -3,16 +3,26 @@ import type { Actions, PageServerLoad } from './$types';
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import { writeToLogger } from '@/utils/serverHelp';
+import { success } from 'zod';
 
 export const load: PageServerLoad = async (event) => {
+	const processId = event.url.searchParams.get('processId');
 	const page = Number(event.url.searchParams.get('page') ?? '1');
 	const limit = 100;
 	const skip = (page - 1) * limit;
 	try {
 		const [allParts, allProcesses, allProjects, allHalls] = await Promise.all([
-			prismaClient.part.findMany({ skip, take: limit, orderBy: { id: 'desc' } }),
+			prismaClient.part.findMany({
+				skip,
+				take: limit,
+				orderBy: { id: 'desc' },
+				include: { process: { include: { hall: true } }, project: true }
+			}),
 			prismaClient.process.findMany(),
-			prismaClient.project.findMany(),
+			prismaClient.project.findMany({
+				include: { processes: true },
+				where: { processes: { some: { processId: Number(processId) } } }
+			}),
 			prismaClient.hall.findMany()
 		]);
 		const partsCount = await prismaClient.part.count();
@@ -40,12 +50,20 @@ export const actions = {
 		const processId = formData.get('processId') as string;
 		const partProdNumberId = formData.get('partNumber') as string;
 		const partSide = formData.get('partSide') as string;
+		const projectId = formData.get('projectId') as string;
 
 		if (!processId) {
 			return fail(400, {
 				success: false,
 				error: true,
 				message: 'Process is required.Please select process.'
+			});
+		}
+		if (!projectId) {
+			return fail(400, {
+				success: false,
+				error: true,
+				message: 'Project is required.Please select project.'
 			});
 		}
 		if (partProdNumberId.length > 100) {
@@ -56,37 +74,41 @@ export const actions = {
 			});
 		}
 		try {
-			const [findProcess] = await Promise.all([
+			const [findProcess, findSpecificProject] = await Promise.all([
 				prismaClient.process.findFirst({
 					where: { id: parseInt(processId, 10) },
-					include: { project: { include: { hall: true } } }
+					include: {
+						project: { select: { project: { select: { id: true, name: true } } } }
+					}
+				}),
+				prismaClient.project.findFirst({
+					where: { id: Number(projectId) }
 				})
 			]);
 
-			if (!findProcess) {
+			if (!findProcess || !findSpecificProject) {
 				return fail(404, {
 					success: false,
 					error: true,
-					message: `Process with ID ${processId} not found.`
+					message: `Process with ID ${processId} not found or project with ID ${projectId} not found.`
 				});
+			} else {
+				const createPart = await prismaClient.part.create({
+					data: {
+						processId: findProcess.id,
+						projectId: findSpecificProject.id,
+						partNumber: partProdNumberId,
+						side: partSide
+					}
+				});
+				writeToLogger({
+					request: event.request,
+					action: 'CREATE',
+					entityType: 'Part',
+					entityId: createPart.id
+				});
+				return { success: true, message: 'Part created successfully.' };
 			}
-			const createPart = await prismaClient.part.create({
-				data: {
-					processId: findProcess.id,
-					processName: findProcess.name,
-					projectName: findProcess.project.name,
-					hallName: findProcess.project.hall.name,
-					partNumber: partProdNumberId,
-					side: partSide
-				}
-			});
-			writeToLogger({
-				request: event.request,
-				action: 'CREATE',
-				entityType: 'Part',
-				entityId: createPart.id
-			});
-			return { success: true, message: 'Part created successfully.' };
 		} catch (error: any) {
 			return fail(500, {
 				success: false,
@@ -101,12 +123,21 @@ export const actions = {
 		const processId = formData.get('processId') as string;
 		const partProdNumberId = formData.get('partNumber') as string;
 		const partSide = formData.get('partSide') as string;
+		const projectId = formData.get('projectId') as string;
+		// console.log(projectName);
 
 		if (!processId) {
 			return fail(400, {
 				success: false,
 				error: true,
 				message: 'Process is required.Please select process.'
+			});
+		}
+		if (!projectId) {
+			return fail(400, {
+				success: false,
+				error: true,
+				message: 'Project is required.Please select project.'
 			});
 		}
 		if (partProdNumberId.length > 100) {
@@ -117,11 +148,14 @@ export const actions = {
 			});
 		}
 		try {
-			const [findPart, findProcess] = await Promise.all([
+			const [findPart, findProcess, findSpecificProject] = await Promise.all([
 				prismaClient.part.findFirst({ where: { id: Number(partId) } }),
 				prismaClient.process.findFirst({
-					where: { id: parseInt(processId, 10) },
+					where: { id: Number(processId) },
 					include: { project: true }
+				}),
+				prismaClient.project.findFirst({
+					where: { id: Number(projectId) }
 				})
 			]);
 			if (!findPart) {
@@ -131,22 +165,21 @@ export const actions = {
 					message: `Part with ID ${partId} not found.`
 				});
 			}
-			if (!findProcess) {
+			if (!findProcess || !findSpecificProject) {
 				return fail(404, {
 					success: false,
 					error: true,
-					message: `Process with ID ${processId} not found.`
+					message: `Process with ID ${processId} not found or project with ID ${projectId} not found.`
 				});
 			}
+
 			const updatePart = await prismaClient.part.update({
 				where: {
 					id: findPart.id
 				},
 				data: {
 					processId: findProcess.id,
-					processName: findProcess.name,
-					projectName: findProcess.project.name,
-					hallName: findProcess.project.name,
+					projectId: findSpecificProject.id,
 					partNumber: partProdNumberId,
 					side: partSide
 				}
@@ -157,7 +190,10 @@ export const actions = {
 				entityType: 'Part',
 				entityId: updatePart.id
 			});
-			return { success: true, message: `Part with ID ${partId} edited successfully.` };
+			return {
+				success: true,
+				message: `Part with ID ${partId}-${findPart.partNumber} edited successfully.`
+			};
 		} catch (error: any) {
 			return fail(500, {
 				success: false,

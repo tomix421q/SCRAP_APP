@@ -31,7 +31,7 @@
 		const params = new URLSearchParams($page.url.searchParams);
 		params.set('page', String(newPage));
 
-		goto(`?${params.toString()}`, { keepFocus: true, noScroll: true, replaceState: true });
+		goto(`?${params.toString()}`, { keepFocus: true, replaceState: true });
 	}
 </script>
 

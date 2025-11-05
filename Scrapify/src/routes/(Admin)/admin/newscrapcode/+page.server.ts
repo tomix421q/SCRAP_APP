@@ -78,7 +78,7 @@ export const actions = {
 				return fail(500, {
 					success: false,
 					error: true,
-					message: `Problem with find process ${processId}`
+					message: `Problem with find process ${processId},please select any process.`
 				});
 			}
 			if (!createScrap) {
@@ -182,7 +182,7 @@ export const actions = {
 	deleteScrapCode: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
 		const id = formData.get('deleteId');
-	
+
 		if (!id) {
 			return fail(400, { success: false, message: 'Validation', error: 'Id not found.' });
 		}

@@ -38,7 +38,7 @@
 
 		// extra info for page createScrap (Process filter)
 		if (foundItem.name && foundItem.project?.hall) {
-			let name = foundItem.name + ' - ' + foundItem.project.hall.name;
+			let name = foundItem.name + ' - ' + foundItem.hall.name;
 			return name;
 		}
 		if (foundItem.name && foundItem.code) {
@@ -56,7 +56,7 @@
 
 		return undefined;
 	});
-	let changeCss = $derived<boolean>(selectedLabel && selectedLabel?.length > 15 ? true : false);
+	let changeCss = $derived<boolean>(selectedLabel && selectedLabel?.length > 25 ? true : false);
 
 	function closeAndFocusTrigger() {
 		open = false;
@@ -83,10 +83,15 @@
 		if ($isEditing === false) editMode = false;
 	});
 
-	// $inspect(selectedLabel);
+	// testing [create process]
+	$effect(() => {
+		InternalValue = value;
+	});
+
+	// $inspect(InternalValue);
 </script>
 
-<div>
+<div class="max-sm:w-full">
 	<Popover.Root bind:open>
 		<Popover.Trigger bind:ref={triggerRef}>
 			{#snippet child({ props })}
@@ -96,15 +101,15 @@
 					variant="secondary"
 					role="combobox"
 					aria-expanded={open}
-					class="w-[200px] lg:w-[300px] text-md justify-between whitespace-break-spaces {changeCss &&
-						'lg:h-[50px]'} max-sm:py-6!"
+					class="w-full lg:w-[370px] text-md justify-between whitespace-break-spaces {changeCss &&
+						'lg:h-[50px]'}"
 				>
 					{selectedLabel || 'Select item'}
 					<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" />
 				</Button>
 			{/snippet}
 		</Popover.Trigger>
-		<Popover.Content class="w-[200px] lg:w-[300px] p-0 border-primary">
+		<Popover.Content class="w-full lg:w-[370px] p-0 border-primary">
 			<Command.Root>
 				<Command.Input placeholder="Search ..." class="h-4! inputNormalize" />
 
@@ -146,6 +151,6 @@
 	{:else if nameLabel === 'partnumSideColor'}
 		<span>{item.partNumber + ' - ' + item.side}</span>
 	{:else if nameLabel === 'nameAndHall'}
-		<span>{item.name + ' - ' + item.project.hall.name}</span>
+		<span>{item.name + ' - ' + item.hall.name}</span>
 	{/if}
 {/snippet}

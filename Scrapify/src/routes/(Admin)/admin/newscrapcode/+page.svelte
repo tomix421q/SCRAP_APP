@@ -7,7 +7,6 @@
 	import { Button } from '@/components/ui/button';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import Combobox from '@/components/atoms/Combobox.svelte';
-	import { Plus } from '@lucide/svelte';
 	import NewScrapCodeTable from '@/components/organism/Tables/NewScrapCodeTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import { currentConfirmDeleteId, editScrapData } from '@/stores/stores';
@@ -29,7 +28,7 @@
 
 	function clearEditForm() {
 		idEditScrapCode = undefined;
-		processId = '';
+		// processId = '';
 		scrapcodeNum = '';
 		scrapcodeName = '';
 		scrapDescription = '';
@@ -56,7 +55,7 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	// $inspect(scrapCodes);
+	// $inspect(processId);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -72,12 +71,12 @@
 				isSubmitting = true;
 				return async ({ update, result }) => {
 					if (result.type === 'success') {
-						resetProcessCombo = true;
+						// resetProcessCombo = true;
+						clearEditForm();
 					}
 					await update();
 					isSubmitting = false;
-					resetProcessCombo = false;
-					clearEditForm();
+					// resetProcessCombo = false;
 				};
 			}}
 		>
@@ -94,13 +93,6 @@
 			<!-- process COMBO -->
 			<article class="flex justify-between items-center gap-2">
 				<Label for="processId" class="text-sm md:text-lg">Process</Label>
-				<!-- if edit -->
-				{#if idEditScrapCode}
-					{@const actuallProcess = processes.find((process) => process.id === Number(processId))}
-					<p class=" ml-auto text-sm text-chart-1">
-						<span>{actuallProcess ? actuallProcess.name : 'Unknown process'}</span>
-					</p>
-				{/if}
 				<div class="flex gap-2">
 					<Combobox
 						dataBox={processes}
@@ -108,45 +100,48 @@
 						reset={resetProcessCombo}
 						id="processId"
 					/>
-					<Button size="icon" href="/admin/newprocess"><Plus /></Button>
 				</div>
 				<input type="hidden" name="processId" required bind:value={processId} />
 			</article>
 			<!--  -->
-			<!-- inputs -->
+			<!-- Inputs -->
+			<!--  -->
+			<!-- Code -->
 			<article class="flex justify-between items-center gap-2">
-				<Label for="partNumber" class="text-sm sm:text-xl">Code</Label>
+				<Label for="scrapcodeNum" class="text-sm sm:text-xl">Code</Label>
 				<Input
 					type="text"
 					name="scrapcodeNum"
 					id="scrapcodeNum"
 					bind:value={scrapcodeNum}
 					placeholder="Insert scrap code"
-					class="inputNormalize max-w-[240px]"
+					class="inputNormalize lg:w-[350px]"
 					required
 				/>
 			</article>
+			<!-- Name -->
 			<article class="flex justify-between items-center gap-2">
-				<Label for="partNumber" class="text-sm sm:text-xl">Name</Label>
+				<Label for="scrapcodeName" class="text-sm sm:text-xl">Name</Label>
 				<Input
 					type="text"
 					name="scrapcodeName"
 					id="scrapcodeName"
 					bind:value={scrapcodeName}
 					placeholder="Insert scrap code name"
-					class="inputNormalize max-w-[240px]"
+					class="inputNormalize lg:w-[350px]"
 					required
 				/>
 			</article>
+			<!-- Description -->
 			<article class="flex justify-between items-center gap-2">
-				<Label for="partNumber" class="text-sm sm:text-xl">Description</Label>
+				<Label for="scrapDescription" class="text-sm sm:text-xl">Description</Label>
 				<Input
 					type="text"
 					name="scrapDescription"
 					id="scrapDescription"
 					bind:value={scrapDescription}
 					placeholder="Scrap description (optional)"
-					class="inputNormalize max-w-[240px]"
+					class="inputNormalize lg:w-[350px]"
 				/>
 			</article>
 			<Button type="submit" class="mt-10 ">
@@ -165,7 +160,13 @@
 	<!--  -->
 	<!-- Scrap Code LIST -->
 	<section class="">
-		<NewScrapCodeTable {scrapCodes} {totalPages} {scrapCodeCount} headerText="Codes list" />
+		<NewScrapCodeTable
+			{scrapCodes}
+			{totalPages}
+			{scrapCodeCount}
+			{processes}
+			headerText="Codes list"
+		/>
 	</section>
 
 	<section class="z-50">

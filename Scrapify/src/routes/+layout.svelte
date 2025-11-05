@@ -7,12 +7,12 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import { page } from '$app/state';
 	import User from '@/components/organism/User.svelte';
-	import bgDesktop from '@/../lib/assets/background.svg';
+	import bgDesktop from '@/../lib/assets/bg1.jpg';
 	import type { LayoutData } from './$types';
-	import { Bug, Github, Menu } from '@lucide/svelte';
+	import { Bug, Github } from '@lucide/svelte';
 	import Separator from '@/components/ui/separator/separator.svelte';
 	import { getUserIdCardFromLc } from '@/index';
-	import { afterNavigate, goto } from '$app/navigation';
+	import { afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import MobileMenu from '@/components/molecules/MobileMenu.svelte';
 
@@ -61,10 +61,10 @@
 </svelte:head>
 
 <section>
-	<div class="fixed inset-0 bg-black/80 -z-40"></div>
+	<!-- <div class="fixed inset-0 bg-black/70 -z-40"></div> -->
 	<img
 		src={bgDesktop}
-		alt="Pozadie prihlasovacej stránky"
+		alt="Landing page wallpaper"
 		class="fixed inset-0 h-full w-full object-cover -z-50 max-lg:hidden animate-move"
 	/>
 
@@ -74,12 +74,15 @@
 		<!-- Logo -->
 		<section>
 			<a href="/" class="flex items-center group">
-				<img src={logo} alt="Scrapify icon" class="w-32 bg-white rounded-lg pr-1" />
-
-				<div class="flex flex-col gap-0.5">
-					<span class="mb-auto leading-3 mx-2 text-muted-foreground text-xs">Version 2.2</span>
-					<span class="mb-auto leading-3 mx-2 text-xs text-chart-1">{user?.role}</span>
-					<span class="mb-auto leading-3 mx-2 text-xs text-chart-1">{userIdCardFromLc}</span>
+				<!-- <img src={logo} alt="Scrapify icon" class="w-32 bg-white rounded-2xl p-1" /> -->
+				<span
+					class="uppercase font-bold tracking-widest ring-2 ring-primary px-1 text-lg hover:ring-chart-1 transition-all duration-300 py-2"
+					><span class="text-chart-1">S</span>crapify</span
+				>
+				<div class="flex flex-col gap-0.5 text-muted-foreground">
+					<span class="mb-auto leading-3 mx-2 text-xs">Version 3.0</span>
+					<span class="mb-auto leading-3 mx-2 text-xs">{user?.role}</span>
+					<span class="mb-auto leading-3 mx-2 text-xs">{userIdCardFromLc}</span>
 				</div>
 			</a>
 		</section>

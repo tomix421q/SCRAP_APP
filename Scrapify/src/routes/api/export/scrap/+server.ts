@@ -47,7 +47,7 @@ export const GET: RequestHandler = async (event) => {
 
 	const records = await prismaClient.scrapRecord.findMany({
 		where,
-		include: { part: true, scrapCode: true },
+		include: { part: { include: { process: true } }, scrapCode: true },
 		orderBy: { createdAt: 'desc' }
 	});
 
@@ -74,7 +74,7 @@ export const GET: RequestHandler = async (event) => {
 			record.part.id,
 			record.part.partNumber,
 			record.part.side,
-			record.part.processName,
+			record.part.process.name,
 			record.quantity,
 			record.description,
 			record.createdBy,

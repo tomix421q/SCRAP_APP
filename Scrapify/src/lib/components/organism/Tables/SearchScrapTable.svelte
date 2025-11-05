@@ -8,12 +8,8 @@
 	import type { Prisma, User } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
-	import { type Role } from '@/utils/types';
+	import { type Role, type ScrapRecordWithRelations } from '@/utils/types';
 	import { editSearchData } from '@/stores/stores';
-
-	export type ScrapRecordWithRelations = Prisma.ScrapRecordGetPayload<{
-		include: { part: true; scrapCode: true };
-	}>;
 
 	let {
 		findRecords,
@@ -102,8 +98,8 @@
 						<Table.Cell class="w-[100px]">{@render description(item.scrapCode.name)}</Table.Cell>
 						<Table.Cell class="w-[50px]">{item.part.id}</Table.Cell>
 						<Table.Cell class="w-[100px] text-primary">{item.part.partNumber}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.part.side ? item.part.side : '?'}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.part.processName}</Table.Cell>
+						<Table.Cell class="w-[100px]">{item.part.side ? item.part.side : 'X'}</Table.Cell>
+						<Table.Cell class="w-[100px]">{item.part.process.name}</Table.Cell>
 						<Table.Cell class="w-[50px]">{item.quantity}</Table.Cell>
 						<Table.Cell class="w-[100px]">{@render description(item.description!)}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.createdBy}</Table.Cell>

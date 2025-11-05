@@ -67,25 +67,25 @@
 				<!--  -->
 				<input type="text" hidden name="createdBy" bind:value={formData.createdBy} />
 				<article class="flex justify-between items-center gap-2">
-					<Label for="fullName" class="text-xl">Name</Label>
+					<Label for="fullName" class="lg:text-xl">Name</Label>
 					<Input
 						type="text"
 						name="fullName"
 						bind:value={formData.fullName}
 						placeholder="Full name"
-						class="inputNormalize max-w-[240px]"
+						class="inputNormalize max-w-[350px]"
 						id="fullName"
 						required
 					/>
 				</article>
 				<article class="flex justify-between items-center gap-2">
-					<Label for="cardId" class="text-xl">Card ID</Label>
+					<Label for="cardId" class="lg:text-xl">Card ID</Label>
 					<Input
 						type="number"
 						name="cardId"
 						bind:value={formData.cardId}
 						placeholder="Card number"
-						class="inputNormalize max-w-[240px]"
+						class="inputNormalize lg:max-w-[240px]"
 						id="cardId"
 						required
 					/>

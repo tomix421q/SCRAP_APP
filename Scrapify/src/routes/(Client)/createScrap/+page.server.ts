@@ -9,10 +9,13 @@ export const load: PageServerLoad = async (event) => {
 	const filters = {
 		processId: event.url.searchParams.get('processId')
 	};
+
 	const processId = filters.processId ? Number(filters.processId) : undefined;
 	try {
 		const allProcess = await prismaClient.process.findMany({
-			include: { project: { include: { hall: { select: { name: true } } } } }
+			include: {
+				hall: true
+			}
 		});
 		const allParts = await prismaClient.part.findMany({
 			where: { processId: processId }
@@ -21,7 +24,7 @@ export const load: PageServerLoad = async (event) => {
 			where: { processId: processId }
 		});
 		const scrapRecords = await prismaClient.scrapRecord.findMany({
-			include: { part: true, scrapCode: true },
+			include: { part: { include: { process: true } }, scrapCode: true },
 			orderBy: { createdAt: 'desc' },
 			take: 20,
 			where: { part: { processId: processId } }
@@ -31,6 +34,7 @@ export const load: PageServerLoad = async (event) => {
 				quantity: true
 			}
 		});
+
 		const data = {
 			processes: allProcess,
 			parts: allParts,

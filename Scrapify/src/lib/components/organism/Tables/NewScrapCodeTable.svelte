@@ -1,26 +1,24 @@
 <script lang="ts">
 	import * as Table from '@/components/ui/table';
 	import * as HoverCard from '@/components/ui/hover-card/index';
-	import type { ScrapCode } from '@prisma/client';
+	import type { Process, ScrapCode } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
 	import { editScrapData } from '@/stores/stores';
 	import Button from '@/components/ui/button/button.svelte';
 	import { SquarePenIcon } from '@lucide/svelte';
 
-	// export type ProcessWithRelations = Prisma.ProcessGetPayload<{
-	// 	include: { project: true; parts: true };
-	// }>;
-
 	let {
 		scrapCodes,
 		headerText,
-		scrapCodeCount
+		scrapCodeCount,
+		processes
 	}: {
 		scrapCodes: ScrapCode[];
 		totalPages?: number;
 		scrapCodeCount?: number;
 		headerText?: string;
+		processes: Process[];
 	} = $props();
 
 	const session = authClient.useSession();
@@ -47,11 +45,11 @@
 		<Table.Root>
 			<Table.Header>
 				<Table.Row class="bg-chart-4/40 *:text-chart-1">
-					<Table.Head class="w-[100px]">ID</Table.Head>
-					<Table.Head class="w-[100px]">Active?</Table.Head>
-					<Table.Head class="w-[100px]">Code</Table.Head>
-					<Table.Head class="w-[100px]">Name</Table.Head>
-					<Table.Head class="w-[100px]">Process ID</Table.Head>
+					<Table.Head class="w-[40px]">ID</Table.Head>
+					<Table.Head class="w-[40px]">Active?</Table.Head>
+					<Table.Head class="w-[50px]">Code</Table.Head>
+					<Table.Head class="w-[200px]">Name</Table.Head>
+					<Table.Head class="w-[200px]">Process ID</Table.Head>
 					<Table.Head class="w-[100px]">Description</Table.Head>
 
 					<Table.Head colspan={1} class="text-end">Actions</Table.Head>
@@ -60,11 +58,15 @@
 			<Table.Body class="">
 				{#each scrapCodes as item (item)}
 					<Table.Row>
-						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.active}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.code}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.name}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.processId}</Table.Cell>
+						<Table.Cell class="w-[40px]">{item.id}</Table.Cell>
+						<Table.Cell class="w-[40px]">{item.active}</Table.Cell>
+						<Table.Cell class="w-[50px]">{item.code}</Table.Cell>
+						<Table.Cell class="w-[200px]">{@render description(item.name!)}</Table.Cell>
+						<Table.Cell class="w-[200px]"
+							>{item.processId}-
+							{processes.find((process) => process.id === item.processId)?.name ??
+								`Process with id-${item.processId} was deleted,append process or delete it.`}</Table.Cell
+						>
 						<Table.Cell class="w-[100px]">{@render description(item.description!)}</Table.Cell>
 						<!-- ACTIONS BTNS -->
 						<Table.Cell class="w-[50px]">

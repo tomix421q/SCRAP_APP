@@ -3,6 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import type { Role } from '@/utils/types';
+import { getUserServer, writeToLogger } from '@/utils/serverHelp';
 
 export const load = (async () => {
 	try {
@@ -51,6 +52,56 @@ export const actions: Actions = {
 				message: `Something is wrong :( Please try again later.`,
 				error: error.message + ' ' + error.code || 'Unknown error'
 			});
+		}
+	},
+	deleteUser: async (event) => {
+		const formData = await event.request.formData();
+		const userIdToDelete = formData.get('deleteId') as string;
+
+		if (!userIdToDelete) {
+			return fail(400, {
+				success: false,
+				error: 'Please select user id.',
+				message: 'Validation error.'
+			});
+		}
+
+		// CHECK ADMIN PERMISION ON BACKEND SIDE
+		let user = await getUserServer({ request: event.request });
+		const dbUser = await prismaClient.user.findUnique({ where: { id: user.user?.id } });
+		if (dbUser?.role !== 'ADMIN') {
+			return fail(400, {
+				success: false,
+				error: 'You are not ADMIN, sorry :)',
+				message: 'Authorization error.'
+			});
+		}
+
+		try {
+			const deleteUser = await prismaClient.user.delete({ where: { id: userIdToDelete } });
+			if (!deleteUser) {
+				fail(404, {
+					success: false,
+					error: `Not found user -  ${userIdToDelete}`
+				});
+			} else {
+				writeToLogger({
+					request: event.request,
+					action: 'DELETE',
+					entityType: 'User',
+					entityId: deleteUser.cardId
+				});
+				return {
+					success: true,
+					message: `Successful deleted user with id: ${userIdToDelete}.`
+				};
+			}
+		} catch (error: any) {
+			return {
+				success: false,
+				message: 'Something is wrong, Please try again later.',
+				error: error.message + ' ' + error.code || 'Unknown error'
+			};
 		}
 	}
 };

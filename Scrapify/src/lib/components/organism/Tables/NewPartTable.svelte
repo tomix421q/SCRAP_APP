@@ -1,12 +1,13 @@
 <script lang="ts">
 	import * as Table from '@/components/ui/table';
 	import * as HoverCard from '@/components/ui/hover-card/index';
-	import type { Hall, Part, Process, Project } from '@prisma/client';
+	import type { Part } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
 	import { editPartData } from '@/stores/stores';
 	import Button from '@/components/ui/button/button.svelte';
 	import { SquarePenIcon } from '@lucide/svelte';
+	import type { PartWithRelation } from '@/utils/types';
 
 	let {
 		parts,
@@ -14,7 +15,7 @@
 		totalPages,
 		partsCount
 	}: {
-		parts: Part[];
+		parts: PartWithRelation[];
 		totalPages?: number;
 		partsCount?: number;
 		headerText?: string;
@@ -25,7 +26,7 @@
 
 	function handleEditPartRec(item: Part) {
 		editPartData.set(item);
-		window.scrollTo({ top: 0, behavior: 'smooth' });
+		window.scrollTo({ top: 0, behavior: 'instant' });
 	}
 
 	// $inspect(parts)
@@ -53,14 +54,14 @@
 					<Table.Head colspan={1} class="text-end">Actions</Table.Head>
 				</Table.Row>
 			</Table.Header>
-			<Table.Body class="">
+			<Table.Body>
 				{#each parts as item (item)}
 					<Table.Row>
 						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.partNumber}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.processName}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.projectName}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.hallName}</Table.Cell>
+						<Table.Cell class="w-[100px]">{item.process.name}</Table.Cell>
+						<Table.Cell class="w-[100px]">{item.project.name}</Table.Cell>
+						<Table.Cell class="w-[100px]">{item.process.hall.name}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.side}</Table.Cell>
 
 						<Table.Cell class="w-[50px]">

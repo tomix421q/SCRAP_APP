@@ -1,13 +1,14 @@
 # Adjustments
 
-- add when click next page (in pagination) scroll top
-- add some filter in admin parts etc.
-- add feature in users (admin panel) to delete user
-- make some improvment in CardID (landing) sometimes is problem with with login user (working only on reload page)
-- toggle filter (in search)
+- [] add some filter in admin parts etc.
+- [] make some improvment in CardID (landing) sometimes is problem with with login user (working only on reload page)
+- [] ???toggle filter (in search)
 
 ## Check Status
 
+- [x] !!! rebuild create new process(now is possible create only 1process=1project add to 1process=manyProjects)
+- [x] add when click next page (in pagination) scroll top
+- [x] add feature in users (admin panel) to delete user
 - [x] create favorite process in create scrap
 - [x] increase all forms
 - [x] fixed bug in download scrap record csv when is selected in filters some process
@@ -25,15 +26,12 @@
 - [x] Facilitate choice of part number when writing scrap
 - [x] Add ability to remove items in admin panel
 
-# Prisma commands
+### Code details
 
-- Run the initial migration to set up your database schema.
-- Use the following commands for ongoing database management:
-  - `npx prisma migrate dev` for development migrations.
-  - `npx prisma migrate reset` to reset the database.
-  - `npx prisma generate` generate client db code.
-  - `npx prisma migrate deploy` to apply migrations in production.
-  - `npx prisma migrate status` to check migration status.
-  - `npx prisma db pull` to sync your Prisma schema with the database.
-  - `npx prisma db push` to push schema changes to the database.
-  - `npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > initial_migration.sql`
+Date : 2025-11-06 00:10:36
+
+Directory /Users/tomas/Desktop/DEV/\_\_Work-projects/SCRAP_APP/Scrapify/src
+
+Total : 154 files, 7786 codes, 376 comments, 844 blanks, all 9006 lines
+
+[Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)

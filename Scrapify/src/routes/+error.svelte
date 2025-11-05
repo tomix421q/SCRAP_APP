@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { Frown } from '@lucide/svelte';
 
 	let { data }: any = $props();
 	// $inspect(page);

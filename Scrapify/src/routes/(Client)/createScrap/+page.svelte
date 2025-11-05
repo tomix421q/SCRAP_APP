@@ -12,6 +12,7 @@
 
 	let { data, form }: PageProps = $props();
 	let { processes, parts, scrapCodes, scrapRecords, totalPartsQnt } = $derived(data.data);
+
 	const user = $derived(data.user);
 
 	let filterOptions: { processId: string } = $state({
@@ -28,6 +29,9 @@
 		if (typeof filterOptions.processId) {
 			applyFilter();
 		}
+		if ($editSearchData) {
+			filterOptions.processId = '';
+		}
 	});
 
 	onMount(() => {
@@ -43,7 +47,7 @@
 
 <main class="flex flex-col lg:flex-wrap gap-10 relative">
 	<!-- Result info -->
-	<section class="max-w-xl w-full mx-auto">
+	<section class="max-w-2xl w-full mx-auto">
 		<ResultInfo data={form} />
 	</section>
 
@@ -52,21 +56,15 @@
 		{#if $editSearchData}
 			<!-- data for edit change name ... -->
 			{@const dataForEdit = { allPartsPromise: parts, scrapCodesPromise: scrapCodes }}
-			<div class="lg:min-h-[400px] lg:w-2xl">
+			<div class="lg:min-h-[400px] max-w-5xl">
 				<EditSearchScrapForm data={dataForEdit} {form} />
 			</div>
 		{:else}
 			<!-- IF Create scrap -->
 			<div class="lg:flex gap-3">
-				<CreateScrapForm
-					{processes}
-					{parts}
-					{scrapCodes}
-					bind:filterOptions
-					
-				/>
+				<CreateScrapForm {processes} {parts} {scrapCodes} bind:filterOptions />
 				<!-- Favorite processes in LC -->
-				<FavoriteList  bind:filterOptions />
+				<FavoriteList bind:filterOptions />
 			</div>
 		{/if}
 	</section>

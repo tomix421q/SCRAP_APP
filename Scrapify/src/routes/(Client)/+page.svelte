@@ -1,6 +1,5 @@
 <script lang="ts">
 	import OperatorLogin from '@/components/molecules/OperatorLogin.svelte';
-	import svgMain from './../../lib/assets/mainPage.svg';
 	import type { LayoutData } from '../$types';
 	import LandingStatistic from '@/components/molecules/LandingStatistic.svelte';
 

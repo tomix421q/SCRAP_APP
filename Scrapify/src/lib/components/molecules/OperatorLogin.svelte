@@ -84,9 +84,7 @@
 	{#if verifiedOperator}
 		<div class="formNormalize bg-primary/30 lg:text-xl">
 			<section class="grid lg:grid-cols-2 gap-6">
-				<h3 class="m-auto text-4xl lg:text-7xl font-bold uppercase tracking-wider"
-					>Card ID</h3
-				>
+				<h3 class="m-auto text-4xl lg:text-7xl font-bold uppercase tracking-wider">Card ID</h3>
 
 				<div class="flex justify-center gap-6">
 					<Separator orientation="vertical" class={'hidden lg:block'} />

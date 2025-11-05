@@ -73,35 +73,44 @@ model Hall {
 id Int @id @default(autoincrement())
 name String @unique
 description String?
-projects Project[]
+processes Process[]
 }
 
 model Project {
 id Int @id @default(autoincrement())
-hallId Int
-name String 
+name String @unique
 description String?
-hall Hall @relation(fields: [hallId], references: [id],onDelete: Cascade)
-processes Process[]
+processes ProjectsOnProcess[]
+parts Part[]
+}
+
+model ProjectsOnProcess {
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId  Int
+  process    Process  @relation(fields: [processId], references: [id], onDelete: Cascade)
+  processId  Int
+  assignedAt DateTime @default(now())
+
+  @@id([projectId, processId]) 
 }
 
 model Process {
 id Int @id @default(autoincrement())
-projectId Int
 name String @unique
 description String?
-project Project @relation(fields: [projectId], references: [id],onDelete: Cascade)
+hallId Int
+hall Hall @relation(fields: [hallId], references: [id],onDelete: Cascade)
+project ProjectsOnProcess[]
 parts Part[]
 }
 
 model Part {
 id Int @id @default(autoincrement())
 processId Int
-processName String
-projectName String
-hallName String
+projectId Int
 partNumber String @unique
 side String
+project Project @relation(fields: [projectId],references: [id],onDelete: Cascade)
 process Process @relation(fields: [processId], references: [id],onDelete: Cascade)
 scrapRecords ScrapRecord[]
 scrapSummary ScrapSummary[]
@@ -109,7 +118,7 @@ scrapSummary ScrapSummary[]
 
 model ScrapCode {
 id Int @id @default(autoincrement())
-processId Int?
+processId Int
 code String 
 name String
 description String?

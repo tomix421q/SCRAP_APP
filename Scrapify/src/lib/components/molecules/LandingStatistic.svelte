@@ -21,10 +21,10 @@
 	class="flex flex-wrap justify-center gap-4 *:w-full mt-14 lg:*:w-2xs items-center lg:w-4xl mx-auto"
 >
 	<!-- Last 1 day -->
-	<Card class="cardNormalize bg-chart-1/40">
+	<Card class="cardNormalize bg-chart-1/50">
 		<CardHeader>
 			<CardTitle>Total Records <span class="text-chart-success">[1 day]</span></CardTitle>
-			<CardDescription>Recorded scraps for 24 hours.</CardDescription>
+			<CardDescription>For last 24 hours.</CardDescription>
 		</CardHeader>
 		{#await stats.totalScrapPartsLast1Day}
 			<p><Loader class="animate-spin mx-auto" /></p>
@@ -38,7 +38,7 @@
 	</Card>
 
 	<!-- Last 7 days -->
-	<Card class="cardNormalize bg-chart-2/40">
+	<Card class="cardNormalize bg-chart-2/50">
 		<CardHeader>
 			<CardTitle>Total Records <span class="text-chart-success">[7 days]</span></CardTitle>
 			<CardDescription>For last 7 days.</CardDescription>
@@ -55,7 +55,7 @@
 	</Card>
 
 	<!-- Last 30 days -->
-	<Card class="cardNormalize bg-chart-4/40">
+	<Card class="cardNormalize bg-chart-4/50">
 		<CardHeader>
 			<CardTitle>Total Records <span class="text-chart-success">[30 days]</span></CardTitle>
 			<CardDescription>For last 30 days.</CardDescription>

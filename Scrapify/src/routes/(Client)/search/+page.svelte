@@ -27,7 +27,7 @@
 			<ResultInfo data={form} />
 		</section>
 
-		<section class="max-w-4xl! mx-auto">
+		<section class="max-w-5xl mx-auto">
 			<!-- Edit -->
 			{#if $editSearchData}
 				<div transition:slide class="lg:min-h-[400px]">

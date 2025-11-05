@@ -14,9 +14,10 @@
 	import { ROLES, type Role } from '@/utils/types';
 	import { dateTimmeUTCformatter } from '@/index';
 	import Separator from '@/components/ui/separator/separator.svelte';
+	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 
 	let { form, data }: PageProps = $props();
-	let { allUsers } = $derived(data);
+	let { allUsers, user: loggedUser } = $derived(data);
 	let isSubmitting = $state(false);
 	let modalOpen = $state(false);
 
@@ -46,20 +47,21 @@
 		if (!modalOpen) form = null;
 	});
 
-	// $inspect();
+	// $inspect(loggedUser);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
+<div class="max-w-xl">
+	<ResultInfo data={form} />
+</div>
 <main>
 	<div class="flex items-center justify-between mb-6 sm:text-3xl font-semibold">
 		<h1>Registered users</h1>
 		<div>Total : <span class="text-primary">{allUsers.length}</span></div>
 	</div>
-	<section
-		class="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6 justify-center items-center"
-	>
+	<section class="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
 		{#each allUsers as user}
-			<Card class="cardNormalize bg-secondary/30 w-full! sm:w-xs mx-auto">
+			<Card class="cardNormalize bg-secondary/30 w-full! sm:w-xs">
 				<CardHeader>
 					<CardTitle
 						class="text-xl font-bold bg-gradient-to-r from-chart-1 to-chart-3 bg-clip-text text-transparent"
@@ -82,8 +84,13 @@
 						</div>
 					</div>
 				</CardContent>
-				<CardFooter>
+				<CardFooter class="flex justify-between">
 					<p>{dateTimmeUTCformatter(user.createdAt)}</p>
+					<div>
+						{#if (user.role as Role) !== 'ADMIN'}
+							<DeleteBtn id={user.id} actionRoute={'?/deleteUser'} />
+						{/if}
+					</div>
 				</CardFooter>
 			</Card>
 		{/each}
