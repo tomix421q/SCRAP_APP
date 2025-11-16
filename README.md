@@ -3,7 +3,7 @@
 - [] make some improvment in CardID (landing) sometimes is problem with with login user (working only on reload page)
 - [] ???toggle filter (in search)
 
-### 12.11.25
+### 12.11.25-16.11.25
 
 - [x] filter with time
 - [x] scrap data add 1 hour for UTC server time (local is +1 hour)
