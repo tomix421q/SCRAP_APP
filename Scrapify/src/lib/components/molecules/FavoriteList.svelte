@@ -14,17 +14,15 @@
 	});
 </script>
 
-<main>
+<main class="mb-6">
 	<div
 		class="{$favoriteProcesses.length > 0
 			? 'listNormalize hidden sm:block'
 			: 'hidden'} overflow-y-auto h-fit max-h-[400px]"
 	>
-		<h3 class="text-primary mb-6 text-center">
-			<Heart class="fill-chart-success text-chart-success mx-auto" />
-		</h3>
+		<h2 class="text-primary text-2xl font-bold text-center pb-4">Pouzivane procesy</h2>
 
-		<div class="flex flex-col gap-2">
+		<div class="flex gap-2">
 			{#each $favoriteProcesses as process}
 				<div class="flex items-center gap-1">
 					<button

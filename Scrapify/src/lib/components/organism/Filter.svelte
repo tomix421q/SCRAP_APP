@@ -14,18 +14,26 @@
 	import type { FilterType } from '@/utils/types';
 	import Combobox from '../atoms/Combobox.svelte';
 	import { tick } from 'svelte';
+	import type { Process, Project } from '@prisma/client';
 
-	let { allProcesses } = $props();
+	let {
+		allProcesses,
+		allProjects,
+		whereUse
+	}: { allProcesses: Process[]; allProjects?: Project[]; whereUse?: 'scrapCode' | 'part' } =
+		$props();
 
 	const filterOptions: FilterType = $state({
 		partNumber: '',
 		partId: '',
 		scrapCode: '',
 		processName: '',
+		projectName: '',
 		dateFrom: '',
 		dateTo: ''
 	});
 	let resetProcessCombo = $state(false);
+	let resetProjectCombo = $state(false);
 
 	function applyFilter() {
 		const params = new URLSearchParams();
@@ -33,6 +41,7 @@
 		if (filterOptions.partId) params.set('partId', filterOptions.partId);
 		if (filterOptions.scrapCode) params.set('scrapCode', filterOptions.scrapCode);
 		if (filterOptions.processName) params.set('processName', filterOptions.processName);
+		if (filterOptions.projectName) params.set('projectName', filterOptions.projectName);
 		if (filterOptions.dateFrom) params.set('dateFrom', filterOptions.dateFrom);
 		if (filterOptions.dateTo) params.set('dateTo', filterOptions.dateTo);
 
@@ -49,28 +58,39 @@
 		filterOptions.scrapCode = '';
 		filterOptions.partId = '';
 		filterOptions.processName = '';
+		filterOptions.projectName = '';
 		filterOptions.partNumber = '';
 		filterOptions.dateFrom = '';
 		filterOptions.dateTo = '';
 		resetProcessCombo = true;
+		resetProjectCombo = true;
 		await tick();
 		resetProcessCombo = false;
+		resetProjectCombo = true;
 
 		goto(page.url.pathname, { keepFocus: true, noScroll: true, replaceState: true });
 	}
 
-	// $inspect(allProcesses);
+	// $inspect(whereUse);
 </script>
 
 <main>
-	<Card class="bg-transparent formNormalize">
+	<Card class="bg-transparent formNormalize h-auto">
 		<CardHeader>
 			<CardTitle class="text-2xl tracking-widest text-center text-primary">Filter</CardTitle>
 		</CardHeader>
 
-		<CardContent class="space-y-6 lg:flex lg:gap-x-24">
+		<CardContent
+			class="space-y-6 lg:gap-x-24 {whereUse === 'scrapCode' || whereUse === 'part'
+				? 'flex-row'
+				: 'lg:flex'}"
+		>
 			<div class="space-y-6 md:space-y-3">
-				<article class="lg:flex justify-between items-center gap-2 max-w-[500px]">
+				<article
+					class="justify-between items-center gap-2 {whereUse === 'scrapCode'
+						? 'hidden'
+						: 'lg:flex'}"
+				>
 					<Label class="text-sm w-[200px]">Part Number</Label>
 					<Input
 						class="inputNormalize"
@@ -78,7 +98,11 @@
 						bind:value={filterOptions.partNumber}
 					/>
 				</article>
-				<article class="lg:flex justify-between items-center gap-2 max-w-[500px]">
+				<article
+					class="justify-between items-center gap-2 {whereUse === 'scrapCode'
+						? 'hidden'
+						: 'lg:flex'}"
+				>
 					<Label class="text-sm w-[200px]">Part Id</Label>
 					<Input
 						class="inputNormalize"
@@ -86,7 +110,9 @@
 						bind:value={filterOptions.partId}
 					/>
 				</article>
-				<article class="lg:flex justify-between items-center gap-2 max-w-[500px]">
+				<article
+					class="justify-between items-center gap-2 {whereUse === 'part' ? 'hidden' : 'lg:flex'}"
+				>
 					<Label class="text-sm w-[200px]">Scrap Code</Label>
 					<Input
 						class="inputNormalize"
@@ -94,8 +120,8 @@
 						bind:value={filterOptions.scrapCode}
 					/>
 				</article>
-				<article class="lg:flex justify-between items-center gap-2 max-w-[500px]">
-					<Label class="text-sm w-[100px]">Process name</Label>
+				<article class="lg:flex justify-between items-center gap-2">
+					<Label class="text-sm w-[100px]">Process</Label>
 					<div class="inputNormalize border-primary border-b">
 						<Combobox
 							dataBox={allProcesses}
@@ -104,15 +130,33 @@
 						/>
 					</div>
 				</article>
+				<article
+					class="justify-between items-center gap-2 {whereUse === 'scrapCode'
+						? 'hidden'
+						: 'lg:flex'}"
+				>
+					<Label class="text-sm w-[100px]">Project</Label>
+					<div class="inputNormalize border-primary border-b">
+						<Combobox
+							dataBox={allProjects ?? []}
+							bind:value={filterOptions.projectName}
+							reset={resetProjectCombo}
+						/>
+					</div>
+				</article>
 			</div>
-			<div class="space-y-6 md:space-y-3">
+			<div
+				class="space-y-6 md:space-y-3 {whereUse === 'scrapCode' || whereUse === 'part'
+					? 'hidden'
+					: ''}"
+			>
 				<article class="lg:flex justify-between items-center gap-2">
 					<Label class="text-sm w-[200px]">Date from</Label>
-					<Input type="date" class="inputNormalize" bind:value={filterOptions.dateFrom} />
+					<Input type="datetime-local" class="inputNormalize" bind:value={filterOptions.dateFrom} />
 				</article>
 				<article class="lg:flex justify-between items-center gap-2">
 					<Label class="text-sm w-[200px]">Date To</Label>
-					<Input type="date" class="inputNormalize" bind:value={filterOptions.dateTo} />
+					<Input type="datetime-local" class="inputNormalize" bind:value={filterOptions.dateTo} />
 				</article>
 			</div>
 		</CardContent>

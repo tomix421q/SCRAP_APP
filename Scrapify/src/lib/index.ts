@@ -20,6 +20,24 @@ export function dateTimmeUTCformatter(dateTime: Date) {
 	return result;
 }
 
+export function dateTimeLocalTimeDb(dateTime: Date | string) {
+	const dateObject = typeof dateTime === 'string' ? new Date(dateTime) : dateTime;
+
+	if (isNaN(dateObject.getTime())) {
+		return 'Invalid Date';
+	}
+
+	return new Intl.DateTimeFormat('sk-SK', {
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+		timeZone: 'UTC'
+	}).format(dateObject);
+}
+
 export function isWithinTimeLimit(createdAt: Date | string, limitMinutes: number): boolean {
 	const createdDate = typeof createdAt === 'string' ? new Date(createdAt) : createdAt;
 	if (isNaN(createdDate.getTime())) {
@@ -41,4 +59,12 @@ export function getUserIdCardFromLc(): string | null {
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function getLocalDateTimeForDb(date: Date = new Date()): Date {
+	const timezoneOffsetMinutes = date.getTimezoneOffset();
+	const dateInMs = date.getTime();
+
+	const adjustedDatedInMs = dateInMs - timezoneOffsetMinutes * 60 * 1000;
+	return new Date(adjustedDatedInMs);
 }

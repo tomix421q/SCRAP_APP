@@ -3,13 +3,29 @@ import type { PageServerLoad } from './$types';
 import prismaClient from '@/server/prisma';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import { writeToLogger } from '@/utils/serverHelp';
+import type { Prisma } from '@prisma/client';
 
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
 	const limit = 50;
 	const skip = (page - 1) * limit;
+
+	const filters = {
+		scrapCode: event.url.searchParams.get('scrapCode')?.trim(),
+		processName: Number(event.url.searchParams.get('processName'))
+	};
+
+	const where: Prisma.ScrapCodeWhereInput = {};
+	if (filters.scrapCode) {
+		where.code = { equals: filters.scrapCode };
+	}
+	if (filters.processName) {
+		where.processId = { equals: filters.processName };
+	}
+
 	try {
 		const findScCodes = await prismaClient.scrapCode.findMany({
+			where,
 			skip,
 			take: limit,
 			orderBy: { id: 'desc' }

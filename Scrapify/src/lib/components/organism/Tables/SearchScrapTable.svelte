@@ -4,7 +4,7 @@
 	import * as Table from '@/components/ui/table';
 	import * as HoverCard from '@/components/ui/hover-card/index';
 	import { page } from '$app/state';
-	import { dateTimmeUTCformatter, isWithinTimeLimit } from '@/index';
+	import { dateTimeLocalTimeDb, dateTimmeUTCformatter, isWithinTimeLimit } from '@/index';
 	import type { Prisma, User } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
@@ -103,9 +103,7 @@
 						<Table.Cell class="w-[50px]">{item.quantity}</Table.Cell>
 						<Table.Cell class="w-[100px]">{@render description(item.description!)}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.createdBy}</Table.Cell>
-						<Table.Cell class="w-[100px] text-xs"
-							>{dateTimmeUTCformatter(item.createdAt)}</Table.Cell
-						>
+						<Table.Cell class="w-[100px] text-xs">{dateTimeLocalTimeDb(item.createdAt)}</Table.Cell>
 						<!-- ACTIONS BTNS  -->
 						<Table.Cell>
 							<div class="flex justify-end gap-2">

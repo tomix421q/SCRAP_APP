@@ -18,6 +18,7 @@ export interface FilterType {
 	partId: string;
 	scrapCode: string;
 	processName: string;
+	projectName: string;
 	dateFrom: string;
 	dateTo: string;
 }

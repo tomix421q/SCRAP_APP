@@ -9,6 +9,7 @@
 	import { page } from '$app/state';
 	import CreateScrapForm from '@/components/organism/Forms/CreateScrapForm.svelte';
 	import FavoriteList from '@/components/molecules/FavoriteList.svelte';
+	import CreateScrapNote from '@/components/molecules/CreateScrapNote.svelte';
 
 	let { data, form }: PageProps = $props();
 	let { processes, parts, scrapCodes, scrapRecords, totalPartsQnt } = $derived(data.data);
@@ -61,10 +62,16 @@
 			</div>
 		{:else}
 			<!-- IF Create scrap -->
-			<div class="lg:flex gap-3">
-				<CreateScrapForm {processes} {parts} {scrapCodes} bind:filterOptions />
-				<!-- Favorite processes in LC -->
-				<FavoriteList bind:filterOptions />
+			<div class="lg:flex gap-3 space-y-3 justify-between">
+				<div>
+					<!-- Favorite processes in LC -->
+					<FavoriteList bind:filterOptions />
+					<!-- Create scrap form -->
+					<CreateScrapForm {processes} {parts} {scrapCodes} bind:filterOptions />
+				</div>
+
+				<!-- NOTES -->
+				<CreateScrapNote {parts} {filterOptions} />
 			</div>
 		{/if}
 	</section>

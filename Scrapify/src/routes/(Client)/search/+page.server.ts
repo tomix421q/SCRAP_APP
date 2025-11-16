@@ -16,6 +16,7 @@ export const load: PageServerLoad = async (event) => {
 		partId: Number(event.url.searchParams.get('partId')),
 		scrapCode: event.url.searchParams.get('scrapCode')?.trim(),
 		processName: Number(event.url.searchParams.get('processName')),
+		projectName: Number(event.url.searchParams.get('projectName')),
 		dateFrom: event.url.searchParams.get('dateFrom')?.trim(),
 		dateTo: event.url.searchParams.get('dateTo')?.trim()
 	};
@@ -33,6 +34,9 @@ export const load: PageServerLoad = async (event) => {
 	if (filters.processName) {
 		partWhere.process = { id: { equals: filters.processName } };
 	}
+	if (filters.projectName) {
+		partWhere.project = { id: { equals: filters.projectName } };
+	}
 	if (Object.keys(partWhere).length > 0) {
 		where.part = partWhere;
 	}
@@ -42,18 +46,23 @@ export const load: PageServerLoad = async (event) => {
 	// Date filter
 	const createdAtFilter: Prisma.DateTimeFilter = {};
 	if (filters.dateFrom) {
-		createdAtFilter.gte = `${filters.dateFrom}T00:00:00.000Z`;
+		const dateFromISO = new Date(`${filters.dateFrom}:00Z`);
+		if (!isNaN(dateFromISO.getTime())) {
+			createdAtFilter.gte = dateFromISO;
+		}
 	}
-
 	if (filters.dateTo) {
-		createdAtFilter.lte = `${filters.dateTo}T23:59:59.999Z`;
+		const dateToISO = new Date(`${filters.dateTo}:59Z`);
+		if (!isNaN(dateToISO.getTime())) {
+			createdAtFilter.lte = dateToISO;
+		}
 	}
 	if (Object.keys(createdAtFilter).length > 0) {
 		where.createdAt = createdAtFilter;
 	}
 
 	try {
-		const [findRecords, totalRecords, allProcesses, totalPartQnt] = await Promise.all([
+		const [findRecords, totalRecords, allProcesses, allProjects, totalPartQnt] = await Promise.all([
 			prismaClient.scrapRecord.findMany({
 				where,
 				include: { part: { include: { process: true } }, scrapCode: true },
@@ -63,6 +72,7 @@ export const load: PageServerLoad = async (event) => {
 			}),
 			prismaClient.scrapRecord.count({ where }),
 			prismaClient.process.findMany({ select: { name: true, id: true }, orderBy: { id: 'asc' } }),
+			prismaClient.project.findMany({ select: { name: true, id: true }, orderBy: { id: 'asc' } }),
 			prismaClient.scrapRecord.aggregate({
 				where,
 				_sum: {
@@ -88,6 +98,7 @@ export const load: PageServerLoad = async (event) => {
 			totalRecords,
 			totalPages,
 			allProcesses,
+			allProjects,
 			totalPartQnt,
 			allPartsPromise,
 			scrapCodesPromise

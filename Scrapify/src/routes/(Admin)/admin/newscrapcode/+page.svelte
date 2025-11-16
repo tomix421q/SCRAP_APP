@@ -11,6 +11,8 @@
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import { currentConfirmDeleteId, editScrapData } from '@/stores/stores';
 	import { onMount } from 'svelte';
+	import type { FilterType } from '@/utils/types';
+	import Filter from '@/components/organism/Filter.svelte';
 
 	let { data, form }: PageProps = $props();
 	let { scrapCodes, processes, scrapCodeCount, totalPages } = $derived(data.data);
@@ -62,7 +64,7 @@
 <main class="flex flex-col lg:flex-wrap gap-10">
 	<!--  -->
 	<!-- FORM -->
-	<section class="w-full sm:w-lg">
+	<section class="w-full flex max-md:flex-col gap-5 justify-between">
 		<form
 			action={idEditScrapCode ? '?/editScrap' : '?/createScrap'}
 			method="POST"
@@ -155,6 +157,10 @@
 				<Button variant="destructive" onclick={() => clearEditForm()}>Close Edit</Button>
 			{/if}
 		</form>
+		<!-- Filter -->
+		<section>
+			<Filter allProcesses={processes} whereUse="scrapCode" />
+		</section>
 	</section>
 
 	<!--  -->

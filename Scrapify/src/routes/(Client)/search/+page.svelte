@@ -11,7 +11,7 @@
 	import FavoriteList from '@/components/molecules/FavoriteList.svelte';
 
 	let { data, form }: PageProps = $props();
-	let { findRecords, totalRecords, totalPages, allProcesses, totalPartQnt, user } = $derived(data);
+	let { findRecords, totalRecords, totalPages, allProcesses,allProjects, totalPartQnt, user } = $derived(data);
 
 	// $inspect(idEditScrapRecord);
 
@@ -27,7 +27,7 @@
 			<ResultInfo data={form} />
 		</section>
 
-		<section class="max-w-5xl mx-auto">
+		<section class="max-w-6xl mx-auto">
 			<!-- Edit -->
 			{#if $editSearchData}
 				<div transition:slide class="lg:min-h-[400px]">
@@ -36,7 +36,7 @@
 				<!-- Filter -->
 			{:else}
 				<div transition:slide>
-					<Filter {allProcesses} />
+					<Filter {allProcesses} {allProjects}/>
 				</div>
 			{/if}
 		</section>

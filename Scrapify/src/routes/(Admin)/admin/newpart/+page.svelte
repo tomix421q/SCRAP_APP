@@ -14,18 +14,19 @@
 	import { currentConfirmDeleteId, editPartData, isEditing } from '@/stores/stores';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import Filter from '@/components/organism/Filter.svelte';
 
 	interface CustomPageData {
 		parts: PartWithRelation[];
 		projects: Project[];
+		projectsForProcess: Project[];
 		processes: Process[];
 		totalPages: number;
 		partsCount: number;
 	}
 
 	let { data, form }: PageProps = $props();
-	let { parts, processes, projects, totalPages, partsCount } = $derived(
+	let { parts, processes, projectsForProcess, projects, totalPages, partsCount } = $derived(
 		data.data
 	) as CustomPageData;
 	let isSubmitting = $state(false);
@@ -84,14 +85,14 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	// $inspect(projectId);
+	// $inspect(projects);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
 <main class="flex flex-col lg:flex-wrap gap-10">
 	<!--  -->
 	<!-- CREATE & EDIT PART -->
-	<section class="w-full">
+	<section class="w-full flex max-md:flex-col gap-5 justify-between">
 		<form
 			method="POST"
 			action={idEditPart ? '?/editPart' : '?/createPart'}
@@ -133,7 +134,7 @@
 			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
 				<Label for="projectId" class="text-sm md:text-lg">Project</Label>
 				<Combobox
-					dataBox={projects}
+					dataBox={projectsForProcess}
 					bind:value={projectId}
 					reset={resetProcessCombo}
 					id="projectId"
@@ -180,6 +181,11 @@
 				<Button variant="destructive" onclick={() => clearEditForm()}>Close Edit</Button>
 			{/if}
 		</form>
+		<!--  -->
+		<!-- Filter -->
+		<section>
+			<Filter allProcesses={processes} allProjects={projects} whereUse="part" />
+		</section>
 	</section>
 
 	<!--  -->

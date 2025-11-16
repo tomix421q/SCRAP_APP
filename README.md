@@ -1,8 +1,14 @@
 # Adjustments
 
-- [] add some filter in admin parts etc.
 - [] make some improvment in CardID (landing) sometimes is problem with with login user (working only on reload page)
 - [] ???toggle filter (in search)
+
+### 12.11.25
+
+- [x] filter with time
+- [x] scrap data add 1 hour for UTC server time (local is +1 hour)
+- [x] add some filter in admin parts etc.
+- [x] notes component in record scrap.
 
 ## Check Status
 

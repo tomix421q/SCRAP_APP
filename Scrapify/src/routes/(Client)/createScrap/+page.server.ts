@@ -4,6 +4,7 @@ import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import { scrapRecordSchema } from '@/utils/zod';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import { writeToLogger } from '@/utils/serverHelp';
+import { getLocalDateTimeForDb } from '@/index';
 
 export const load: PageServerLoad = async (event) => {
 	const filters = {
@@ -188,7 +189,8 @@ export const actions: Actions = {
 						scrapCodeId: findScrapId.id,
 						description: parseZod.data.description,
 						quantity: parseZod.data.quantity,
-						createdBy: parseZod.data.operatorId
+						createdBy: parseZod.data.operatorId,
+						createdAt: getLocalDateTimeForDb()
 					}
 				});
 

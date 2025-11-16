@@ -3,33 +3,59 @@ import type { Actions, PageServerLoad } from './$types';
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import { writeToLogger } from '@/utils/serverHelp';
-import { success } from 'zod';
+import type { Prisma } from '@prisma/client';
 
 export const load: PageServerLoad = async (event) => {
 	const processId = event.url.searchParams.get('processId');
 	const page = Number(event.url.searchParams.get('page') ?? '1');
 	const limit = 100;
 	const skip = (page - 1) * limit;
+
+	const filters = {
+		partNumber: event.url.searchParams.get('partNumber')?.trim(),
+		partId: Number(event.url.searchParams.get('partId')),
+		processName: Number(event.url.searchParams.get('processName')),
+		projectName: Number(event.url.searchParams.get('projectName'))
+	};
+
+	const where: Prisma.PartWhereInput = {};
+	if (filters.partNumber) {
+		where.partNumber = { contains: filters.partNumber };
+	}
+	if (filters.partId) {
+		where.id = filters.partId;
+	}
+	if (filters.processName) {
+		where.processId = { equals: filters.processName };
+	}
+	if (filters.projectName) {
+		where.project = { id: { equals: filters.projectName } };
+	}
+
 	try {
-		const [allParts, allProcesses, allProjects, allHalls] = await Promise.all([
-			prismaClient.part.findMany({
-				skip,
-				take: limit,
-				orderBy: { id: 'desc' },
-				include: { process: { include: { hall: true } }, project: true }
-			}),
-			prismaClient.process.findMany(),
-			prismaClient.project.findMany({
-				include: { processes: true },
-				where: { processes: { some: { processId: Number(processId) } } }
-			}),
-			prismaClient.hall.findMany()
-		]);
+		const [allParts, allProcesses, allProjectsForProcess, allProjects, allHalls] =
+			await Promise.all([
+				prismaClient.part.findMany({
+					where,
+					skip,
+					take: limit,
+					orderBy: { id: 'desc' },
+					include: { process: { include: { hall: true } }, project: true }
+				}),
+				prismaClient.process.findMany(),
+				prismaClient.project.findMany({
+					include: { processes: true },
+					where: { processes: { some: { processId: Number(processId) } } }
+				}),
+				prismaClient.project.findMany(),
+				prismaClient.hall.findMany()
+			]);
 		const partsCount = await prismaClient.part.count();
 		const totalPages = Math.ceil(partsCount / limit);
 		const data = {
 			parts: allParts,
 			processes: allProcesses,
+			projectsForProcess: allProjectsForProcess,
 			projects: allProjects,
 			halls: allHalls,
 			totalPages,
