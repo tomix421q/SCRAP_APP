@@ -71,8 +71,8 @@ export const load: PageServerLoad = async (event) => {
 				orderBy: { createdAt: 'desc' }
 			}),
 			prismaClient.scrapRecord.count({ where }),
-			prismaClient.process.findMany({ select: { name: true, id: true }, orderBy: { id: 'asc' } }),
-			prismaClient.project.findMany({ select: { name: true, id: true }, orderBy: { id: 'asc' } }),
+			prismaClient.process.findMany(),
+			prismaClient.project.findMany(),
 			prismaClient.scrapRecord.aggregate({
 				where,
 				_sum: {

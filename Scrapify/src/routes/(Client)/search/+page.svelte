@@ -8,7 +8,6 @@
 	import { onMount } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import EditSearchScrapForm from '@/components/organism/Forms/EditSearchScrapForm.svelte';
-	import FavoriteList from '@/components/molecules/FavoriteList.svelte';
 
 	let { data, form }: PageProps = $props();
 	let { findRecords, totalRecords, totalPages, allProcesses,allProjects, totalPartQnt, user } = $derived(data);
