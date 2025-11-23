@@ -245,7 +245,7 @@
 			<div class="flex flex-col justify-between">
 				<section class="space-y-4 w-fit mx-auto">
 					<div>
-						<Label class='text-sm'>Vyber scrap</Label>
+						<Label class="text-sm">Vyber scrap</Label>
 						<Combobox
 							dataBox={scrapCodes}
 							bind:value={selectedScrapCodeId}

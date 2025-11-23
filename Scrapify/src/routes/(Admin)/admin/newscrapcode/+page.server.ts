@@ -5,7 +5,6 @@ import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import { writeToLogger } from '@/utils/serverHelp';
 import type { Prisma } from '../../../../../prisma/generated/client/client';
 
-
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
 	const limit = 50;

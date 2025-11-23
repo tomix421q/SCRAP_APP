@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { favoriteProcesses } from '@/stores/stores';
-	import { Heart } from '@lucide/svelte';
 	import Button from '../ui/button/button.svelte';
 
 	let { filterOptions = $bindable() }: { filterOptions: { processId: string } } = $props();

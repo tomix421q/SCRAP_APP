@@ -24,7 +24,7 @@
 		partsQnt?: number | null;
 		headerText?: string;
 		userInfo: User | null;
-		group: { partId: number; _count: { _all: number } }[];
+		group?: { partId: number; _count: { _all: number } }[];
 	} = $props();
 
 	const session = authClient.useSession();
