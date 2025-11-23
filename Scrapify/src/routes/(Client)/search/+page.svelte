@@ -13,7 +13,7 @@
 	let { findRecords, totalRecords, totalPages, allProcesses, allProjects, totalPartQnt, user } =
 		$derived(data);
 
-	$inspect(data.groupScrapCodeByPartIdPromise);
+	// $inspect();
 
 	onMount(() => {
 		$editSearchData = undefined;

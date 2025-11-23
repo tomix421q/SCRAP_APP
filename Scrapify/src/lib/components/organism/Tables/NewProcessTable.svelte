@@ -1,13 +1,13 @@
 <script lang="ts">
 	import * as Table from '@/components/ui/table';
 	import * as HoverCard from '@/components/ui/hover-card/index';
-	import type { Part, Prisma } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
 	import { SquarePenIcon } from '@lucide/svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import { editProcessData } from '@/stores/stores';
 	import type { ProcessWithRelationsAll } from '@/utils/types';
+	import type { Part } from '../../../../../prisma/generated/client/client';
 
 	let {
 		processes,

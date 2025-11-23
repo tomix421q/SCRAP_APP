@@ -14,7 +14,7 @@
 	import type { FilterType } from '@/utils/types';
 	import Combobox from '../atoms/Combobox.svelte';
 	import { tick } from 'svelte';
-	import type { Process, Project } from '@prisma/client';
+	import type { Process, Project } from '../../../../prisma/generated/client/client';
 
 	let {
 		allProcesses,

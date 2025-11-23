@@ -9,7 +9,7 @@
 	import { goto } from '$app/navigation';
 	import { favoriteProcesses } from '@/stores/stores';
 	import type { ProcessWithRelations } from '@/utils/types';
-	import type { Part, ScrapCode } from '@prisma/client';
+	import type { Part, ScrapCode } from '../../../../../prisma/generated/client/client';
 
 	let {
 		processes,

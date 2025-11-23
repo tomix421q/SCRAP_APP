@@ -5,11 +5,11 @@
 	import * as HoverCard from '@/components/ui/hover-card/index';
 	import { page } from '$app/state';
 	import { dateTimeLocalTimeDb, isWithinTimeLimit } from '@/index';
-	import type { User } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 	import { type Role, type ScrapRecordWithRelations } from '@/utils/types';
 	import { editSearchData } from '@/stores/stores';
+	import type { User } from '../../../../../prisma/generated/client/client';
 
 	let {
 		findRecords,
@@ -45,7 +45,7 @@
 </script>
 
 <main>
-	<div class="inline-flex">
+	<div>
 		<div class="text-sm my-10 listNormalize">
 			<!-- HEADER -->
 			<div class="mb-2 gap-x-10 md:flex w-full justify-between">

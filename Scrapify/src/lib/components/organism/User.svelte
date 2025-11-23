@@ -34,10 +34,10 @@
 <DropdownMenu.Root bind:open>
 	<DropdownMenu.Trigger class={buttonVariants({ variant: 'ghost' })}>
 		{#if $session.data?.user.email}
-			<span class="hidden text-lg min-lg:block">{session.value?.data?.user.name}</span>
-			<UserCircle class="!size-6 text-primary" />
+			<span class="hidden text-lg lg:block">{session.value?.data?.user.name}</span>
+			<UserCircle class="size-6! text-primary" />
 		{:else}
-			<User class="!size-6 " />
+			<User class="size-6!" />
 		{/if}
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content class=" mt-1" side="bottom" align="center">

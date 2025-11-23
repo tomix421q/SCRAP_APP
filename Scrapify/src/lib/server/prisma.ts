@@ -1,17 +1,36 @@
-import { PrismaClient } from '@prisma/client';
+import 'dotenv/config';
+import { PrismaClient } from '../../../prisma/generated/client/client';
+import { PrismaMssql } from '@prisma/adapter-mssql';
 
-// Deklarácia globálneho typu pre Prisma, aby TypeScript vedel, že takáto premenná existuje.
 declare global {
-	// Declare global
 	var prisma: PrismaClient | undefined;
 }
 
-// check if is created
-const prismaClient = globalThis.prisma || new PrismaClient();
+const createPrismaClientWithAdapter = () => {
+	const sqlConfig = {
+		user: process.env.DB_USER,
+		password: process.env.DB_PASSWORD,
+		database: process.env.DB_NAME,
+		server: process.env.HOST!, // Dôležité: Uistite sa, že HOST je vždy definovaný
+		pool: {
+			max: 10,
+			min: 0,
+			idleTimeoutMillis: 30000
+		},
+		options: {
+			encrypt: true, // true pre Azure, false pre lokálne (ak nemáš certifikát)
+			trustServerCertificate: true // true pre lokálne (ak nemáš certifikát)
+		}
+	};
+
+	const adapter = new PrismaMssql(sqlConfig);
+	return new PrismaClient({ adapter });
+};
+
+const prisma = globalThis.prisma ?? createPrismaClientWithAdapter();
 
 if (process.env.NODE_ENV !== 'production') {
-	// save global this
-	globalThis.prisma = prismaClient;
+	globalThis.prisma = prisma;
 }
 
-export default prismaClient;
+export default prisma;

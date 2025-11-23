@@ -1,12 +1,12 @@
 <script lang="ts">
 	import * as Table from '@/components/ui/table';
 	import * as HoverCard from '@/components/ui/hover-card/index';
-	import type { Project } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
 	import { editProjectData } from '@/stores/stores';
 	import { SquarePenIcon } from '@lucide/svelte';
 	import Button from '@/components/ui/button/button.svelte';
+	import type { Project } from '../../../../../prisma/generated/client/client';
 
 	let {
 		projects,

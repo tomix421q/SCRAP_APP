@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { Minus, Plus, Trash, X } from '@lucide/svelte';
-	import type { Part, Project, ScrapCode } from '@prisma/client';
 	import Button from '../ui/button/button.svelte';
 	import Input from '../ui/input/input.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index';
 	import Combobox from '../atoms/Combobox.svelte';
 	import Separator from '../ui/separator/separator.svelte';
 	import Label from '../ui/label/label.svelte';
+	import type { Part, Project, ScrapCode } from '../../../../prisma/generated/client/client';
 
 	let {
 		parts,

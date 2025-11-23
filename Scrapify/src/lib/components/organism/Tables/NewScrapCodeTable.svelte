@@ -1,12 +1,12 @@
 <script lang="ts">
 	import * as Table from '@/components/ui/table';
 	import * as HoverCard from '@/components/ui/hover-card/index';
-	import type { Process, ScrapCode } from '@prisma/client';
 	import { authClient } from '@/auth/auth-client';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
 	import { editScrapData } from '@/stores/stores';
 	import Button from '@/components/ui/button/button.svelte';
 	import { SquarePenIcon } from '@lucide/svelte';
+	import type { Process, ScrapCode } from '../../../../../prisma/generated/client/client';
 
 	let {
 		scrapCodes,

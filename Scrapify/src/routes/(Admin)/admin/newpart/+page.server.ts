@@ -3,7 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import { writeToLogger } from '@/utils/serverHelp';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '../../../../../prisma/generated/client/client';
 
 export const load: PageServerLoad = async (event) => {
 	const processId = event.url.searchParams.get('processId');

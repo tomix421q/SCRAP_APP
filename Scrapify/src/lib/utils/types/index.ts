@@ -1,5 +1,5 @@
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '../../../../prisma/generated/client/client';
 
 export const ROLES = ['USER', 'ENGINEER', 'MODERATOR', 'ADMIN'] as const;
 export type Role = (typeof ROLES)[number];

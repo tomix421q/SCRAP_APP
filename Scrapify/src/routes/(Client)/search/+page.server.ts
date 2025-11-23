@@ -1,10 +1,10 @@
 import { writeToLogger } from '@/utils/serverHelp';
 import prismaClient from '@/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
-import type { Prisma } from '@prisma/client';
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import { scrapRecordSchema } from '@/utils/zod';
+import type { Prisma } from '../../../../prisma/generated/client/client';
 
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');

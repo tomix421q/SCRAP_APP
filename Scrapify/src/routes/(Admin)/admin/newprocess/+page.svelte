@@ -12,7 +12,7 @@
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import { currentConfirmDeleteId, editProcessData } from '@/stores/stores';
 	import { onMount, tick } from 'svelte';
-	import type { ProjectsOnProcess } from '@prisma/client';
+	import type { ProjectsOnProcess } from '../../../../../prisma/generated/client/client';
 
 	let { data, form }: PageProps = $props();
 	let { processes, projects, halls, totalPages, processCount } = $derived(data.data);

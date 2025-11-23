@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { Part, Process, Project } from '@prisma/client';
 	import { PART_SIDES, type PartSide, type PartWithRelation } from '@/utils/types';
 	import ToNavigateBtn from '@/components/atoms/ToNavigateBtn.svelte';
 	import { enhance } from '$app/forms';
@@ -15,6 +14,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Filter from '@/components/organism/Filter.svelte';
+	import type { Process, Project } from '../../../../../prisma/generated/client/client';
 
 	interface CustomPageData {
 		parts: PartWithRelation[];

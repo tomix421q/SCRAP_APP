@@ -1,7 +1,7 @@
-import type { Prisma } from '@prisma/client';
 import type { RequestHandler } from './$types';
 import prismaClient from '@/server/prisma';
 import { writeToLogger } from '@/utils/serverHelp';
+import type { Prisma } from '../../../../../prisma/generated/client/client';
 
 export const GET: RequestHandler = async (event) => {
 	const filters = {
