@@ -54,6 +54,34 @@
 			e.preventDefault();
 		}
 	}
+	// 2025-11-20T22:33
+	function getTodayShift(whichShift: 'morning' | 'afternoon' | 'night') {
+		let date = new Date();
+		let actuallDate = date.getUTCFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getUTCDate();
+		let actuallDateNightShift =
+			date.getUTCFullYear() + '-' + (date.getMonth() + 1) + '-' + (date.getUTCDate() + 1);
+		if (whichShift === 'morning') {
+			let startTime = actuallDate + 'T06:00';
+			let stopTime = actuallDate + 'T14:00';
+			filterOptions.dateFrom = startTime;
+			filterOptions.dateTo = stopTime;
+		}
+		if (whichShift === 'afternoon') {
+			let startTime = actuallDate + 'T14:00';
+			let stopTime = actuallDate + 'T22:00';
+			filterOptions.dateFrom = startTime;
+			filterOptions.dateTo = stopTime;
+		}
+		if (whichShift === 'night') {
+			let startTime = actuallDate + 'T22:00';
+			let stopTime = actuallDateNightShift + 'T06:00';
+			filterOptions.dateFrom = startTime;
+			filterOptions.dateTo = stopTime;
+		}
+
+		// console.log(date);
+	}
+
 	async function clearFilter() {
 		filterOptions.scrapCode = '';
 		filterOptions.partId = '';
@@ -71,7 +99,7 @@
 		goto(page.url.pathname, { keepFocus: true, noScroll: true, replaceState: true });
 	}
 
-	// $inspect(whereUse);
+	// $inspect();
 </script>
 
 <main>
@@ -157,6 +185,20 @@
 				<article class="lg:flex justify-between items-center gap-2">
 					<Label class="text-sm w-[200px]">Date To</Label>
 					<Input type="datetime-local" class="inputNormalize" bind:value={filterOptions.dateTo} />
+				</article>
+				<article class="mt-4">
+					<p class="text-muted-foreground">Fast search today:</p>
+					<div class="flex flex-col gap-2 text-primary w-fit">
+						<Button variant="secondary" size="sm" onclick={() => getTodayShift('morning')}
+							>From 06:00 - To 14:00</Button
+						>
+						<Button variant="secondary" size="sm" onclick={() => getTodayShift('afternoon')}
+							>From 14:00 - To 22:00</Button
+						>
+						<Button variant="secondary" size="sm" onclick={() => getTodayShift('night')}
+							>From 22:00 - To 06:00</Button
+						>
+					</div>
 				</article>
 			</div>
 		</CardContent>

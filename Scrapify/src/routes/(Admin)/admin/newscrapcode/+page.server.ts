@@ -32,7 +32,7 @@ export const load: PageServerLoad = async (event) => {
 		});
 		const findProcesses = await prismaClient.process.findMany();
 
-		const scrapCodeCount = await prismaClient.scrapCode.count();
+		const scrapCodeCount = await prismaClient.scrapCode.count({ where });
 		const totalPages = Math.ceil(scrapCodeCount / limit);
 		const data = {
 			scrapCodes: findScCodes,

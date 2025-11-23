@@ -12,7 +12,8 @@
 	import CreateScrapNote from '@/components/molecules/CreateScrapNote.svelte';
 
 	let { data, form }: PageProps = $props();
-	let { processes, parts, scrapCodes, scrapRecords, totalPartsQnt } = $derived(data.data);
+	let { processes, parts, scrapCodes, scrapRecords, projectsForFilteredProcess, totalPartsQnt } =
+		$derived(data.data);
 
 	const user = $derived(data.user);
 
@@ -30,9 +31,9 @@
 		if (typeof filterOptions.processId) {
 			applyFilter();
 		}
-		if ($editSearchData) {
-			filterOptions.processId = '';
-		}
+		// if ($editSearchData) {
+		// 	filterOptions.processId = '';
+		// }
 	});
 
 	onMount(() => {
@@ -43,10 +44,10 @@
 		}
 	});
 
-	// $inspect(filterOptions);
+	// $inspect(projectsForFilteredProcess);
 </script>
 
-<main class="flex flex-col lg:flex-wrap gap-10 relative">
+<main class="flex flex-col lg:flex-wrap gap-6 relative">
 	<!-- Result info -->
 	<section class="max-w-2xl w-full mx-auto">
 		<ResultInfo data={form} />
@@ -57,13 +58,13 @@
 		{#if $editSearchData}
 			<!-- data for edit change name ... -->
 			{@const dataForEdit = { allPartsPromise: parts, scrapCodesPromise: scrapCodes }}
-			<div class="lg:min-h-[400px] max-w-5xl">
+			<div class="lg:min-h-[400px] lg:w-2xl mx-auto">
 				<EditSearchScrapForm data={dataForEdit} {form} />
 			</div>
 		{:else}
 			<!-- IF Create scrap -->
-			<div class="lg:flex gap-3 space-y-3 justify-between">
-				<div>
+			<div class="lg:flex gap-3 justify-between items-start">
+				<div class="flex flex-col gap-4 lg:w-2xl">
 					<!-- Favorite processes in LC -->
 					<FavoriteList bind:filterOptions />
 					<!-- Create scrap form -->
@@ -71,7 +72,7 @@
 				</div>
 
 				<!-- NOTES -->
-				<CreateScrapNote {parts} {filterOptions} />
+				<CreateScrapNote {parts} {projectsForFilteredProcess} {filterOptions} {scrapCodes} />
 			</div>
 		{/if}
 	</section>

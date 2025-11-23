@@ -1,48 +1,118 @@
 <script lang="ts">
 	import { Minus, Plus, Trash, X } from '@lucide/svelte';
-	import type { Part } from '@prisma/client';
+	import type { Part, Project, ScrapCode } from '@prisma/client';
 	import Button from '../ui/button/button.svelte';
 	import Input from '../ui/input/input.svelte';
+	import * as Dialog from '$lib/components/ui/dialog/index';
+	import Combobox from '../atoms/Combobox.svelte';
+	import Separator from '../ui/separator/separator.svelte';
+	import Label from '../ui/label/label.svelte';
 
-	let { parts, filterOptions }: { parts: Part[]; filterOptions: { processId: string } } = $props();
+	let {
+		parts,
+		projectsForFilteredProcess,
+		filterOptions,
+		scrapCodes
+	}: {
+		parts: Part[];
+		projectsForFilteredProcess: Project[];
+		filterOptions: { processId: string };
+		scrapCodes: ScrapCode[];
+	} = $props();
 
-	let partNotes: { partNumber: string; quantity: number }[] = $state([]);
+	interface partNoteType {
+		partNumber: string;
+		quantity: number;
+		scrapCode: {
+			sc: string;
+			qnt: number;
+		}[];
+	}
+
+	let partNotes: partNoteType[] = $state([]);
 	let findPartNumber: string = $state('');
+	let findPartNumberByProject: number | undefined = $state();
+	let selectedScrapCodeId = $state<string>('');
+	let findScrapCode = $derived.by(() => {
+		let findScrap = scrapCodes.find((item) => item.id === Number(selectedScrapCodeId));
+		return { SC: findScrap?.name };
+	});
+	let resetSelectedScrapCode = $state<boolean>(false);
 	let filteredParts = $derived.by(() => {
-		if (findPartNumber.trim() === '') {
+		let filterPartsComplete: Part[] | undefined;
+		if (findPartNumber.trim() === '' && findPartNumberByProject === undefined) {
 			return [];
 		}
-		return parts.filter((part) =>
-			part.partNumber.toLowerCase().includes(findPartNumber.toLowerCase())
-		);
+		if (findPartNumberByProject) {
+			filterPartsComplete = parts.filter((part) => part.projectId === findPartNumberByProject);
+		}
+		if (findPartNumber) {
+			filterPartsComplete = parts.filter((part) =>
+				part.partNumber.toLowerCase().includes(findPartNumber.toLowerCase())
+			);
+		}
+		return filterPartsComplete;
 	});
 
-	function handleClickPlus(partNumber: string) {
-		const existingNote = partNotes.find((note) => note.partNumber === partNumber);
+	function handleClickPlus(partNumber: string, selectedScrapCode: string) {
+		let existingNote = partNotes.find((note) => note.partNumber === partNumber);
+		// exist note for this PN ?
 		if (existingNote) {
-			existingNote.quantity += 1;
+			existingNote.quantity++;
+			let existingScrapCode = existingNote.scrapCode.find((item) => item.sc === selectedScrapCode);
+			// exist in PN scrapcode ?
+			if (existingScrapCode) {
+				existingScrapCode.qnt++;
+			} else {
+				existingNote.scrapCode.push({ sc: selectedScrapCode, qnt: 1 });
+			}
 		} else {
-			partNotes.push({ partNumber, quantity: 1 });
+			partNotes.push({ partNumber, quantity: 1, scrapCode: [{ sc: selectedScrapCode, qnt: 1 }] });
 		}
+		resetSelectedScrapCode = true;
 		localStorage.setItem(
 			'partNote_',
-			JSON.stringify(partNotes.map((note) => `${note.partNumber}=${note.quantity}`))
+			JSON.stringify(
+				partNotes.map(
+					(note) =>
+						`${note.partNumber}=${note.quantity}=${note.scrapCode.map((sc) => `${sc.sc}-${sc.qnt}`)}`
+				)
+			)
 		);
 	}
 
-	function handleClickMinus(partNumber: string) {
-		const existingNoteIndex = partNotes.findIndex((note) => note.partNumber === partNumber);
+	function handleClickMinus(partNumber: string, sc: string) {
+		let existingNote = partNotes.find((note) => note.partNumber === partNumber);
 
-		if (existingNoteIndex !== -1 && partNotes[existingNoteIndex].quantity > 0) {
-			partNotes[existingNoteIndex].quantity -= 1;
-			if (partNotes[existingNoteIndex].quantity === 0) {
-				partNotes.splice(existingNoteIndex, 1);
+		if (existingNote) {
+			const existingScrapCode = existingNote?.scrapCode.find((scrap) => scrap.sc === sc);
+			if (existingScrapCode) {
+				existingScrapCode.qnt--;
+				existingNote.quantity--;
+				// Remove the scrap code entry if its quantity dropped to 0
+				if (existingScrapCode.qnt <= 0) {
+					existingNote.scrapCode = existingNote.scrapCode.filter((item) => item.sc !== sc);
+				}
+				// Remove the entire note if total quantity is 0
+				if (existingNote.quantity <= 0) {
+					partNotes = partNotes.filter((n) => n.partNumber !== partNumber);
+				}
+				localStorage.setItem(
+					'partNote_',
+					JSON.stringify(
+						partNotes.map(
+							(note) =>
+								`${note.partNumber}=${note.quantity}=${note.scrapCode.map((sc) => `${sc.sc}-${sc.qnt}`)}`
+						)
+					)
+				);
 			}
-			localStorage.setItem(
-				'partNote_',
-				JSON.stringify(partNotes.map((note) => `${note.partNumber}=${note.quantity}`))
-			);
 		}
+	}
+
+	function deleteAllNotes() {
+		partNotes = [];
+		localStorage.removeItem('partNote_');
 	}
 
 	$effect(() => {
@@ -50,38 +120,40 @@
 		if (getLC) {
 			let parse = JSON.parse(getLC);
 			partNotes = parse.map((item: string) => {
-				const [partNumber, quantity] = item.split('=');
-				return { partNumber, quantity: parseInt(quantity) };
+				const [partNumber, quantity, scrapCodesRaw] = item.split('=');
+				let parsedScrapCodes: { sc: string; qnt: number }[] = [];
+
+				const scrapCodeSplit = scrapCodesRaw.split(',');
+				parsedScrapCodes = scrapCodeSplit.map((item) => {
+					const splitNameQnt = item.trim().split('-');
+
+					return { sc: splitNameQnt[0], qnt: Number(splitNameQnt[1]) };
+				});
+				return { partNumber, quantity: parseInt(quantity), scrapCode: parsedScrapCodes };
 			});
 		}
 	});
 
-	// $inspect(filteredParts);
+	// $inspect(partNotes);
 </script>
 
 <main
-	class="formNormalize p-4 lg:min-w-xl {parts.length > 0 && filterOptions.processId
-		? 'flex'
-		: 'hidden'}"
+	class="formNormalize w-full {parts.length > 0 && filterOptions.processId ? 'flex' : 'hidden'}"
 >
-	<section class="text-center pb-4">
-		<h2 class="text-primary text-2xl font-bold mx-auto">
-			Poznamky <Button
-				onclick={() => (partNotes = [])}
-				size="sm"
-				variant="ghost"
-				class="size-6 text-destructive {partNotes.length === 0 ? 'invisible' : 'visible'}"
-				title="Vymazat poznamky"><Trash /></Button
-			>
-		</h2>
+	<section class="text-center">
+		<h2 class="text-primary text-2xl font-bold mx-auto">Poznamky</h2>
 
 		<span class="text-xs text-muted-foreground"
-			>Sluzia len na priebezny zapis,na zapis do Quadu je nutne vytvorit scrap.</span
+			>Sluzia len na priebezny zapis ktory nikto nevidi,na zapis do Quadu je nutne vytvorit scrap.</span
 		>
 		<!-- Filter -->
 		<article class="flex items-center justify-between gap-4 mt-6">
-			<div class="relative mx-auto">
-				<Input bind:value={findPartNumber} placeholder="Vyhladaj part" class="inputNormalize" />
+			<div class="relative">
+				<Input
+					bind:value={findPartNumber}
+					placeholder="Vyhladaj part"
+					class="inputNormalize text-3xl!"
+				/>
 				<Button
 					onclick={() => (findPartNumber = '')}
 					size="icon"
@@ -94,56 +166,129 @@
 		</article>
 	</section>
 
-	<!--  -->
-	<section class="grid grid-cols-2 gap-x-10">
-		{#each parts as part}
-			<div class="flex items-center hover:bg-primary/20 px-1 rounded-md">
-				<p
-					class={`min-w-[200px] ease-in duration-200 transition-all rounded-sm px-1  ${
-						filteredParts.some((fp) => fp.partNumber === part.partNumber) && 'bg-chart-success'
-					}`}
+	<!-- Delete btn -->
+	<section class="flex items-center justify-between gap-2">
+		<div class="flex items-center gap-2">
+			{#each projectsForFilteredProcess as project}
+				<Button
+					size="sm"
+					variant="secondary"
+					class={findPartNumberByProject && findPartNumberByProject === project.id
+						? 'text-chart-1'
+						: ''}
+					onclick={() => {
+						findPartNumberByProject = project.id;
+					}}
 				>
-					{part.partNumber}
-				</p>
+					{project.name}
+				</Button>
+			{/each}
 
-				<article class="flex rounded-lg items-center">
-					<!-- Number -->
-					<p class="text-chart-1 font-bold text-md min-w-[40px] text-center">
-						{#each partNotes as note}
-							{#if note.partNumber === part.partNumber}
-								<span>{note.quantity}</span>
-							{/if}
-						{/each}
-					</p>
+			<Button
+				size="icon"
+				variant="ghost"
+				class={findPartNumberByProject ? 'flex size-6 text-destructive' : 'hidden'}
+				onclick={() => {
+					findPartNumberByProject = undefined;
+				}}><X /></Button
+			>
+		</div>
+		<Button
+			onclick={() => deleteAllNotes()}
+			size="sm"
+			variant="destructive"
+			class="bg-destructive/60 {partNotes.length === 0 ? 'hidden' : 'flex ml-auto'}"
+			title="Vymazat poznamky"><Trash />Vymazat poznamky</Button
+		>
+	</section>
 
-					<!-- BTNs -->
-					<div class="min-w-[50px] flex gap-2">
-						<p>
-							<Button
-								size={'icon'}
-								variant="ghost"
-								class="size-6 {partNotes.find(
-									(note) => note.partNumber === part.partNumber && note.quantity > 0
-								)
-									? ' text-destructive'
-									: 'text-muted'}"
-								onclick={() => handleClickMinus(part.partNumber)}
-							>
-								<Minus />
-							</Button>
-						</p>
-
-						<p>
-							<Button
-								size={'icon'}
-								variant="ghost"
-								class="size-6 text-chart-1"
-								onclick={() => handleClickPlus(part.partNumber)}><Plus /></Button
-							>
-						</p>
-					</div>
-				</article>
-			</div>
+	<!-- parts list -->
+	<section class="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-1.5">
+		{#each parts as part}
+			{@render addNoteInScrapRecord(part.partNumber)}
 		{/each}
 	</section>
 </main>
+
+{#snippet addNoteInScrapRecord(partNumber: string)}
+	<Dialog.Root>
+		<Dialog.Trigger
+			class={`flex h-min gap-1 p-1 hover:bg-chart-1/30! border ease-in duration-100 transition-all text-sm rounded-lg items-center bg-chart-4 ${
+				filteredParts?.some((fp) => fp.partNumber === partNumber) && 'bg-primary/80!'
+			}`}
+			><Plus size={16} class="text-chart-1" />
+			<!-- part number -->
+			<article class={`flex justify-between w-full`}>
+				<p>
+					{partNumber}
+				</p>
+
+				<!-- Number -->
+				<p class="text-md text-warning font-bold mr-1">
+					{#each partNotes as note}
+						{#if note.partNumber === partNumber}
+							{note.quantity}
+						{/if}
+					{/each}
+				</p>
+			</article>
+		</Dialog.Trigger>
+
+		<!-- dialog -->
+		<Dialog.Content class="min-h-[500px] flex flex-col bg-transparent cardNormalize">
+			<Dialog.Header class="mb-4">
+				<Dialog.Title class="text-primary font-bold text-3xl text-center">{partNumber}</Dialog.Title
+				>
+			</Dialog.Header>
+
+			<!-- BTNs -->
+			<div class="flex flex-col justify-between">
+				<section class="space-y-4 w-fit mx-auto">
+					<div>
+						<Label class='text-sm'>Vyber scrap</Label>
+						<Combobox
+							dataBox={scrapCodes}
+							bind:value={selectedScrapCodeId}
+							reset={resetSelectedScrapCode}
+						/>
+					</div>
+
+					<Button
+						size={'lg'}
+						variant="default"
+						disabled={!selectedScrapCodeId}
+						class="w-full"
+						onclick={() => handleClickPlus(partNumber, findScrapCode.SC!)}>Pridat 1 scrap</Button
+					>
+				</section>
+				<section class="mt-6">
+					{#each partNotes as note}
+						{#if note.partNumber === partNumber}
+							<p class="flex items-center text-2xl pb-2">
+								Celkove mnozstvo:<span class="font-bold text-primary mx-2">{note.quantity}</span>
+							</p>
+							<Separator />
+
+							<ul class="flex flex-col italic gap-2">
+								{#each note.scrapCode as item}
+									<li>
+										<span class="flex items-center">
+											{item.sc} - <span class="text-primary font-semibold mx-2">{item.qnt}</span>
+											<Button
+												onclick={() => handleClickMinus(partNumber, item.sc)}
+												variant="destructive"
+												size="icon"
+												class="size-5 mx-2"><Minus /></Button
+											>
+										</span>
+									</li>
+								{/each}
+							</ul>
+						{/if}
+					{/each}
+				</section>
+			</div>
+		</Dialog.Content>
+	</Dialog.Root>
+	<!--  -->
+{/snippet}

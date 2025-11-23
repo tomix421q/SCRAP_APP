@@ -10,9 +10,10 @@
 	import EditSearchScrapForm from '@/components/organism/Forms/EditSearchScrapForm.svelte';
 
 	let { data, form }: PageProps = $props();
-	let { findRecords, totalRecords, totalPages, allProcesses,allProjects, totalPartQnt, user } = $derived(data);
+	let { findRecords, totalRecords, totalPages, allProcesses, allProjects, totalPartQnt, user } =
+		$derived(data);
 
-	// $inspect(idEditScrapRecord);
+	$inspect(data.groupScrapCodeByPartIdPromise);
 
 	onMount(() => {
 		$editSearchData = undefined;
@@ -35,7 +36,7 @@
 				<!-- Filter -->
 			{:else}
 				<div transition:slide>
-					<Filter {allProcesses} {allProjects}/>
+					<Filter {allProcesses} {allProjects} />
 				</div>
 			{/if}
 		</section>
@@ -48,6 +49,7 @@
 			{totalRecords}
 			partsQnt={totalPartQnt._sum.quantity}
 			userInfo={user}
+			group={data.groupScrapCodeByPartIdPromise as any}
 		/>
 	</section>
 

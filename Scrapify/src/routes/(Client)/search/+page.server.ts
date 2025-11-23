@@ -92,6 +92,27 @@ export const load: PageServerLoad = async (event) => {
 			return prismaClient.scrapCode.findMany();
 		})();
 
+		const groupScrapCodeByPartIdPromise = (async () => {
+			if (
+				filters.dateFrom ||
+				filters.dateTo ||
+				filters.partId ||
+				filters.partNumber ||
+				filters.processName ||
+				filters.projectName ||
+				filters.scrapCode
+			) {
+				return prismaClient.scrapRecord.groupBy({
+					where,
+					by: 'partId',
+
+					_count: {
+						_all: true
+					}
+				});
+			}
+		})();
+
 		// console.log(totalPartQnt);
 		return {
 			findRecords,
@@ -101,7 +122,8 @@ export const load: PageServerLoad = async (event) => {
 			allProjects,
 			totalPartQnt,
 			allPartsPromise,
-			scrapCodesPromise
+			scrapCodesPromise,
+			groupScrapCodeByPartIdPromise
 		};
 	} catch (err: any) {
 		throw error(500, {

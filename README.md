@@ -3,6 +3,11 @@
 - [] make some improvment in CardID (landing) sometimes is problem with with login user (working only on reload page)
 - [] ???toggle filter (in search)
 
+### 17.11.25-
+
+- [x] total count dynamic change in filter mode (newpart,newscrapCode)
+- [x] add in search predefinition for date from
+
 ### 12.11.25-16.11.25
 
 - [x] filter with time

@@ -30,6 +30,9 @@ export const load: PageServerLoad = async (event) => {
 			take: 20,
 			where: { part: { processId: processId } }
 		});
+		const projectsForFilteredProcess = await prismaClient.project.findMany({
+			where: { processes: { some: { processId: processId } } }
+		});
 		const totalPartsQnt = await prismaClient.scrapRecord.aggregate({
 			_sum: {
 				quantity: true
@@ -41,6 +44,7 @@ export const load: PageServerLoad = async (event) => {
 			parts: allParts,
 			scrapCodes: scrapCodes,
 			scrapRecords: scrapRecords,
+			projectsForFilteredProcess,
 			totalPartsQnt
 		};
 		return { data };

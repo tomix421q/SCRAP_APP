@@ -50,7 +50,7 @@ export const load: PageServerLoad = async (event) => {
 				prismaClient.project.findMany(),
 				prismaClient.hall.findMany()
 			]);
-		const partsCount = await prismaClient.part.count();
+		const partsCount = await prismaClient.part.count({ where });
 		const totalPages = Math.ceil(partsCount / limit);
 		const data = {
 			parts: allParts,

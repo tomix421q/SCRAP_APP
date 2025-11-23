@@ -91,7 +91,12 @@
 		}}
 		class="formNormalize lg:w-2xl"
 	>
-		<h2 class="text-center font-semibold text-2xl text-primary mb-6">Vytvorit scrap</h2>
+		<div class="text-center mb-6">
+			<h2 class="text-center font-semibold text-2xl text-primary">Vytvorit scrap</h2>
+			<span class="text-xs text-muted-foreground"
+				>Zapis do databazy pre QUAD,vsetko vytvorene v tomto okne uvidia aj quad asistenti.</span
+			>
+		</div>
 
 		<!-- -->
 		<!-- process COMBO -->
@@ -144,7 +149,7 @@
 				/>
 			</div>
 		</article>
-		
+
 		<!-- -->
 		<!-- part COMBO -->
 		<article class="flex justify-between items-center gap-2">

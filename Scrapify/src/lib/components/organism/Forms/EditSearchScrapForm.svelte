@@ -5,7 +5,7 @@
 	import Input from '@/components/ui/input/input.svelte';
 	import Label from '@/components/ui/label/label.svelte';
 	import { currentConfirmDeleteId, editSearchData } from '@/stores/stores';
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 	import type { ActionData } from '../../../../routes/(Client)/search/$types';
 
 	let { data, form }: { data: any; form: ActionData } = $props();
