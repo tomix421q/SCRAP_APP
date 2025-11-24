@@ -3,6 +3,11 @@
 - [] make some improvment in CardID (landing) sometimes is problem with with login user (working only on reload page)
 - [] ???toggle filter (in search)
 
+### 24.11.25-
+
+- [] create scrap note improvment
+- [] fix sumarize parts in /search - table component
+
 ### 17.11.25-23.11.25
 
 - [x] total count dynamic change in filter mode (newpart,newscrapCode)

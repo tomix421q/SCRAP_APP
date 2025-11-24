@@ -35,12 +35,23 @@ export const GET: RequestHandler = async (event) => {
 	// Date filter
 	const createdAtFilter: Prisma.DateTimeFilter = {};
 	if (filters.dateFrom) {
-		createdAtFilter.gte = `${filters.dateFrom}T00:00:00.000Z`;
+		let cleanDateFrom = filters.dateFrom.replace(/_/g, ':');
+		if (cleanDateFrom.includes('T')) {
+			createdAtFilter.gte = new Date(cleanDateFrom).toISOString();
+		} else {
+			createdAtFilter.gte = `${cleanDateFrom}T00:00:00.000Z`;
+		}
+	}
+	if (filters.dateTo) {
+		let cleanDateTo = filters.dateTo.replace(/_/g, ':');
+
+		if (cleanDateTo.includes('T')) {
+			createdAtFilter.lte = new Date(cleanDateTo).toISOString();
+		} else {
+			createdAtFilter.lte = `${cleanDateTo}T23:59:59.999Z`;
+		}
 	}
 
-	if (filters.dateTo) {
-		createdAtFilter.lte = `${filters.dateTo}T23:59:59.999Z`;
-	}
 	if (Object.keys(createdAtFilter).length > 0) {
 		where.createdAt = createdAtFilter;
 	}

@@ -41,6 +41,41 @@
 		operatorId = getId ? getId : 'empty';
 	});
 
+	function downloadCsvReport() {
+		if (!page.url) {
+			console.error('Page URL is not available.');
+			return;
+		}
+
+		let originalSearchParams = page.url.search; // Získa '?processName=1&dateFrom=2025-11-24T06%3A00&...'
+		let modifiedSearchParams = originalSearchParams.replace(/%3A/g, '_');
+		modifiedSearchParams = modifiedSearchParams.replace(/:/g, '_');
+
+		const downloadUrl = `/api/export/scrap${modifiedSearchParams}`;
+
+		window.location.href = downloadUrl;
+
+		// Možnosť 2: Robustnejšie s fetch a Blob (Ak by window.location.href nefungovalo)
+		// async function fetchAndDownload() {
+		//     const response = await fetch(downloadUrl);
+		//     if (response.ok) {
+		//         const blob = await response.blob();
+		//         const filename = response.headers.get('Content-Disposition')?.split('filename=')[1] || `report.csv`;
+		//         const objUrl = window.URL.createObjectURL(blob);
+		//         const a = document.createElement('a');
+		//         a.href = objUrl;
+		//         a.download = filename.replace(/"/g, '');
+		//         document.body.appendChild(a);
+		//         a.click();
+		//         window.URL.revokeObjectURL(objUrl);
+		//         a.remove();
+		//     } else {
+		//         console.error('Failed to download:', response.statusText);
+		//     }
+		// }
+		// fetchAndDownload();
+	}
+
 	// $inspect();
 </script>
 
@@ -65,7 +100,7 @@
 				<h2 class="lg:text-lg tracking-widest font-bold">{headerText}</h2>
 
 				{#if userId}
-					<Button size="sm" variant="outline" href={`/api/export/scrap${page.url.search}`} download>
+					<Button size="sm" variant="outline" onclick={downloadCsvReport} download>
 						<Download class="mr-2 size-4" />
 						Export to CSV
 					</Button>
