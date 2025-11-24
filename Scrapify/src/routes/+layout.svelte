@@ -2,7 +2,6 @@
 	import './../styles/shadCn.css';
 	import './../styles/app.css';
 	import favicon from '$lib/assets/ico.png';
-	import logo from '$lib/assets/logo.png';
 	import { navUrls } from '@/utils/navConst';
 	import Button from '@/components/ui/button/button.svelte';
 	import { page } from '$app/state';
@@ -37,7 +36,11 @@
 
 	afterNavigate(() => {
 		// currentPath = window.location.pathname;
-		currentPath = page.url.pathname;
+		if (page.url) {
+			currentPath = page.url.pathname;
+		} else {
+			currentPath = '/';
+		}
 	});
 
 	$effect(() => {

@@ -3,10 +3,11 @@
 	import { page } from '$app/stores';
 	import { ArrowLeft, ArrowRight, ChevronsLeft, ChevronsRight } from '@lucide/svelte';
 	import Button from '../ui/button/button.svelte';
+	import { onMount } from 'svelte';
 
 	let { totalPages }: { totalPages: number } = $props();
 
-	const currentPage = $derived(Number($page.url.searchParams.get('page') ?? '1'));
+	let currentPage = $state<number>(1);
 	const rangeStart = $derived(Math.max(1, currentPage - 2));
 	const rangeEnd = $derived(Math.min(totalPages, currentPage + 2));
 
@@ -33,6 +34,10 @@
 
 		goto(`?${params.toString()}`, { keepFocus: true, replaceState: true });
 	}
+
+	onMount(() => {
+		currentPage = Number($page.url.searchParams.get('page') ?? '1');
+	});
 </script>
 
 <main>
