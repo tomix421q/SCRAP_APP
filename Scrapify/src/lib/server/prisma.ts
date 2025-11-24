@@ -12,6 +12,7 @@ const createPrismaClientWithAdapter = () => {
 		password: process.env.DB_PASSWORD,
 		database: process.env.DB_NAME,
 		server: process.env.HOST!, // Dôležité: Uistite sa, že HOST je vždy definovaný
+		port: Number(process.env.DB_PORT) || 1433,
 		pool: {
 			max: 10,
 			min: 0,
