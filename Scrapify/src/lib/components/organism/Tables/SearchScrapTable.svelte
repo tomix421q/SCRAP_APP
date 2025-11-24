@@ -100,7 +100,7 @@
 				<h2 class="lg:text-lg tracking-widest font-bold">{headerText}</h2>
 
 				{#if userId}
-					<Button size="sm" variant="outline" onclick={downloadCsvReport} download>
+					<Button size="sm" variant="outline" onclick={() => downloadCsvReport()}>
 						<Download class="mr-2 size-4" />
 						Export to CSV
 					</Button>

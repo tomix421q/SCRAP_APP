@@ -7,6 +7,7 @@
 	import Separator from '../ui/separator/separator.svelte';
 	import Label from '../ui/label/label.svelte';
 	import type { Part, Project, ScrapCode } from '../../../../prisma/generated/client/client';
+	import { browser } from '$app/environment';
 
 	let {
 		parts,
@@ -116,21 +117,49 @@
 	}
 
 	$effect(() => {
+		if (!browser) return;
+
 		let getLC = localStorage.getItem('partNote_');
 		if (getLC) {
-			let parse = JSON.parse(getLC);
-			partNotes = parse.map((item: string) => {
-				const [partNumber, quantity, scrapCodesRaw] = item.split('=');
-				let parsedScrapCodes: { sc: string; qnt: number }[] = [];
+			try {
+				let parse = JSON.parse(getLC);
 
-				const scrapCodeSplit = scrapCodesRaw.split(',');
-				parsedScrapCodes = scrapCodeSplit.map((item) => {
-					const splitNameQnt = item.trim().split('-');
+				if (Array.isArray(parse)) {
+					partNotes = parse
+						.map((item: string) => {
+							if (typeof item !== 'string' || item.split('=').length !== 3) {
+								console.warn("Skipping invalid item in localStorage 'partNote_':", item);
+								return null;
+							}
 
-					return { sc: splitNameQnt[0], qnt: Number(splitNameQnt[1]) };
-				});
-				return { partNumber, quantity: parseInt(quantity), scrapCode: parsedScrapCodes };
-			});
+							const [partNumber, quantity, scrapCodesRaw] = item.split('=');
+							let parsedScrapCodes: { sc: string; qnt: number }[] = [];
+
+							if (typeof scrapCodesRaw === 'string') {
+								const scrapCodeSplit = scrapCodesRaw.split(',');
+								parsedScrapCodes = scrapCodeSplit.map((codeItem) => {
+									if (typeof codeItem !== 'string' || !codeItem.includes('-')) {
+										console.warn('Skipping invalid scrapCode item:', codeItem);
+										return { sc: 'UNKNOWN', qnt: 0 };
+									}
+									const splitNameQnt = codeItem.trim().split('-');
+									return { sc: splitNameQnt[0], qnt: Number(splitNameQnt[1]) };
+								});
+							}
+
+							return { partNumber, quantity: parseInt(quantity), scrapCode: parsedScrapCodes };
+						})
+						.filter((item) => item !== null);
+				} else {
+					console.warn("Parsed data from 'partNote_' is not an array, clearing localStorage.");
+					localStorage.removeItem('partNote_');
+					partNotes = [];
+				}
+			} catch (e) {
+				console.error("Error parsing 'partNote_' from localStorage, clearing it:", e);
+				localStorage.removeItem('partNote_');
+				partNotes = [];
+			}
 		}
 	});
 
