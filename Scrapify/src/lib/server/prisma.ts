@@ -23,6 +23,7 @@ const createPrismaClientWithAdapter = () => {
 			trustServerCertificate: true // true pre lokálne (ak nemáš certifikát)
 		}
 	};
+	console.log(sqlConfig)
 
 	const adapter = new PrismaMssql(sqlConfig);
 	return new PrismaClient({ adapter });
