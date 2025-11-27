@@ -48,26 +48,6 @@ export type LoggerEntityType =
 	| 'User'
 	| 'ScrapRecord';
 
-//in create scrap form,
-// type ProcessWithRelationsPayload = Prisma.ProcessGetPayload<{
-// 	include: {
-// 		project: {
-// 			include: {
-// 				project: {
-// 					include: {
-// 						hall: {
-// 							select: {
-// 								name: true;
-// 							};
-// 						};
-// 					};
-// 				};
-// 			};
-// 		};
-// 	};
-// }>;
-// export type ProcessWithRelations = ProcessWithRelationsPayload;
-
 export type PartWithRelation = Prisma.PartGetPayload<{
 	include: {
 		process: { include: { hall: true } };
@@ -91,3 +71,12 @@ export type ProcessWithRelationsAll = Prisma.ProcessGetPayload<{
 export type ScrapRecordWithRelations = Prisma.ScrapRecordGetPayload<{
 	include: { part: { include: { process: true } }; scrapCode: true };
 }>;
+
+export interface createScrapNoteType {
+	partNumber: string;
+	quantity: number;
+	scrapCode: {
+		sc: string;
+		qnt: number;
+	}[];
+}

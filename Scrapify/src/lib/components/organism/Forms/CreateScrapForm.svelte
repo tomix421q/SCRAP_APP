@@ -89,10 +89,10 @@
 				resetScrapCodeCombo = false;
 			};
 		}}
-		class="formNormalize lg:w-2xl"
+		class="formNormalize"
 	>
 		<div class="text-center mb-6">
-			<h2 class="text-center font-semibold text-2xl text-primary">Vytvorit scrap</h2>
+			<h2 class="text-center font-semibold text-2xl text-primary">Vytvorit scrap 📌</h2>
 			<span class="text-xs text-muted-foreground"
 				>Zapis do databazy pre QUAD,vsetko vytvorene v tomto okne uvidia aj quad asistenti.</span
 			>
@@ -207,7 +207,7 @@
 		<!-- -->
 		<!-- input createdBy -->
 		<article class="flex justify-between items-center gap-2">
-			<Label for="operatorId" class="text-sm md:text-lg">Operator ID</Label>
+			<Label for="operatorId" class="text-sm md:text-lg">Operator Card</Label>
 			<div class="flex w-[350px]">
 				<Button
 					size="icon"
@@ -219,10 +219,11 @@
 					}}><CopyPlus /></Button
 				>
 				<Input
-					placeholder="Operator id"
+					placeholder={`<- Operator card ID`}
 					name="operatorId"
 					id="operatorId"
 					class="inputNormalize ml-2"
+					readonly={true}
 					bind:value={operatorId}
 				/>
 			</div>

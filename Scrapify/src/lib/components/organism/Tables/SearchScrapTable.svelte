@@ -10,6 +10,7 @@
 	import { type Role, type ScrapRecordWithRelations } from '@/utils/types';
 	import { editSearchData } from '@/stores/stores';
 	import type { User } from '../../../../../prisma/generated/client/client';
+	import Badge from '@/components/ui/badge/badge.svelte';
 
 	let {
 		findRecords,
@@ -24,7 +25,7 @@
 		partsQnt?: number | null;
 		headerText?: string;
 		userInfo: User | null;
-		group?: { partId: number; _count: { _all: number } }[];
+		group?: { partId: number; _sum: { quantity: number } }[];
 	} = $props();
 
 	const session = authClient.useSession();
@@ -50,38 +51,16 @@
 		let originalSearchParams = page.url.search; // Získa '?processName=1&dateFrom=2025-11-24T06%3A00&...'
 		let modifiedSearchParams = originalSearchParams.replace(/%3A/g, '_');
 		modifiedSearchParams = modifiedSearchParams.replace(/:/g, '_');
-
 		const downloadUrl = `/api/export/scrap${modifiedSearchParams}`;
-
 		window.location.href = downloadUrl;
-
-		// Možnosť 2: Robustnejšie s fetch a Blob (Ak by window.location.href nefungovalo)
-		// async function fetchAndDownload() {
-		//     const response = await fetch(downloadUrl);
-		//     if (response.ok) {
-		//         const blob = await response.blob();
-		//         const filename = response.headers.get('Content-Disposition')?.split('filename=')[1] || `report.csv`;
-		//         const objUrl = window.URL.createObjectURL(blob);
-		//         const a = document.createElement('a');
-		//         a.href = objUrl;
-		//         a.download = filename.replace(/"/g, '');
-		//         document.body.appendChild(a);
-		//         a.click();
-		//         window.URL.revokeObjectURL(objUrl);
-		//         a.remove();
-		//     } else {
-		//         console.error('Failed to download:', response.statusText);
-		//     }
-		// }
-		// fetchAndDownload();
 	}
 
-	// $inspect();
+	$inspect(group);
 </script>
 
 <main>
 	<div>
-		<div class="text-sm my-10 listNormalize">
+		<div class="text-sm listNormalize">
 			<!-- HEADER -->
 			<div class="mb-2 gap-x-10 md:flex w-full justify-between">
 				<article class="flex text-muted items-center gap-10 tracking-widest font-bold">
@@ -97,7 +76,7 @@
 					</p>
 				</article>
 
-				<h2 class="lg:text-lg tracking-widest font-bold">{headerText}</h2>
+				<h2 class="text-center font-semibold lg:text-2xl text-primary">{headerText}</h2>
 
 				{#if userId}
 					<Button size="sm" variant="outline" onclick={() => downloadCsvReport()}>
@@ -111,19 +90,20 @@
 					</Button>
 				{/if}
 			</div>
+			<!-- Sumar parts total -->
 			<article class="pb-2">
 				{#await group then groupData}
-					<div class="flex gap-1 text-xs text-muted-foreground justify-center">
+					<div class="flex flex-wrap gap-1 text-xs">
 						{#each groupData as group}
 							{#if findRecords.find((item) => item.partId === group.partId)}
-								<p class="flex">
+								<Badge class="flex">
 									<span
 										>{findRecords.find((item) => item.partId === group.partId)?.part
-											.partNumber}-</span
+											.partNumber}</span
 									>
-									<span class="text-primary font-bold">{group._count._all}</span>
-								</p>
-								|
+									-
+									<span class="font-bold text-secondary">{group._sum.quantity}</span>
+								</Badge>
 							{/if}
 						{/each}
 					</div>

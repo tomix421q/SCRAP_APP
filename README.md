@@ -5,8 +5,8 @@
 
 ### 24.11.25-
 
-- [] create scrap note improvment
-- [] fix sumarize parts in /search - table component
+- [x] create scrap note improvment
+- [x] fix sumarize parts in /search - table component
 
 ### 17.11.25-23.11.25
 

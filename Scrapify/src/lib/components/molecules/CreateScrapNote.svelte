@@ -8,6 +8,8 @@
 	import Label from '../ui/label/label.svelte';
 	import type { Part, Project, ScrapCode } from '../../../../prisma/generated/client/client';
 	import { browser } from '$app/environment';
+	import type { createScrapNoteType } from '@/utils/types';
+	import { createScrapNotesStore } from '@/stores/stores';
 
 	let {
 		parts,
@@ -21,16 +23,7 @@
 		scrapCodes: ScrapCode[];
 	} = $props();
 
-	interface partNoteType {
-		partNumber: string;
-		quantity: number;
-		scrapCode: {
-			sc: string;
-			qnt: number;
-		}[];
-	}
-
-	let partNotes: partNoteType[] = $state([]);
+	let partNotes: createScrapNoteType[] = $state([]);
 	let findPartNumber: string = $state('');
 	let findPartNumberByProject: number | undefined = $state();
 	let selectedScrapCodeId = $state<string>('');
@@ -163,76 +156,90 @@
 		}
 	});
 
+	$effect(() => {
+		if (partNotes) {
+			$createScrapNotesStore = partNotes;
+		}
+	});
+	$effect(() => {
+		if ($createScrapNotesStore) {
+			partNotes = $createScrapNotesStore;
+		}
+	});
+
 	// $inspect(partNotes);
 </script>
 
 <main
-	class="formNormalize w-full {parts.length > 0 && filterOptions.processId ? 'flex' : 'hidden'}"
+	class="formNormalize w-full {parts.length > 0 && filterOptions.processId
+		? 'hidden md:flex'
+		: 'hidden'}"
 >
 	<section class="text-center">
-		<h2 class="text-primary text-2xl font-bold mx-auto">Poznamky</h2>
+		<h2 class="text-center font-semibold text-2xl text-primary">Zapisat poznamky 🗒️</h2>
 
 		<span class="text-xs text-muted-foreground"
-			>Sluzia len na priebezny zapis ktory nikto nevidi,na zapis do Quadu je nutne vytvorit scrap.</span
+			>Priebezny a rychly zapis scrapu ktory nikto nevidi,na zapis do Quadu je nutne vytvorit scrap.</span
 		>
 		<!-- Filter -->
 		<article class="flex items-center justify-between gap-4 mt-6">
-			<div class="relative">
-				<Input
-					bind:value={findPartNumber}
-					placeholder="Vyhladaj part"
-					class="inputNormalize text-3xl!"
-				/>
+			<div class="flex gap-2">
+				<div class="relative">
+					<Input
+						bind:value={findPartNumber}
+						placeholder="Vyhladaj part"
+						class="inputNormalize text-3xl!"
+					/>
+					<Button
+						onclick={() => (findPartNumber = '')}
+						size="icon"
+						variant="ghost"
+						class=" absolute right-1 top-1 text-destructive size-6 {findPartNumber
+							? 'visible'
+							: 'invisible'}"><X /></Button
+					>
+				</div>
+
+				<div class="flex items-center gap-2">
+					{#each projectsForFilteredProcess as project}
+						<Button
+							size="sm"
+							variant="secondary"
+							class={findPartNumberByProject && findPartNumberByProject === project.id
+								? 'text-chart-1'
+								: ''}
+							onclick={() => {
+								findPartNumberByProject = project.id;
+							}}
+						>
+							{project.name}
+						</Button>
+					{/each}
+
+					<Button
+						size="icon"
+						variant="ghost"
+						class={findPartNumberByProject ? 'flex size-6 text-destructive' : 'hidden'}
+						onclick={() => {
+							findPartNumberByProject = undefined;
+						}}><X /></Button
+					>
+				</div>
+			</div>
+			<div class="flex items-center justify-between gap-2">
 				<Button
-					onclick={() => (findPartNumber = '')}
-					size="icon"
-					variant="ghost"
-					class=" absolute right-1 top-1 text-destructive size-6 {findPartNumber
-						? 'visible'
-						: 'invisible'}"><X /></Button
+					onclick={() => deleteAllNotes()}
+					size="sm"
+					variant="destructive"
+					class="bg-destructive/60 {partNotes.length === 0 ? 'hidden' : 'flex ml-auto'}"
+					title="Vymazat poznamky"><Trash />Vymazat poznamky</Button
 				>
 			</div>
 		</article>
 	</section>
 
-	<!-- Delete btn -->
-	<section class="flex items-center justify-between gap-2">
-		<div class="flex items-center gap-2">
-			{#each projectsForFilteredProcess as project}
-				<Button
-					size="sm"
-					variant="secondary"
-					class={findPartNumberByProject && findPartNumberByProject === project.id
-						? 'text-chart-1'
-						: ''}
-					onclick={() => {
-						findPartNumberByProject = project.id;
-					}}
-				>
-					{project.name}
-				</Button>
-			{/each}
-
-			<Button
-				size="icon"
-				variant="ghost"
-				class={findPartNumberByProject ? 'flex size-6 text-destructive' : 'hidden'}
-				onclick={() => {
-					findPartNumberByProject = undefined;
-				}}><X /></Button
-			>
-		</div>
-		<Button
-			onclick={() => deleteAllNotes()}
-			size="sm"
-			variant="destructive"
-			class="bg-destructive/60 {partNotes.length === 0 ? 'hidden' : 'flex ml-auto'}"
-			title="Vymazat poznamky"><Trash />Vymazat poznamky</Button
-		>
-	</section>
-
 	<!-- parts list -->
-	<section class="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-1.5">
+	<section class="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-1.5">
 		{#each parts as part}
 			{@render addNoteInScrapRecord(part.partNumber)}
 		{/each}
@@ -243,7 +250,7 @@
 	<Dialog.Root>
 		<Dialog.Trigger
 			class={`flex h-min gap-1 p-1 hover:bg-chart-1/30! border ease-in duration-100 transition-all text-sm rounded-lg items-center bg-chart-4 ${
-				filteredParts?.some((fp) => fp.partNumber === partNumber) && 'bg-primary/80!'
+				filteredParts?.some((fp) => fp.partNumber === partNumber) ? 'flex' : 'hidden'
 			}`}
 			><Plus size={16} class="text-chart-1" />
 			<!-- part number -->
@@ -253,7 +260,7 @@
 				</p>
 
 				<!-- Number -->
-				<p class="text-md text-warning font-bold mr-1">
+				<p class="text-md text-warning font-bold">
 					{#each partNotes as note}
 						{#if note.partNumber === partNumber}
 							{note.quantity}

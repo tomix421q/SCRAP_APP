@@ -20,7 +20,7 @@
 	});
 </script>
 
-<main>
+<main class="space-y-4">
 	<div>
 		<!-- Result info -->
 		<section class="max-w-4xl mx-auto">

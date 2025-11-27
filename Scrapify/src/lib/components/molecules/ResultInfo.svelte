@@ -19,7 +19,7 @@
 </script>
 
 {#if data}
-	<section class="w-full mx-auto my-4 flex relative" transition:slide>
+	<section class="w-full mx-auto flex relative" transition:slide>
 		{#if data?.success}
 			<div
 				class="w-full p-4 mb-1 bg-chart-success/20 backdrop-blur-2xl text-chart-success rounded-lg"

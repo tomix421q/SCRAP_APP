@@ -10,6 +10,7 @@
 	import CreateScrapForm from '@/components/organism/Forms/CreateScrapForm.svelte';
 	import FavoriteList from '@/components/molecules/FavoriteList.svelte';
 	import CreateScrapNote from '@/components/molecules/CreateScrapNote.svelte';
+	import CreateScrapNoteSumary from '@/components/molecules/CreateScrapNoteSumary.svelte';
 
 	let { data, form }: PageProps = $props();
 	let { processes, parts, scrapCodes, scrapRecords, projectsForFilteredProcess, totalPartsQnt } =
@@ -31,9 +32,6 @@
 		if (typeof filterOptions.processId) {
 			applyFilter();
 		}
-		// if ($editSearchData) {
-		// 	filterOptions.processId = '';
-		// }
 	});
 
 	onMount(() => {
@@ -47,13 +45,13 @@
 	// $inspect(projectsForFilteredProcess);
 </script>
 
-<main class="flex flex-col lg:flex-wrap gap-6 relative">
+<main class="flex flex-col lg:flex-wrap gap-3 relative">
 	<!-- Result info -->
-	<section class="max-w-2xl w-full mx-auto">
+	<section class=" w-full mx-auto">
 		<ResultInfo data={form} />
 	</section>
 
-	<section>
+	<section class="flex flex-col gap-3">
 		<!--  IF Edit scrap else Create Scrap-->
 		{#if $editSearchData}
 			<!-- data for edit change name ... -->
@@ -63,17 +61,21 @@
 			</div>
 		{:else}
 			<!-- IF Create scrap -->
-			<div class="lg:flex gap-3 justify-between items-start">
-				<div class="flex flex-col gap-4 lg:w-2xl">
-					<!-- Favorite processes in LC -->
-					<FavoriteList bind:filterOptions />
-					<!-- Create scrap form -->
+			<div class="lg:grid grid-cols-2 gap-3 justify-between items-start">
+				<!-- Create scrap form -->
+				<div>
 					<CreateScrapForm {processes} {parts} {scrapCodes} bind:filterOptions />
 				</div>
 
-				<!-- NOTES -->
-				<CreateScrapNote {parts} {projectsForFilteredProcess} {filterOptions} {scrapCodes} />
+				<div class="flex flex-col gap-3 h-full">
+					<!-- Favorite processes in LC -->
+					<FavoriteList bind:filterOptions />
+					<!-- NOTES summary info LC -->
+					<CreateScrapNoteSumary />
+				</div>
 			</div>
+			<!-- NOTES LC-->
+			<CreateScrapNote {parts} {projectsForFilteredProcess} {filterOptions} {scrapCodes} />
 		{/if}
 	</section>
 
@@ -82,7 +84,7 @@
 		<SearchScrapTable
 			findRecords={scrapRecords}
 			totalRecords={scrapRecords.length}
-			headerText={'Poslednych 20 zaznamov'}
+			headerText={`Poslednych 20 zaznamov 📖`}
 			userInfo={user}
 		/>
 	</section>

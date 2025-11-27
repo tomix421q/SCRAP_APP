@@ -105,9 +105,8 @@ export const load: PageServerLoad = async (event) => {
 				return prismaClient.scrapRecord.groupBy({
 					where,
 					by: 'partId',
-
-					_count: {
-						_all: true
+					_sum: {
+						quantity: true
 					}
 				});
 			}

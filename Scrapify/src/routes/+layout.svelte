@@ -83,7 +83,7 @@
 					><span class="text-chart-1">S</span>crapify</span
 				>
 				<div class="flex flex-col gap-0.5 text-muted-foreground">
-					<span class="mb-auto leading-3 mx-2 text-xs">Version 3.2</span>
+					<span class="mb-auto leading-3 mx-2 text-xs">Version 3.3</span>
 					<span class="mb-auto leading-3 mx-2 text-xs">{user?.role}</span>
 					<span class="mb-auto leading-3 mx-2 text-xs">{userIdCardFromLc}</span>
 				</div>
@@ -116,7 +116,7 @@
 	</nav>
 
 	<!-- ALL CONTENT RENDER -->
-	<main class="max-w-[1650px] mx-auto px-2 md:px-3 lg:px-4 min-h-screen">
+	<main class="max-w-[1750px] mx-auto px-2 md:px-3 lg:px-4 min-h-screen">
 		{@render children?.()}
 	</main>
 

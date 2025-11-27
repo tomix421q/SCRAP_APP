@@ -1,4 +1,8 @@
-import type { ProcessWithRelationsAll, ScrapRecordWithRelations } from '@/utils/types';
+import {
+	type createScrapNoteType,
+	type ProcessWithRelationsAll,
+	type ScrapRecordWithRelations
+} from '@/utils/types';
 import { derived, writable, type Readable } from 'svelte/store';
 import type { Hall, Part, Project, ScrapCode } from '../../../prisma/generated/client/client';
 
@@ -34,3 +38,6 @@ export const isEditing: Readable<boolean> = derived(
 
 // FAVORITE STORE
 export const favoriteProcesses = writable<{ id: string; name: string }[]>([]);
+
+// CREATE SCRAP NOTES
+export const createScrapNotesStore = writable<createScrapNoteType[]>([]);

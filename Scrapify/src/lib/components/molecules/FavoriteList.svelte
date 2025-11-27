@@ -21,7 +21,7 @@
 			: 'hidden'} overflow-y-auto h-fit max-h-[400px]"
 	>
 		<div class="text-center mb-6">
-			<h2 class="text-primary text-2xl font-bold text-center">Pouzivane procesy</h2>
+			<h2 class="text-primary text-2xl font-bold text-center">Pouzivane procesy ❤️</h2>
 			<span class="text-xs text-muted-foreground"
 				>Rychla ponuka oblubenych procesov.Kliknutim na srdiecko pri vytvarani scrapu
 				pridate/odstranite process z oblubenych.</span

@@ -187,7 +187,7 @@ export const actions: Actions = {
 						error: `Toto card ID - ${parseZod.data.operatorId} neexistuje zadaj prosim platne card ID alebo kontaktuj procesneho inziniera.`
 					});
 				}
-				await prismaClient.scrapRecord.create({
+				const createScrap = await prismaClient.scrapRecord.create({
 					data: {
 						partId: findPartId.id,
 						scrapCodeId: findScrapId.id,
@@ -198,7 +198,7 @@ export const actions: Actions = {
 					}
 				});
 
-				return { success: true, message: 'Scrap vytvoreny uspesne.Dakujeme.' };
+				return { success: true, message: `Scrap s ID ${createScrap.id} vytvoreny uspesne.Dakujeme.` };
 			}
 		} catch (error: any) {
 			return fail(500, {
