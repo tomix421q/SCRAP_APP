@@ -55,7 +55,7 @@
 		window.location.href = downloadUrl;
 	}
 
-	$inspect(group);
+	// $inspect(group);
 </script>
 
 <main>
