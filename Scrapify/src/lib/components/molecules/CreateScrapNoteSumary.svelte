@@ -31,6 +31,7 @@
 							<p class="flex items-center">
 								<span>{scrap.sc}</span>-<span class="text-primary font-bold">{scrap.qnt}</span>
 								<Button
+									type="button"
 									variant="destructive"
 									size="icon"
 									class="size-5 mx-1"
