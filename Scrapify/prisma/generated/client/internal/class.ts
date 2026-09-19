@@ -17,8 +17,8 @@ import type * as Prisma from "./prismaNamespace"
 
 const config: runtime.GetPrismaClientConfig = {
   "previewFeatures": [],
-  "clientVersion": "7.0.0",
-  "engineVersion": "0c19ccc313cf9911a90d99d2ac2eb0280c76c513",
+  "clientVersion": "7.1.0",
+  "engineVersion": "ab635e6b9d606fa5c8fb8b1a7f909c3c3c1c98ba",
   "activeProvider": "sqlserver",
   "inlineSchema": "generator client {\n  provider = \"prisma-client\"\n  output   = \"./generated/client\"\n  // output   = \"../../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"sqlserver\"\n  // url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id            String         @id\n  name          String\n  email         String         @unique\n  cardId        Int            @unique\n  emailVerified Boolean\n  image         String?\n  createdAt     DateTime\n  updatedAt     DateTime\n  accounts      Account[]\n  sessions      Session[]\n  userLogs      ActivityLogs[]\n  role          String         @default(\"USER\")\n\n  @@map(\"user\")\n}\n\nmodel Session {\n  id        String   @id\n  expiresAt DateTime\n  token     String   @unique\n  createdAt DateTime\n  updatedAt DateTime\n  ipAddress String?\n  userAgent String?\n  userId    String\n  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@map(\"session\")\n}\n\nmodel Account {\n  id                    String    @id\n  accountId             String\n  providerId            String\n  userId                String\n  accessToken           String?\n  refreshToken          String?\n  idToken               String?\n  accessTokenExpiresAt  DateTime?\n  refreshTokenExpiresAt DateTime?\n  scope                 String?\n  password              String?\n  createdAt             DateTime\n  updatedAt             DateTime\n  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@map(\"account\")\n}\n\nmodel Verification {\n  id         String    @id\n  identifier String\n  value      String\n  expiresAt  DateTime\n  createdAt  DateTime?\n  updatedAt  DateTime?\n\n  @@map(\"verification\")\n}\n\n// APP\nmodel Hall {\n  id          Int       @id @default(autoincrement())\n  name        String    @unique\n  description String?\n  processes   Process[]\n}\n\nmodel Project {\n  id          Int                 @id @default(autoincrement())\n  name        String              @unique\n  description String?\n  processes   ProjectsOnProcess[]\n  parts       Part[]\n}\n\nmodel ProjectsOnProcess {\n  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)\n  projectId  Int\n  process    Process  @relation(fields: [processId], references: [id], onDelete: Cascade)\n  processId  Int\n  assignedAt DateTime @default(now())\n\n  @@id([projectId, processId])\n}\n\nmodel Process {\n  id          Int                 @id @default(autoincrement())\n  name        String              @unique\n  description String?\n  hallId      Int\n  hall        Hall                @relation(fields: [hallId], references: [id], onDelete: Cascade)\n  project     ProjectsOnProcess[]\n  parts       Part[]\n}\n\nmodel Part {\n  id           Int            @id @default(autoincrement())\n  processId    Int\n  projectId    Int\n  partNumber   String         @unique\n  side         String\n  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)\n  process      Process        @relation(fields: [processId], references: [id], onDelete: Cascade)\n  scrapRecords ScrapRecord[]\n  scrapSummary ScrapSummary[]\n}\n\nmodel ScrapCode {\n  id           Int            @id @default(autoincrement())\n  processId    Int\n  code         String\n  name         String\n  description  String?\n  active       Boolean        @default(true)\n  scrapRecords ScrapRecord[]\n  scrapSummary ScrapSummary[]\n}\n\nmodel ScrapRecord {\n  id          Int       @id @default(autoincrement())\n  partId      Int\n  scrapCodeId Int\n  description String?\n  quantity    Float\n  createdBy   String\n  createdAt   DateTime  @default(now())\n  part        Part      @relation(fields: [partId], references: [id], onDelete: Cascade)\n  scrapCode   ScrapCode @relation(fields: [scrapCodeId], references: [id], onDelete: Cascade)\n\n  @@index([createdAt])\n  @@index([scrapCodeId])\n  @@index([partId])\n}\n\nmodel ScrapSummary {\n  id          Int       @id @default(autoincrement())\n  partId      Int\n  scrapCodeId Int\n  date        DateTime\n  totalQty    Int\n  part        Part      @relation(fields: [partId], references: [id], onDelete: Cascade)\n  scrapCode   ScrapCode @relation(fields: [scrapCodeId], references: [id], onDelete: Cascade)\n\n  @@unique([partId, scrapCodeId, date])\n  @@index([date])\n}\n\nmodel Operator {\n  id           Int            @id @default(autoincrement())\n  createdBy    String\n  fullName     String\n  cardId       Int            @unique\n  createdAt    DateTime       @default(now())\n  operatorLogs ActivityLogs[]\n}\n\nmodel ActivityLogs {\n  id         Int       @id @default(autoincrement())\n  userId     String?\n  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)\n  operatorId Int?\n  operator   Operator? @relation(fields: [operatorId], references: [id], onDelete: Cascade)\n  action     String\n  entityType String\n  entityId   Int?\n  timestamp  DateTime  @default(now())\n}\n",
   "runtimeDataModel": {
@@ -62,7 +62,7 @@ export interface PrismaClientConstructor {
    * const users = await prisma.user.findMany()
    * ```
    * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
+   * Read more in our [docs](https://pris.ly/d/client).
    */
 
   new <
@@ -84,7 +84,7 @@ export interface PrismaClientConstructor {
  * const users = await prisma.user.findMany()
  * ```
  * 
- * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
+ * Read more in our [docs](https://pris.ly/d/client).
  */
 
 export interface PrismaClient<
@@ -113,7 +113,7 @@ export interface PrismaClient<
    * const result = await prisma.$executeRaw`UPDATE User SET cool = ${true} WHERE email = ${'user@email.com'};`
    * ```
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
 
@@ -125,7 +125,7 @@ export interface PrismaClient<
    * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * ```
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;
 
@@ -136,7 +136,7 @@ export interface PrismaClient<
    * const result = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1} OR email = ${'user@email.com'};`
    * ```
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
 
@@ -148,7 +148,7 @@ export interface PrismaClient<
    * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * ```
    *
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;
 

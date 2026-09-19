@@ -7,7 +7,7 @@ const config = {
 	preprocess: vitePreprocess(),
 	kit: {
 		csrf: {
-			checkOrigin: false
+			trustedOrigins: ['http://10.184.145.18:3001', 'http://localhost:3001']
 		},
 		adapter: adapter(),
 		// paths: { base: BASE },
