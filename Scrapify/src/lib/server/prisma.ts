@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { PrismaClient } from '../../../prisma/generated/client/client';
+import { PrismaClient } from '@prisma/client';
 import { PrismaMssql } from '@prisma/adapter-mssql';
 
 declare global {

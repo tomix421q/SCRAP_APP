@@ -37,6 +37,20 @@
 				<div class="flex flex-col gap-4">
 					<Button variant="destructive" href="/admin/newscrapcode" size="lg">Scrap code</Button>
 					<Button href="/admin/newpart" variant="default" size="lg">Part</Button>
+
+					<Button
+						href="/admin/partgroups"
+						variant="default"
+						size="lg"
+						class="bg-lime-700! hover:bg-lime-700/80!">Create parts group</Button
+					>
+					<Button
+						href="/admin/partgroups"
+						variant="default"
+						size="lg"
+						class="bg-lime-700! hover:bg-lime-700/80!">Label multy part</Button
+					>
+
 					<Button href="/admin/newprocess" variant="secondary" size="lg">Process</Button>
 					<Button href="/admin/newproject" variant="secondary" size="lg">Project</Button>
 					<Button href="/admin/newhall" variant="secondary" size="lg">Hall</Button>
