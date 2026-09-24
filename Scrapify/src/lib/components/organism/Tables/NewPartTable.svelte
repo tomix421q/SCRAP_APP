@@ -7,7 +7,7 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import { SquarePenIcon } from '@lucide/svelte';
 	import type { PartWithRelation } from '@/utils/types';
-	import type { Part } from '../../../../../prisma/generated/client/client';
+	import type { Part } from '@prisma/client';
 
 	let {
 		parts,
@@ -26,7 +26,7 @@
 
 	function handleEditPartRec(item: Part) {
 		editPartData.set(item);
-		window.scrollTo({ top: 0, behavior: 'instant' });
+		window.scrollTo({ top: 0, behavior: 'auto' });
 	}
 
 	// $inspect(parts)

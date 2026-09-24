@@ -4,43 +4,59 @@
 	import { enhance } from '$app/forms';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import Label from '@/components/ui/label/label.svelte';
+	import Input from '@/components/ui/input/input.svelte';
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Button from '@/components/ui/button/button.svelte';
-	import Input from '@/components/ui/input/input.svelte';
-	import { page } from '$app/state';
-	import { onMount, untrack } from 'svelte';
-	import { goto } from '$app/navigation';
 	import { Plus, X } from '@lucide/svelte';
-	import NewGroupTable from '@/components/organism/Tables/NewGroupTable.svelte';
+	import { onMount, untrack } from 'svelte';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	import LabelGroupsTable from '@/components/organism/Tables/LabelGroupsTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
 
 	let { data, form }: PageProps = $props();
-	let { groups, groupsCount, processes, projects, parts, totalPages } = $derived(data.data);
+	let { groups, processes, projects, labelGroups, labelGroupsCount, totalPages } = $derived(
+		data.data
+	);
 
 	// vars
 	let isMounted = false;
-	let idEditGroup = $state<number>();
+	let idEditLabel = $state<number>();
 	let isSubmitting = $state(false);
-	let resetProcessCombo = $state(false);
-	let resetPartSideCombo = $state(false);
-
-	let comboboxParts = $state<Record<string, string>>(
+	let comboGroups = $state<Record<string, string>>(
 		Object.fromEntries(Array.from({ length: 100 }, (_, i) => [`slot${i + 1}`, '']))
 	);
-	let selectedPartIds = $derived(
-		Object.values(comboboxParts).filter((val) => val && val.trim() !== '')
-	);
 	let showSlot: Record<string, boolean> = $state({});
-	let partGroupName = $state('');
-
+	let resetGroupCombo = $state(false);
+	let resetProcessCombo = $state(false);
+	let label = $state('');
+	let selectedGroupsIds = $derived(
+		Object.values(comboGroups).filter((val) => val && val.trim() !== '')
+	);
 	let filterOptions = $state({
 		processId: page.url.searchParams.get('processId') ?? '',
 		projectId: page.url.searchParams.get('projectId') ?? ''
 	});
 	let prevProc = $state(filterOptions.processId);
 	let prevProj = $state(filterOptions.projectId);
-
 	// func
+	async function clearEditForm() {
+		idEditLabel = undefined;
+		filterOptions.processId = '';
+		filterOptions.projectId = '';
+		label = '';
+		resetGroupCombo = true;
+	}
+	function addComboboxSlot() {
+		for (let i = 1; i <= 100; i++) {
+			const slotKey = `slot${i}`;
+			if (!showSlot[slotKey]) {
+				showSlot[slotKey] = true;
+				break;
+			}
+		}
+	}
+
 	function applyFilter() {
 		const params = new URLSearchParams(page.url.searchParams);
 		if (filterOptions.processId) {
@@ -61,25 +77,6 @@
 		});
 	}
 
-	function addComboboxSlot() {
-		for (let i = 1; i <= 100; i++) {
-			const slotKey = `slot${i}`;
-			if (!showSlot[slotKey]) {
-				showSlot[slotKey] = true;
-				break;
-			}
-		}
-	}
-
-	async function clearEditForm() {
-		idEditGroup = undefined;
-		filterOptions.processId = '';
-		filterOptions.projectId = '';
-		partGroupName = '';
-		resetPartSideCombo = true;
-		// $editPartData = undefined;
-	}
-
 	// efect
 	$effect(() => {
 		const currentProc = filterOptions.processId;
@@ -93,10 +90,10 @@
 		if (currentProc !== prevProc || currentProj !== prevProj) {
 			prevProc = currentProc;
 			prevProj = currentProj;
-			for (const key in comboboxParts) {
-				comboboxParts[key] = '';
+			for (const key in comboGroups) {
+				comboGroups[key] = '';
 			}
-			resetPartSideCombo = true;
+			resetGroupCombo = true;
 			untrack(() => {
 				applyFilter();
 			});
@@ -107,7 +104,7 @@
 		showSlot = { slot1: true };
 	});
 
-	// $inspect(groups);
+	// $inspect(selectedGroupsIds);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -116,18 +113,19 @@
 	<section class="w-full flex max-md:flex-col gap-5 justify-between">
 		<form
 			method="POST"
-			action={idEditGroup ? '?/editGroup' : '?/createPartGroup'}
+			action={idEditLabel ? '?/editLabel' : '?/createLabel'}
 			use:enhance={({ formData, cancel }) => {
+				formData.set('labelNumber', label);
 				formData.set('processId', filterOptions.processId);
 				formData.set('projectId', filterOptions.projectId);
-				formData.set('partIds', JSON.stringify(selectedPartIds));
+				formData.set('groups', JSON.stringify(selectedGroupsIds));
 				isSubmitting = true;
 				return async ({ update, result }) => {
 					if (result?.type === 'success') {
-						for (const key in comboboxParts) {
-							comboboxParts[key] = '';
+						for (const key in comboGroups) {
+							comboGroups[key] = '';
 						}
-						resetPartSideCombo = true;
+						resetGroupCombo = true;
 					}
 
 					await update();
@@ -136,12 +134,29 @@
 			}}
 			class="formNormalize sm:w-xl"
 		>
-			<h1 class="mx-auto mb-6 text-2xl">{idEditGroup ? 'Edit group' : 'Create new group'}</h1>
+			<h1 class="mx-auto mb-6 text-2xl">
+				{idEditLabel ? 'Edit group' : 'Create label multy group'}
+			</h1>
 			<div>
 				<ResultInfo data={form} />
 			</div>
 			<!-- if edit  -->
-			<input type="text" hidden name="partId" bind:value={idEditGroup} />
+			<input type="text" hidden name="partId" bind:value={idEditLabel} />
+
+			<!-- Label input -->
+			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
+				<Label for="labelNumber" class="text-sm md:text-lg">Label code</Label>
+				<Input
+					type="text"
+					name="labelNumber"
+					id="labelNumber"
+					bind:value={label}
+					placeholder="Insert label"
+					class="inputNormalize lg:w-[350px] text-xl! text-warning font-semibold"
+					autocomplete={'off'}
+					required
+				/>
+			</article>
 
 			<!-- process COMBO -->
 			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
@@ -149,7 +164,7 @@
 				<Combobox
 					dataBox={processes}
 					bind:value={filterOptions.processId}
-					reset={resetProcessCombo}
+					bind:reset={resetProcessCombo}
 					id="processId"
 				/>
 			</article>
@@ -160,28 +175,29 @@
 				<Combobox
 					dataBox={projects}
 					bind:value={filterOptions.projectId}
-					reset={resetProcessCombo}
+					bind:reset={resetProcessCombo}
 					id="projectId"
 				/>
 			</article>
 
 			<!--  -->
-			<!-- PARTS dynamic combo -->
+			<!-- Groups dynamic combo -->
 			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
 				<ul
 					class="flex flex-col gap-2 space-y-1 w-full max-h-[400px] overscroll-y-auto overflow-auto"
 				>
-					{#each Object.entries(comboboxParts) as [slotKey, slotValue]}
+					{#each Object.entries(comboGroups) as [slotKey, slotValue]}
 						{#if showSlot[slotKey]}
-							{@const currentSlotPartId = comboboxParts[slotKey]}
-							{@const availableParts = parts.filter(
-								(part: any) =>
-									!selectedPartIds.includes(part.id.toString()) ||
-									part.id.toString() === currentSlotPartId
+							{@const currentSlotGroupId = comboGroups[slotKey]}
+							{@const availableGroups = groups.filter(
+								(group: any) =>
+									!selectedGroupsIds.includes(group.id.toString()) ||
+									group.id.toString() === currentSlotGroupId
 							)}
 							<li class="flex flex-col md:flex-row justify-between">
 								<Label for={`part-${slotKey}`} class="text-sm md:text-lg"
-									>Parts <span class="text-sm text-chart-info capitalize tracking-widest"
+									>Add group <span
+										class="text-sm text-chart-info capitalize tracking-widest my-auto"
 										>[{slotKey}]</span
 									></Label
 								>
@@ -194,18 +210,18 @@
 											? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
 											: 'hidden'}
 										onclick={() => {
-											comboboxParts[slotKey] = '';
+											comboGroups[slotKey] = '';
 											if (slotKey === 'slot1') return;
 											showSlot[slotKey] = false;
 										}}><X /></Button
 									>
 
 									<Combobox
-										dataBox={availableParts}
-										bind:value={comboboxParts[slotKey]}
-										bind:reset={resetPartSideCombo}
-										id={`part-${slotKey}`}
-										nameLabel={'partnumSideColor'}
+										dataBox={availableGroups}
+										bind:value={comboGroups[slotKey]}
+										bind:reset={resetGroupCombo}
+										id={`group-${slotKey}`}
+										nameLabel={'name'}
 									/>
 								</div>
 							</li>
@@ -219,42 +235,26 @@
 					variant="outline"
 					onclick={addComboboxSlot}
 					class="w-full lg:w-[370px] ml-auto text-chart-1 bg-chart-1/10"
-					><Plus /> Add more parts</Button
+					><Plus /> Add more groups</Button
 				>
 			{/if}
-
-			<!--  -->
-			<!-- group name !!! -->
-			<article class="flex justify-between items-center gap-2">
-				<Label for="partNumber" class="text-sm md:text-lg">Group name</Label>
-				<Input
-					type="text"
-					name="groupName"
-					id="partGroup"
-					bind:value={partGroupName}
-					placeholder="Insert group name [max 64 characters]"
-					class="inputNormalize lg:w-[350px]"
-					required
-					autocomplete={'off'}
-				/>
-			</article>
 
 			<Button type="submit" class="mt-10" disabled={isSubmitting}>
 				{#if isSubmitting}
 					<span>Submitting...</span>
 				{:else}
-					{idEditGroup ? 'Edit group' : 'Create group'}
+					{idEditLabel ? 'Edit label' : 'Create label group'}
 				{/if}
 			</Button>
-			{#if idEditGroup}
+			{#if idEditLabel}
 				<Button variant="destructive" onclick={() => clearEditForm()}>Close Edit</Button>
 			{/if}
 		</form>
 	</section>
 
-	<!-- List groups -->
+	<!-- List label groups -->
 	<section class="z-50">
-		<NewGroupTable {groups} {groupsCount} headerText="Part groups" />
+		<LabelGroupsTable {labelGroups} {labelGroupsCount} headerText="Label groups" />
 	</section>
 
 	<section class="z-50">

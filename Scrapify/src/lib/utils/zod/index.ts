@@ -14,6 +14,8 @@ export const scrapRecordSchema = z.object({
 
 export const partGroupSchema = z.object({
 	id: z.coerce.number().int().positive().optional(),
+	processId: z.coerce.number().int().positive('Please select process'),
+	projectId: z.coerce.number().int().positive('Please select project'),
 	groupName: z.string().trim().min(3).max(64),
 	partIds: z
 		.string()
@@ -25,6 +27,25 @@ export const partGroupSchema = z.object({
 				return z.NEVER;
 			}
 		})
-		.pipe(z.array(z.coerce.number().int().positive()).min(1, 'Please select at least 1 part'))
+		.pipe(z.array(z.coerce.number().int().positive()))
 });
 export type PartGroupInput = z.infer<typeof partGroupSchema>;
+
+export const labelGroupsSchema = z.object({
+	id: z.coerce.number().int().positive().optional(),
+	processId: z.coerce.number().int().positive('Please select process'),
+	projectId: z.coerce.number().int().positive('Please select project'),
+	labelNumber: z.string().max(64).min(3),
+	groups: z
+		.string()
+		.transform((val, ctx) => {
+			try {
+				return JSON.parse(val);
+			} catch {
+				ctx.addIssue({ code: 'custom', message: 'Bad format for groups select' });
+				return z.NEVER;
+			}
+		})
+		.pipe(z.array(z.coerce.number().int().positive()))
+});
+export type LabelGroupInput = z.infer<typeof labelGroupsSchema>;

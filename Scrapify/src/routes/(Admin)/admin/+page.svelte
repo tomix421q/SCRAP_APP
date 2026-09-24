@@ -45,7 +45,7 @@
 						class="bg-lime-700! hover:bg-lime-700/80!">Create parts group</Button
 					>
 					<Button
-						href="/admin/partgroups"
+						href="/admin/label-part"
 						variant="default"
 						size="lg"
 						class="bg-lime-700! hover:bg-lime-700/80!">Label multy part</Button

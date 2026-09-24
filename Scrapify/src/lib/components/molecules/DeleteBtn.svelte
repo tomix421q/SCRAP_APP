@@ -3,6 +3,7 @@
 	import { Button } from '../ui/button';
 	import { enhance } from '$app/forms';
 	import { currentConfirmDeleteId, isEditing } from '@/stores/stores';
+	import { toast } from 'svelte-sonner';
 
 	let { id, actionRoute }: { id: number | string; actionRoute: string } = $props();
 
@@ -32,11 +33,15 @@
 		class="flex"
 		use:enhance={() => {
 			isSubmitting = true;
-			return async ({ update }) => {
+			return async ({ result, update }) => {
 				// await new Promise((resolve) => setTimeout(resolve, 5000));
 				await update();
 				currentConfirmDeleteId.set(undefined);
-				window.scrollTo({ top: 0, behavior: 'smooth' });
+				if (result.type === 'success') {
+					toast.success(`Successful deleted id: ${id}`);
+				} else {
+					window.scrollTo({ top: 0, behavior: 'smooth' });
+				}
 				isSubmitting = false;
 			};
 		}}

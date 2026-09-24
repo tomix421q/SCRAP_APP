@@ -28,7 +28,7 @@
 	let InternalValue = $derived(String(value));
 	let editMode = $state(false);
 	let triggerRef = $state<HTMLButtonElement>(null!);
-
+	// console.log(dataBox);
 	// const selectedLabel = $derived(dataBox?.find((f: any) => f.id === InternalValue)?.name);
 	const selectedLabel = $derived.by<string | undefined>(() => {
 		const foundItem = dataBox?.find((f: { id: number }) => f.id.toString() === InternalValue);

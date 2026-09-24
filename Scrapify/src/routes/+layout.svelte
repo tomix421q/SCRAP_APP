@@ -8,12 +8,13 @@
 	import User from '@/components/organism/User.svelte';
 	import bgDesktop from '@/../lib/assets/bg1.jpg';
 	import type { LayoutData } from './$types';
-	import { Bug, Github } from '@lucide/svelte';
+	import { Bug, Code } from '@lucide/svelte';
 	import Separator from '@/components/ui/separator/separator.svelte';
 	import { getUserIdCardFromLc } from '@/index';
 	import { afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import MobileMenu from '@/components/molecules/MobileMenu.svelte';
+	import { Toaster } from '@/components/ui/sonner';
 
 	// let navigatee = $derived(navigating.complete);
 	let { children, data }: { children: any; data: LayoutData } = $props();
@@ -117,6 +118,7 @@
 
 	<!-- ALL CONTENT RENDER -->
 	<main class="max-w-[1750px] mx-auto px-2 md:px-3 lg:px-4 min-h-screen">
+		<Toaster />
 		{@render children?.()}
 	</main>
 
@@ -128,7 +130,7 @@
 				<Button
 					variant="link"
 					href="https://github.com/tomix421q/SCRAP_APP/tree/main/Scrapify"
-					target="_blank"><Github />Project Github</Button
+					target="_blank"><Code />Project Github</Button
 				>
 				<Button variant="link"
 					><a href="mailto:tomas.zilka@yanfeng.com" class="flex items-center gap-x-2"

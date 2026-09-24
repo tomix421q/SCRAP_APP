@@ -3,8 +3,8 @@ import {
 	type ProcessWithRelationsAll,
 	type ScrapRecordWithRelations
 } from '@/utils/types';
+import type { Hall, Part, Project, ScrapCode } from '@prisma/client';
 import { derived, writable, type Readable } from 'svelte/store';
-import type { Hall, Part, Project, ScrapCode } from '../../../prisma/generated/client/client';
 
 export const currentConfirmDeleteId = writable<number | string | undefined>(undefined);
 

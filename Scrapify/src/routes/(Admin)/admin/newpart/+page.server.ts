@@ -5,9 +5,9 @@ import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import { writeToLogger } from '@/utils/serverHelp';
 import type { Prisma } from '@prisma/client';
 
-
 export const load: PageServerLoad = async (event) => {
-	const processId = event.url.searchParams.get('processId');
+	const processId = Number(event.url.searchParams.get('processId'));
+	const projectId = Number(event.url.searchParams.get('projectId'));
 	const page = Number(event.url.searchParams.get('page') ?? '1');
 	const limit = 100;
 	const skip = (page - 1) * limit;
@@ -32,25 +32,35 @@ export const load: PageServerLoad = async (event) => {
 	if (filters.projectName) {
 		where.project = { id: { equals: filters.projectName } };
 	}
+	const wherePartGroup: Prisma.PartGroupWhereInput = {};
+	if (processId && !Number.isNaN(processId)) wherePartGroup.processId = processId;
+	if (projectId && !Number.isNaN(projectId)) wherePartGroup.projectId = projectId;
 
 	try {
-		const [allParts, allProcesses, allProjectsForProcess, allProjects, allHalls] =
-			await Promise.all([
-				prismaClient.part.findMany({
-					where,
-					skip,
-					take: limit,
-					orderBy: { id: 'desc' },
-					include: { process: { include: { hall: true } }, project: true }
-				}),
-				prismaClient.process.findMany(),
-				prismaClient.project.findMany({
-					include: { processes: true },
-					where: { processes: { some: { processId: Number(processId) } } }
-				}),
-				prismaClient.project.findMany(),
-				prismaClient.hall.findMany()
-			]);
+		const [
+			allParts,
+			allProcesses,
+			allProjectsForProcess,
+			allProjects,
+			allHalls,
+			availablePartGroups
+		] = await Promise.all([
+			prismaClient.part.findMany({
+				where,
+				skip,
+				take: limit,
+				orderBy: { id: 'desc' },
+				include: { process: { include: { hall: true } }, project: true }
+			}),
+			prismaClient.process.findMany(),
+			prismaClient.project.findMany({
+				include: { processes: true },
+				where: { processes: { some: { processId: processId } } }
+			}),
+			prismaClient.project.findMany(),
+			prismaClient.hall.findMany(),
+			prismaClient.partGroup.findMany({ where: wherePartGroup })
+		]);
 		const partsCount = await prismaClient.part.count({ where });
 		const totalPages = Math.ceil(partsCount / limit);
 		const data = {
@@ -60,7 +70,8 @@ export const load: PageServerLoad = async (event) => {
 			projects: allProjects,
 			halls: allHalls,
 			totalPages,
-			partsCount
+			partsCount,
+			groups: availablePartGroups
 		};
 
 		return { data };
@@ -78,6 +89,7 @@ export const actions = {
 		const partProdNumberId = formData.get('partNumber') as string;
 		const partSide = formData.get('partSide') as string;
 		const projectId = formData.get('projectId') as string;
+		const groupId = Number(formData.get('groupId'));
 
 		if (!processId) {
 			return fail(400, {
@@ -125,9 +137,29 @@ export const actions = {
 						processId: findProcess.id,
 						projectId: findSpecificProject.id,
 						partNumber: partProdNumberId,
-						side: partSide
+						side: partSide,
+						...(groupId
+							? {
+									groups: {
+										connect: { id: groupId }
+									}
+								}
+							: {})
 					}
 				});
+				// if (groupId) {
+				// 	const isExist = await prismaClient.partGroup.findFirst({ where: { id: groupId } });
+				// 	if (isExist) {
+				// 		await prismaClient.partGroup.update({
+				// 			where: { id: groupId },
+				// 			data: {
+				// 				parts: {
+				// 					connect: { partNumber: partProdNumberId }
+				// 				}
+				// 			}
+				// 		});
+				// 	}
+				// }
 				writeToLogger({
 					request: event.request,
 					action: 'CREATE',

@@ -84,6 +84,7 @@ description String?
 processes ProjectsOnProcess[]
 parts Part[]
 partGroups PartGroup[]
+labelGroups LabelGroup[]
 }
 
 model ProjectsOnProcess {
@@ -104,6 +105,7 @@ hall Hall @relation(fields: [hallId], references: [id],onDelete: Cascade)
 project ProjectsOnProcess[]
 parts Part[]
 partGroups PartGroup[]
+labelGroups LabelGroup[]
 }
 
 model Part {
@@ -126,9 +128,27 @@ model PartGroup {
   projectId Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  parts     Part[]  
+  parts     Part[]
+  labelGroups LabelGroup[]  
   process   Process  @relation(fields: [processId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   project   Project  @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  @@unique([name, projectId, processId])
+  @@index([processId])
+  @@index([projectId])
+}
+
+model LabelGroup {
+  id        Int      @id @default(autoincrement())
+  code      String   @db.NVarChar(64)
+  processId Int
+  projectId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  groups    PartGroup[]
+  process   Process  @relation(fields: [processId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([code, projectId, processId])
   @@index([processId])
   @@index([projectId])
 }

@@ -9,8 +9,8 @@
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 	import { type Role, type ScrapRecordWithRelations } from '@/utils/types';
 	import { editSearchData } from '@/stores/stores';
-	import type { User } from '../../../../../prisma/generated/client/client';
 	import Badge from '@/components/ui/badge/badge.svelte';
+	import type { User } from '@prisma/client';
 
 	let {
 		findRecords,

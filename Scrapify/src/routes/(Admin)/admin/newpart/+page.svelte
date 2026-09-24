@@ -11,10 +11,12 @@
 	import NewPartTable from '@/components/organism/Tables/NewPartTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import { currentConfirmDeleteId, editPartData, isEditing } from '@/stores/stores';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Filter from '@/components/organism/Filter.svelte';
-	import type { Process, Project } from '../../../../../prisma/generated/client/client';
+	import type { PartGroup, Process, Project } from '@prisma/client';
+	import { page } from '$app/state';
+	import { X } from '@lucide/svelte';
 
 	interface CustomPageData {
 		parts: PartWithRelation[];
@@ -23,10 +25,11 @@
 		processes: Process[];
 		totalPages: number;
 		partsCount: number;
+		groups: PartGroup[];
 	}
 
 	let { data, form }: PageProps = $props();
-	let { parts, processes, projectsForProcess, projects, totalPages, partsCount } = $derived(
+	let { parts, processes, projectsForProcess, projects, totalPages, partsCount, groups } = $derived(
 		data.data
 	) as CustomPageData;
 	let isSubmitting = $state(false);
@@ -37,6 +40,7 @@
 	let projectId = $state('');
 	let partProdNumberId = $state('');
 	let partSide = $state('') as PartSide;
+	let groupId = $state('');
 
 	//reset
 	let resetProcessCombo = $state(false);
@@ -49,9 +53,32 @@
 		partProdNumberId = '';
 		partSide = '' as PartSide;
 		$editPartData = undefined;
-		// const url = new URL($page.url)
-		// url.searchParams.delete('processId')
-		// await goto(`${url.pathname}${url.search}`, { keepFocus: true, noScroll: true });
+	}
+
+	function updateFilterParams(procId: string, projId: string) {
+		const params = new URLSearchParams(page.url.searchParams);
+		const currentUrlProc = params.get('processId') ?? '';
+		const currentUrlProj = params.get('projectId') ?? '';
+
+		if (currentUrlProc === procId && currentUrlProj === (projId || '')) {
+			return;
+		}
+		if (procId) {
+			params.set('processId', procId);
+		} else {
+			params.delete('processId');
+		}
+
+		if (projId) {
+			params.set('projectId', projId);
+		} else {
+			params.delete('projectId');
+		}
+		goto(`?${params.toString()}`, {
+			keepFocus: true,
+			noScroll: true,
+			replaceState: true
+		});
 	}
 
 	$effect(() => {
@@ -70,14 +97,19 @@
 		}
 	});
 	$effect(() => {
-		if (processId) {
-			if (processId !== $editPartData?.processId.toString()) {
+		const curProc = processId;
+		const curProj = projectId;
+
+		untrack(() => {
+			const editProc = $editPartData?.processId?.toString();
+			if (editProc && curProc !== editProc && projectId) {
 				projectId = '';
 			}
-			const params = new URLSearchParams();
-			params.set('processId', processId.toString());
-			goto(`?${params.toString()}`, { keepFocus: true, noScroll: true });
-		}
+			if (curProc) groupId = '';
+			// if(edit)
+
+			updateFilterParams(curProc, curProj);
+		});
 	});
 
 	onMount(() => {
@@ -85,7 +117,7 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	// $inspect(projects);
+	// $inspect(projectId);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -127,6 +159,7 @@
 					reset={resetProcessCombo}
 					id="processId"
 				/>
+
 				<input type="hidden" name="processId" required bind:value={processId} />
 			</article>
 			<!--  -->
@@ -139,6 +172,7 @@
 					reset={resetProcessCombo}
 					id="projectId"
 				/>
+
 				<input type="hidden" name="projectId" required bind:value={projectId} />
 			</article>
 			<!--  -->
@@ -147,12 +181,26 @@
 				<Label for="partSide" class="text-sm md:text-lg"
 					>Side <span class="text-xs text-chart-info">[Optional]</span></Label
 				>
-				<Combobox
-					dataBox={PART_SIDES}
-					bind:value={partSide}
-					reset={resetPartSideCombo}
-					id={'partSide'}
-				/>
+				<div class="flex gap-2">
+					{#if partSide}
+						<Button
+							title="Remove filter"
+							size="icon"
+							variant="ghost"
+							class="flex text-destructive bg-destructive/10 hover:bg-destructive/50"
+							onclick={() => {
+								partSide = '' as PartSide;
+							}}><X /></Button
+						>
+					{/if}
+					<Combobox
+						dataBox={PART_SIDES}
+						bind:value={partSide}
+						reset={resetPartSideCombo}
+						id={'partSide'}
+					/>
+				</div>
+
 				<input type="hidden" name="partSide" required bind:value={partSide} />
 			</article>
 			<!--  -->
@@ -165,9 +213,33 @@
 					id="partNumber"
 					bind:value={partProdNumberId}
 					placeholder="Insert part number"
-					class="inputNormalize lg:w-[350px]"
+					class="inputNormalize lg:w-[350px] text-xl! text-warning font-semibold"
+					autocomplete={'off'}
 					required
 				/>
+			</article>
+			<!--  -->
+			<!-- Part group !!! -->
+			<article class="flex justify-between items-center gap-2">
+				<Label for="groupId" class="text-sm md:text-lg"
+					>Part group <span class="text-xs text-chart-info">[Optional]</span></Label
+				>
+				<div class="flex gap-2">
+					{#if groupId}
+						<Button
+							title="Remove filter"
+							size="icon"
+							variant="ghost"
+							class="flex text-destructive bg-destructive/10 hover:bg-destructive/50"
+							onclick={() => {
+								groupId = '';
+							}}><X /></Button
+						>
+					{/if}
+					<Combobox dataBox={groups} bind:value={groupId} reset={resetProcessCombo} id="groupId" />
+				</div>
+
+				<input type="hidden" name="groupId" required bind:value={groupId} />
 			</article>
 
 			<Button type="submit" class="mt-10 ">

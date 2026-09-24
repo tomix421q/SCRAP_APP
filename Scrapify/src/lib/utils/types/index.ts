@@ -1,5 +1,5 @@
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
-import type { Prisma } from '../../../../prisma/generated/client/client';
+import type { Prisma } from '@prisma/client';
 
 export const ROLES = ['USER', 'ENGINEER', 'MODERATOR', 'ADMIN'] as const;
 export type Role = (typeof ROLES)[number];
@@ -46,7 +46,9 @@ export type LoggerEntityType =
 	| 'ScrapCode'
 	| 'Operator'
 	| 'User'
-	| 'ScrapRecord';
+	| 'ScrapRecord'
+	| 'PartGroup'
+	| 'LabelGroup';
 
 export type PartWithRelation = Prisma.PartGetPayload<{
 	include: {
@@ -65,6 +67,21 @@ export type ProcessWithRelationsAll = Prisma.ProcessGetPayload<{
 		project: { include: { project: true } };
 		parts: { include: { process: true } };
 		hall: true;
+	};
+}>;
+export type PartGroupWithRelations = Prisma.PartGroupGetPayload<{
+	include: {
+		parts: true;
+		process: true;
+		project: true;
+	};
+}>;
+
+export type LabelGroupsWithRelations = Prisma.LabelGroupGetPayload<{
+	include: {
+		groups: { include: { parts: true } };
+		process: true;
+		project: true;
 	};
 }>;
 
