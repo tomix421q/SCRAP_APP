@@ -27,6 +27,17 @@ export const partGroupSchema = z.object({
 				return z.NEVER;
 			}
 		})
+		.pipe(z.array(z.coerce.number().int().positive())),
+	scrapCodesIds: z
+		.string()
+		.transform((val, ctx) => {
+			try {
+				return JSON.parse(val);
+			} catch (error) {
+				ctx.addIssue({ code: 'custom', message: 'Bad format for scrap codes select' });
+				return z.NEVER;
+			}
+		})
 		.pipe(z.array(z.coerce.number().int().positive()))
 });
 export type PartGroupInput = z.infer<typeof partGroupSchema>;

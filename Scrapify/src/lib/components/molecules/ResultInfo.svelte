@@ -22,7 +22,7 @@
 	<section class="w-full mx-auto flex relative" transition:slide>
 		{#if data?.success}
 			<div
-				class="w-full p-4 mb-1 bg-chart-success/20 backdrop-blur-2xl text-chart-success rounded-lg"
+				class="w-full p-4 mb-1 bg-chart-success/20 backdrop-blur-2xl  text-chart-success rounded-lg"
 			>
 				{data.message}
 			</div>
@@ -34,11 +34,11 @@
 
 				{#if data?.error}
 					{#if typeof data.error === 'string'}
-						<p>{data.error}</p>
+						<p class="text-muted-foreground">{data.error}</p>
 					{/if}
 
 					{#if typeof data.error === 'object' && Object.keys(data.error).length > 0}
-						<ul class="list-disc list-inside space-y-1 text-sm">
+						<ul class="list-disc list-inside space-y-1 text-sm text-muted-foreground">
 							{#each Object.entries(data.error) as [field, messages]}
 								<li>
 									<span class="capitalize font-medium">{field}:</span>

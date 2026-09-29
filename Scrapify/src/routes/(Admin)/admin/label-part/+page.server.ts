@@ -88,7 +88,7 @@ export const actions = {
 			};
 		} catch (err: any) {
 			if (err.code === 'P2002') {
-				return fail(500, {
+				return fail(400, {
 					success: false,
 					message: `This label group with this process and project already exist`
 				});

@@ -51,3 +51,39 @@ export async function writeToLogger({
 		};
 	}
 }
+
+export interface MatchResult {
+	isMatch: boolean;
+	serialNumber?: string;
+}
+
+export function matchDmcWithMask(scannedDmc: string, mask: string): MatchResult {
+	const cleanDmc = scannedDmc.trim();
+	const cleanMask = mask.trim();
+
+	if (!cleanMask.includes('*')) {
+		return {
+			isMatch: cleanDmc.toLowerCase() === cleanMask.toLowerCase()
+		};
+	}
+
+	// 1. Escapneme špeciálne regex znaky (. + ? ^ $ atď.) okrem hviezdičky
+	const escaped = cleanMask.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+
+	// 2. Nahradíme hviezdičky skupinou pre alfanumerické znaky:
+	// ******** -> ([A-Za-z0-9]{8})
+	// const regexPattern = escaped.replace(/\*+/g, (match) => `([A-Za-z0-9]{${match.length}})`);
+	const regexPattern = escaped.replace(/\*+/g, '([A-Za-z0-9]+)');
+
+	const regex = new RegExp(`^${regexPattern}$`, 'i');
+	const match = cleanDmc.match(regex);
+
+	if (!match) {
+		return { isMatch: false };
+	}
+
+	return {
+		isMatch: true,
+		serialNumber: match[1] // vytiahnuté pohyblivé číslo (napr. 33020230)
+	};
+}

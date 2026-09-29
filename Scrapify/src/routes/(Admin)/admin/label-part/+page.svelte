@@ -104,7 +104,7 @@
 		showSlot = { slot1: true };
 	});
 
-	// $inspect(selectedGroupsIds);
+	// $inspect(groups);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />

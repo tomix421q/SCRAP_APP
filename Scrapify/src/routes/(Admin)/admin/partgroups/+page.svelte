@@ -15,14 +15,17 @@
 	import Pagination from '@/components/molecules/Pagination.svelte';
 
 	let { data, form }: PageProps = $props();
-	let { groups, groupsCount, processes, projects, parts, totalPages } = $derived(data.data);
+	let { groups, groupsCount, processes, projects, parts, scrapCodes, totalPages } = $derived(
+		data.data
+	);
 
 	// vars
 	let isMounted = false;
 	let idEditGroup = $state<number>();
 	let isSubmitting = $state(false);
 	let resetProcessCombo = $state(false);
-	let resetPartSideCombo = $state(false);
+	let resetGroupCombo = $state(false);
+	let resetScrapCodesCombo = $state(false);
 
 	let comboboxParts = $state<Record<string, string>>(
 		Object.fromEntries(Array.from({ length: 100 }, (_, i) => [`slot${i + 1}`, '']))
@@ -30,7 +33,14 @@
 	let selectedPartIds = $derived(
 		Object.values(comboboxParts).filter((val) => val && val.trim() !== '')
 	);
+	let comboboxScrapCodes = $state<Record<string, string>>(
+		Object.fromEntries(Array.from({ length: 100 }, (_, i) => [`slot${i + 1}`, '']))
+	);
+	let selectedScrapCodesIds = $derived(
+		Object.values(comboboxScrapCodes).filter((val) => val && val.trim() !== '')
+	);
 	let showSlot: Record<string, boolean> = $state({});
+	let showSlotScrap: Record<string, boolean> = $state({});
 	let partGroupName = $state('');
 
 	let filterOptions = $state({
@@ -70,13 +80,23 @@
 			}
 		}
 	}
+	function addComboboxSlotScrap() {
+		for (let i = 1; i <= 100; i++) {
+			const slotKey = `slot${i}`;
+			if (!showSlotScrap[slotKey]) {
+				showSlotScrap[slotKey] = true;
+				break;
+			}
+		}
+	}
 
 	async function clearEditForm() {
 		idEditGroup = undefined;
 		filterOptions.processId = '';
 		filterOptions.projectId = '';
 		partGroupName = '';
-		resetPartSideCombo = true;
+		resetGroupCombo = true;
+		resetScrapCodesCombo = true;
 		// $editPartData = undefined;
 	}
 
@@ -96,7 +116,14 @@
 			for (const key in comboboxParts) {
 				comboboxParts[key] = '';
 			}
-			resetPartSideCombo = true;
+
+			for (const key in comboboxScrapCodes) {
+				comboboxParts[key] = '';
+			}
+			showSlot = { slot1: true };
+			showSlotScrap = { slot1: true };
+			resetGroupCombo = true;
+			resetScrapCodesCombo = true;
 			untrack(() => {
 				applyFilter();
 			});
@@ -105,6 +132,7 @@
 
 	onMount(() => {
 		showSlot = { slot1: true };
+		showSlotScrap = { slot1: true };
 	});
 
 	// $inspect(groups);
@@ -121,13 +149,20 @@
 				formData.set('processId', filterOptions.processId);
 				formData.set('projectId', filterOptions.projectId);
 				formData.set('partIds', JSON.stringify(selectedPartIds));
+				formData.set('scrapCodesIds', JSON.stringify(selectedScrapCodesIds));
 				isSubmitting = true;
 				return async ({ update, result }) => {
 					if (result?.type === 'success') {
 						for (const key in comboboxParts) {
 							comboboxParts[key] = '';
 						}
-						resetPartSideCombo = true;
+						for (const key in comboboxScrapCodes) {
+							comboboxScrapCodes[key] = '';
+						}
+						showSlot = { slot1: true };
+						showSlotScrap = { slot1: true };
+						resetGroupCombo = true;
+						resetScrapCodesCombo = true;
 					}
 
 					await update();
@@ -181,7 +216,7 @@
 							)}
 							<li class="flex flex-col md:flex-row justify-between">
 								<Label for={`part-${slotKey}`} class="text-sm md:text-lg"
-									>Parts <span class="text-sm text-chart-info capitalize tracking-widest"
+									>Part <span class="text-sm text-chart-info capitalize tracking-widest"
 										>[{slotKey}]</span
 									></Label
 								>
@@ -203,7 +238,7 @@
 									<Combobox
 										dataBox={availableParts}
 										bind:value={comboboxParts[slotKey]}
-										bind:reset={resetPartSideCombo}
+										bind:reset={resetGroupCombo}
 										id={`part-${slotKey}`}
 										nameLabel={'partnumSideColor'}
 									/>
@@ -220,6 +255,64 @@
 					onclick={addComboboxSlot}
 					class="w-full lg:w-[370px] ml-auto text-chart-1 bg-chart-1/10"
 					><Plus /> Add more parts</Button
+				>
+			{/if}
+
+			<!--  -->
+			<!-- SCRAP CODES dynamic combo -->
+			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
+				<ul
+					class="flex flex-col gap-2 space-y-1 w-full max-h-[400px] overscroll-y-auto overflow-auto"
+				>
+					{#each Object.entries(comboboxScrapCodes) as [slotKey, slotValue]}
+						{#if showSlotScrap[slotKey]}
+							{@const currentSlotScrapId = comboboxScrapCodes[slotKey]}
+							{@const availableScrapCodes = scrapCodes.filter(
+								(scrapCodes: any) =>
+									!selectedScrapCodesIds.includes(scrapCodes.id.toString()) ||
+									scrapCodes.id.toString() === currentSlotScrapId
+							)}
+							<li class="flex flex-col md:flex-row justify-between">
+								<Label for={`part-${slotKey}`} class="text-sm md:text-lg"
+									>Scrap code<span class="text-sm text-chart-info capitalize tracking-widest"
+										>[{slotKey}]</span
+									></Label
+								>
+								<div class="flex gap-2">
+									<Button
+										title="Remove item"
+										size="icon"
+										variant="ghost"
+										class={(slotKey === 'slot1' && slotValue) || slotKey !== 'slot1'
+											? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
+											: 'hidden'}
+										onclick={() => {
+											comboboxScrapCodes[slotKey] = '';
+											if (slotKey === 'slot1') return;
+											showSlotScrap[slotKey] = false;
+										}}><X /></Button
+									>
+
+									<Combobox
+										dataBox={availableScrapCodes}
+										bind:value={comboboxScrapCodes[slotKey]}
+										bind:reset={resetScrapCodesCombo}
+										id={`part-${slotKey}`}
+										nameLabel={'codeName'}
+									/>
+								</div>
+							</li>
+						{/if}
+					{/each}
+				</ul>
+			</article>
+			{#if Object.values(showSlotScrap).filter((s) => s).length <= 100}
+				<Button
+					size="sm"
+					variant="outline"
+					onclick={addComboboxSlotScrap}
+					class="w-full lg:w-[370px] ml-auto text-chart-1 bg-chart-1/10"
+					><Plus /> Add more scrap codes</Button
 				>
 			{/if}
 

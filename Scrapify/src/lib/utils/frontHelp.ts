@@ -49,3 +49,30 @@ export function handleClickMinus(partNumber: string, sc: string) {
 		return updatedNotes;
 	});
 }
+
+export function playBeep(type: 'ok' | 'error') {
+	try {
+		const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+
+		osc.connect(gain);
+		gain.connect(ctx.destination);
+
+		if (type === 'ok') {
+			osc.frequency.setValueAtTime(1200, ctx.currentTime);
+			gain.gain.setValueAtTime(0.15, ctx.currentTime);
+			gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+			osc.start();
+			osc.stop(ctx.currentTime + 0.12);
+		} else {
+			osc.frequency.setValueAtTime(250, ctx.currentTime);
+			gain.gain.setValueAtTime(2.25, ctx.currentTime);
+			gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+			osc.start();
+			osc.stop(ctx.currentTime + 0.35);
+		}
+	} catch {
+		// Ignorovať, ak prehliadač blokuje audio pred prvou interakciou
+	}
+}

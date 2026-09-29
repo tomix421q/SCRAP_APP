@@ -16,6 +16,8 @@
 		totalPages?: number;
 		labelGroupsCount?: number;
 	} = $props();
+
+	// $inspect(labelGroups);
 </script>
 
 <main>
@@ -32,7 +34,8 @@
 			<Table.Header>
 				<Table.Row class="bg-chart-4/40 *:text-chart-1">
 					<Table.Head class="w-[100px]">ID</Table.Head>
-					<Table.Head class="w-[100px]">Code</Table.Head>
+					<Table.Head class="w-[100px]">DMC</Table.Head>
+					<Table.Head class="w-[100px]">Groups</Table.Head>
 					<Table.Head class="w-[100px]">Process</Table.Head>
 					<Table.Head class="w-[100px]">Project</Table.Head>
 					<Table.Head colspan={1} class="text-end">Actions</Table.Head>
@@ -43,6 +46,45 @@
 					<Table.Row>
 						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.code}</Table.Cell>
+
+						<!--  -->
+						<!-- Groups -->
+						<Table.Cell class="w-[100px]"
+							><p class="flex gap-2">
+								{item.groups.length}
+								{#if item.groups.length > 0}
+									<HoverCard.Root>
+										<HoverCard.Trigger>
+											<Info
+												class="size-5 text-muted-foreground hover:cursor-pointer"
+											/></HoverCard.Trigger
+										>
+										<HoverCard.Content class="w-max p-2 flex flex-col">
+											{#each item.groups as group (group.id)}
+												<ul>
+													<li class="flex gap-4 hover:bg-background p-2 justify-between rounded-lg">
+														<p>
+															<span class="text-muted-foreground">ID:</span>{group.id}
+														</p>
+														<p>
+															<span class="text-muted-foreground">NAME:</span>{group.name}
+														</p>
+														<article>
+															<span class="text-muted-foreground">PARTS:</span>
+															<div class="flex flex-col flex-1">
+																{#each group.parts as p}
+																	<p>{p.partNumber}</p>
+																{/each}
+															</div>
+														</article>
+													</li>
+												</ul>
+											{/each}
+										</HoverCard.Content>
+									</HoverCard.Root>
+								{/if}
+							</p></Table.Cell
+						>
 						<Table.Cell class="w-[100px]">{item.process.name}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.project.name}</Table.Cell>
 

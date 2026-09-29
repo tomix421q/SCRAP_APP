@@ -129,6 +129,7 @@ model PartGroup {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   parts     Part[]
+  scrapCodes ScrapCode[]
   labelGroups LabelGroup[]  
   process   Process  @relation(fields: [processId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   project   Project  @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -147,7 +148,6 @@ model LabelGroup {
   groups    PartGroup[]
   process   Process  @relation(fields: [processId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   project   Project  @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
   @@unique([code, projectId, processId])
   @@index([processId])
   @@index([projectId])
@@ -162,6 +162,7 @@ description String?
 active Boolean @default(true)
 scrapRecords ScrapRecord[]
 scrapSummary ScrapSummary[]
+groups PartGroup[]
 }
 
 

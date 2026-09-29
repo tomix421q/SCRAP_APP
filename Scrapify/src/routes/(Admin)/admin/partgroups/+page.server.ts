@@ -22,12 +22,12 @@ export const load = (async (event) => {
 	const whereGroup: Prisma.PartGroupWhereInput = {};
 
 	try {
-		const [groups, allProcess, allProjects, allParts, groupsCount] =
+		const [groups, allProcess, allProjects, allParts, scrapCodes, groupsCount] =
 			await prismaClient.$transaction([
 				prismaClient.partGroup.findMany({
 					where: whereGroup,
 					orderBy: { createdAt: 'desc' },
-					include: { parts: true, process: true, project: true }
+					include: { parts: true, process: true, project: true, scrapCodes: true }
 				}),
 				prismaClient.process.findMany(),
 				prismaClient.project.findMany({
@@ -35,6 +35,11 @@ export const load = (async (event) => {
 				}),
 				prismaClient.part.findMany({
 					where: wherePart
+				}),
+				prismaClient.scrapCode.findMany({
+					where: {
+						...(filters.processId ? { processId: Number(filters.processId) } : {})
+					}
 				}),
 				prismaClient.partGroup.count()
 			]);
@@ -45,6 +50,7 @@ export const load = (async (event) => {
 			processes: allProcess,
 			projects: allProjects,
 			parts: allParts,
+			scrapCodes,
 			totalPages
 		};
 		return { data };
@@ -68,7 +74,7 @@ export const actions = {
 				values: data
 			});
 		}
-		const { processId, projectId, groupName, partIds } = result.data;
+		const { processId, projectId, groupName, partIds, scrapCodesIds } = result.data;
 		try {
 			const newGroup = await prismaClient.partGroup.create({
 				data: {
@@ -77,6 +83,9 @@ export const actions = {
 					name: groupName,
 					parts: {
 						connect: partIds.map((id) => ({ id }))
+					},
+					scrapCodes: {
+						connect: scrapCodesIds.map((id) => ({ id }))
 					}
 				},
 				select: {

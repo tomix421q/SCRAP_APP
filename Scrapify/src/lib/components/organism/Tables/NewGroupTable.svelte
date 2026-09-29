@@ -2,7 +2,7 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import * as Table from '@/components/ui/table';
 	import type { PartGroupWithRelations } from '@/utils/types';
-	import { Info, SquarePenIcon } from '@lucide/svelte';
+	import { Info } from '@lucide/svelte';
 	import * as HoverCard from '$lib/components/ui/hover-card/index.js';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
 	import type { PartGroup } from '@prisma/client';
@@ -42,6 +42,7 @@
 					<Table.Head class="w-[100px]">ID</Table.Head>
 					<Table.Head class="w-[100px]">Name</Table.Head>
 					<Table.Head class="w-[100px]">Parts</Table.Head>
+					<Table.Head class="w-[100px]">Scrap codes</Table.Head>
 					<Table.Head class="w-[100px]">Process</Table.Head>
 					<Table.Head class="w-[100px]">Project</Table.Head>
 					<Table.Head colspan={1} class="text-end">Actions</Table.Head>
@@ -52,6 +53,8 @@
 					<Table.Row>
 						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.name}</Table.Cell>
+						<!--  -->
+						<!-- Parts -->
 						<Table.Cell class="w-[100px]"
 							><p class="flex gap-2">
 								{item.parts.length}
@@ -62,16 +65,49 @@
 												class="size-5 text-muted-foreground hover:cursor-pointer"
 											/></HoverCard.Trigger
 										>
-										<HoverCard.Content>
+										<HoverCard.Content class="p-2 flex flex-col flex-1 w-max">
 											{#each item.parts as part (part.id)}
-												<ul class="">
-													<li class="flex gap-2 hover:bg-background p-1">
+												<ul>
+													<li class="flex gap-4 hover:bg-background p-2 justify-between rounded-lg">
 														<p class="">
 															<span class="text-muted-foreground">ID:</span>{part.id}
 														</p>
 														<p>
 															<span class="text-muted-foreground">PART_NUMBER:</span
 															>{part.partNumber}
+														</p>
+													</li>
+												</ul>
+											{/each}
+										</HoverCard.Content>
+									</HoverCard.Root>
+								{/if}
+							</p></Table.Cell
+						>
+						<!--  -->
+						<!-- Scrap codes -->
+						<Table.Cell class="w-[100px]"
+							><p class="flex gap-2">
+								{item.scrapCodes.length}
+								{#if item.scrapCodes.length > 0}
+									<HoverCard.Root>
+										<HoverCard.Trigger>
+											<Info
+												class="size-5 text-muted-foreground hover:cursor-pointer"
+											/></HoverCard.Trigger
+										>
+										<HoverCard.Content class="w-max p-2 flex flex-col">
+											{#each item.scrapCodes as scrapC (scrapC.id)}
+												<ul>
+													<li class="flex gap-4 hover:bg-background p-2 rounded-lg">
+														<p>
+															<span class="text-muted-foreground">ID:</span>{scrapC.id}
+														</p>
+														<p>
+															<span class="text-muted-foreground">NAME:</span>{scrapC.name}
+														</p>
+														<p>
+															<span class="text-muted-foreground">CODE:</span>{scrapC.code}
 														</p>
 													</li>
 												</ul>

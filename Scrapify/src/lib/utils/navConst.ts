@@ -1,4 +1,4 @@
-import { Flag, House, NewspaperIcon, Search, User } from '@lucide/svelte';
+import { House, NewspaperIcon, Scan, ScanBarcode, Search, User } from '@lucide/svelte';
 
 export const navUrls = [
 	{
@@ -6,6 +6,12 @@ export const navUrls = [
 		title: 'Home',
 		shortname: 'H',
 		url: '/'
+	},
+	{
+		icon: ScanBarcode,
+		title: 'Scan scrap',
+		shortname: 'Sc-Sc',
+		url: '/scandmclabel'
 	},
 	{
 		icon: NewspaperIcon,

@@ -42,13 +42,13 @@
 						href="/admin/partgroups"
 						variant="default"
 						size="lg"
-						class="bg-lime-700! hover:bg-lime-700/80!">Create parts group</Button
+						class="bg-chart-2! hover:bg-chart-2/90!">Create parts group</Button
 					>
 					<Button
 						href="/admin/label-part"
 						variant="default"
 						size="lg"
-						class="bg-lime-700! hover:bg-lime-700/80!">Label multy part</Button
+						class="bg-chart-2! hover:bg-chart-2/90!">Label multy part</Button
 					>
 
 					<Button href="/admin/newprocess" variant="secondary" size="lg">Process</Button>

@@ -74,6 +74,7 @@ export type PartGroupWithRelations = Prisma.PartGroupGetPayload<{
 		parts: true;
 		process: true;
 		project: true;
+		scrapCodes: true;
 	};
 }>;
 
@@ -97,3 +98,15 @@ export interface createScrapNoteType {
 		qnt: number;
 	}[];
 }
+
+export type LabelGroupsWithRelationsScan = Prisma.LabelGroupGetPayload<{
+	include: {
+		process: true;
+		project: true;
+		groups: {
+			include: {
+				parts: true;
+			};
+		};
+	};
+}>;
