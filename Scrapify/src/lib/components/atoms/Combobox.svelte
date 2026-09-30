@@ -28,6 +28,7 @@
 	let InternalValue = $derived(String(value));
 	let editMode = $state(false);
 	let triggerRef = $state<HTMLButtonElement>(null!);
+
 	// console.log(dataBox);
 	// const selectedLabel = $derived(dataBox?.find((f: any) => f.id === InternalValue)?.name);
 	const selectedLabel = $derived.by<string | undefined>(() => {
@@ -35,7 +36,6 @@
 		if (!foundItem) {
 			return undefined;
 		}
-
 		// extra info for page createScrap (Process filter)
 		if (foundItem.name && foundItem.project?.hall) {
 			let name = foundItem.name + ' - ' + foundItem.hall.name;
@@ -53,7 +53,6 @@
 			let name = foundItem.name;
 			return name;
 		}
-
 		return undefined;
 	});
 	let changeCss = $derived<boolean>(selectedLabel && selectedLabel?.length > 25 ? true : false);

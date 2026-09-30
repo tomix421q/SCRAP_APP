@@ -60,3 +60,28 @@ export const labelGroupsSchema = z.object({
 		.pipe(z.array(z.coerce.number().int().positive()))
 });
 export type LabelGroupInput = z.infer<typeof labelGroupsSchema>;
+
+export const saveScrapSchema = z.object({
+	dmc: z.string().min(1, 'DMC kód je povinný'),
+	scrapCodes: z
+		.string()
+		.min(1, 'Chýbajú scrap kódy')
+		.transform((str, ctx) => {
+			try {
+				const parsed = JSON.parse(str);
+				if (typeof parsed !== 'object' || parsed === null) {
+					throw new Error();
+				}
+				return parsed as Record<string, string>;
+			} catch {
+				ctx.addIssue({
+					code: 'custom',
+					message: 'Neplatný formát scrap kódov'
+				});
+				return z.NEVER;
+			}
+		})
+		.refine((codes) => Object.values(codes).some((val) => val.trim().length > 0), {
+			message: 'Musí byť vybraný aspoň jeden scrap kód'
+		})
+});
