@@ -6,8 +6,8 @@
 	import { editPartData } from '@/stores/stores';
 	import Button from '@/components/ui/button/button.svelte';
 	import { SquarePenIcon } from '@lucide/svelte';
-	import type { PartWithRelation } from '@/utils/types';
 	import type { Part } from '@prisma/client';
+	import HoverCardContent from '@/components/ui/hover-card/hover-card-content.svelte';
 
 	let {
 		parts,
@@ -15,7 +15,7 @@
 		totalPages,
 		partsCount
 	}: {
-		parts: PartWithRelation[];
+		parts: Part[];
 		totalPages?: number;
 		partsCount?: number;
 		headerText?: string;
@@ -47,9 +47,7 @@
 				<Table.Row class="bg-chart-4/40 *:text-chart-1">
 					<Table.Head class="w-[100px]">ID</Table.Head>
 					<Table.Head class="w-[100px]">Part Number</Table.Head>
-					<Table.Head class="w-[100px]">Process</Table.Head>
-					<Table.Head class="w-[100px]">Project</Table.Head>
-					<Table.Head class="w-[100px]">Hall</Table.Head>
+					<Table.Head class="w-[200px]">Description</Table.Head>
 					<Table.Head class="w-[100px]">Side?</Table.Head>
 					<Table.Head colspan={1} class="text-end">Actions</Table.Head>
 				</Table.Row>
@@ -59,9 +57,16 @@
 					<Table.Row>
 						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.partNumber}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.process.name}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.project.name}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.process.hall.name}</Table.Cell>
+						<Table.Cell class="min-w-[220px]">
+							<HoverCard.Root>
+								<HoverCard.Trigger
+									>{item.description && item.description?.length > 20
+										? item.description?.slice(0, 20) + '...'
+										: item.description}</HoverCard.Trigger
+								>
+								<HoverCard.Content>{item.description}</HoverCard.Content>
+							</HoverCard.Root>
+						</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.side}</Table.Cell>
 
 						<Table.Cell class="w-[50px]">

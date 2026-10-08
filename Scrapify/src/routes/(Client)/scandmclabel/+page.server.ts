@@ -4,11 +4,6 @@ import type { PageServerLoad } from './$types';
 import { matchDmcWithMask } from '@/utils/serverHelp';
 import { saveScrapSchema } from '@/utils/zod';
 
-interface EntryScrapData {
-	dmc: string;
-	scrapCodes: Record<string, string>;
-}
-
 export const load = (async () => {
 	return {};
 }) satisfies PageServerLoad;
@@ -66,7 +61,7 @@ export const actions = {
 			return {
 				success: true,
 				message: `Dmc ${barcode} bol úspešne nájdený.`,
-				data: { match: matchedLabel, scrapCodes }
+				data: { label: extractedSerial, match: matchedLabel, scrapCodes }
 			};
 		} catch {}
 	},
@@ -82,14 +77,16 @@ export const actions = {
 				values: rawData
 			});
 		}
-		const { dmc, scrapCodes } = result.data;
+		const { dmc, isRebuild, scrapCodes, otherVariant } = result.data;
 
-		console.log('DMC:', dmc);
+		console.log('Label:', dmc);
+		console.log('Is Rebuild', isRebuild);
 		console.log('Scrap codes:', scrapCodes);
+		console.log('Other variant', otherVariant);
 
 		return {
 			success: true,
-			message: `Scrap pre DMC:${dmc} bol úspešne zaevidovaný `
+			message: `Scrap pre Label:${dmc} bol úspešne zaevidovaný `
 		};
 	}
 } satisfies Actions;

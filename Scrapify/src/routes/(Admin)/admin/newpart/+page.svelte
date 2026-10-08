@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PART_SIDES, type PartSide, type PartWithRelation } from '@/utils/types';
+	import { PART_SIDES, type PartSide } from '@/utils/types';
 	import ToNavigateBtn from '@/components/atoms/ToNavigateBtn.svelte';
 	import { enhance } from '$app/forms';
 	import { Label } from '@/components/ui/label';
@@ -12,32 +12,17 @@
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import { currentConfirmDeleteId, editPartData, isEditing } from '@/stores/stores';
 	import { onMount, untrack } from 'svelte';
-	import { goto } from '$app/navigation';
 	import Filter from '@/components/organism/Filter.svelte';
-	import type { PartGroup, Process, Project } from '@prisma/client';
-	import { page } from '$app/state';
 	import { X } from '@lucide/svelte';
-
-	interface CustomPageData {
-		parts: PartWithRelation[];
-		projects: Project[];
-		projectsForProcess: Project[];
-		processes: Process[];
-		totalPages: number;
-		partsCount: number;
-		groups: PartGroup[];
-	}
+	import { page } from '$app/state';
 
 	let { data, form }: PageProps = $props();
-	let { parts, processes, projectsForProcess, projects, totalPages, partsCount, groups } = $derived(
-		data.data
-	) as CustomPageData;
+	let { parts, processes, projects, totalPages, partsCount, groups } = $derived(data.data);
 	let isSubmitting = $state(false);
 
 	// id
 	let idEditPart = $state<number>();
-	let processId = $state('');
-	let projectId = $state('');
+	let descriptionInput = $state<string | null>('');
 	let partProdNumberId = $state('');
 	let partSide = $state('') as PartSide;
 	let groupId = $state('');
@@ -48,46 +33,43 @@
 
 	async function clearEditForm() {
 		idEditPart = undefined;
-		processId = '';
-		projectId = '';
+		descriptionInput = '';
 		partProdNumberId = '';
 		partSide = '' as PartSide;
 		$editPartData = undefined;
 	}
 
-	function updateFilterParams(procId: string, projId: string) {
-		const params = new URLSearchParams(page.url.searchParams);
-		const currentUrlProc = params.get('processId') ?? '';
-		const currentUrlProj = params.get('projectId') ?? '';
+	// function updateFilterParams(procId: string, projId: string) {
+	// 	const params = new URLSearchParams(page.url.searchParams);
+	// 	const currentUrlProc = params.get('description') ?? '';
 
-		if (currentUrlProc === procId && currentUrlProj === (projId || '')) {
-			return;
-		}
-		if (procId) {
-			params.set('processId', procId);
-		} else {
-			params.delete('processId');
-		}
+	// 	if (currentUrlProc === procId && currentUrlProj === (projId || '')) {
+	// 		return;
+	// 	}
+	// 	if (procId) {
+	// 		params.set('processId', procId);
+	// 	} else {
+	// 		params.delete('processId');
+	// 	}
 
-		if (projId) {
-			params.set('projectId', projId);
-		} else {
-			params.delete('projectId');
-		}
-		goto(`?${params.toString()}`, {
-			keepFocus: true,
-			noScroll: true,
-			replaceState: true
-		});
-	}
+	// 	if (projId) {
+	// 		params.set('projectId', projId);
+	// 	} else {
+	// 		params.delete('projectId');
+	// 	}
+	// 	goto(`?${params.toString()}`, {
+	// 		keepFocus: true,
+	// 		noScroll: true,
+	// 		replaceState: true
+	// 	});
+	// }
 
 	$effect(() => {
 		if ($editPartData) {
 			form = null;
 			idEditPart = $editPartData.id;
-			processId = $editPartData.processId.toString();
-			projectId = $editPartData.projectId.toString();
 			partProdNumberId = $editPartData.partNumber;
+			descriptionInput = $editPartData.description;
 			partSide = $editPartData.side as PartSide;
 		}
 	});
@@ -97,18 +79,15 @@
 		}
 	});
 	$effect(() => {
-		const curProc = processId;
-		const curProj = projectId;
-
+		const curDesc = descriptionInput;
 		untrack(() => {
-			const editProc = $editPartData?.processId?.toString();
-			if (editProc && curProc !== editProc && projectId) {
-				projectId = '';
+			const edit = $editPartData?.id.toString();
+			if (edit && curDesc !== descriptionInput) {
+				descriptionInput = '';
 			}
-			if (curProc) groupId = '';
 			// if(edit)
 
-			updateFilterParams(curProc, curProj);
+			// updateFilterParams(curProc, curProj);
 		});
 	});
 
@@ -117,7 +96,7 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	// $inspect(projectId);
+	// $inspect($editPartData);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -130,9 +109,9 @@
 			action={idEditPart ? '?/editPart' : '?/createPart'}
 			use:enhance={() => {
 				isSubmitting = true;
-
 				return async ({ update, result }) => {
-					if (result?.type === 'success' || result?.type === 'failure') {
+					if (result?.type === 'success') {
+						// descriptionInput = '';
 					}
 					await update();
 					isSubmitting = false;
@@ -150,31 +129,40 @@
 			<!-- if edit  -->
 			<input type="text" hidden name="partId" bind:value={idEditPart} />
 
-			<!-- process COMBO -->
-			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
-				<Label for="processId" class="text-sm md:text-lg">Process</Label>
-				<Combobox
-					dataBox={processes}
-					bind:value={processId}
-					reset={resetProcessCombo}
-					id="processId"
-				/>
-
-				<input type="hidden" name="processId" required bind:value={processId} />
-			</article>
 			<!--  -->
-			<!-- project dynamic combo -->
+			<!-- Part inputs !!! -->
+			<article class="flex flex-col lg:flex-row justify-between gap-2">
+				<Label for="partNumber" class="text-sm md:text-lg">Part number</Label>
+				<Input
+					type="text"
+					name="partNumber"
+					id="partNumber"
+					bind:value={partProdNumberId}
+					placeholder="Insert part number..."
+					class="inputNormalize lg:w-[350px] text-xl! text-warning placeholder:text-sm"
+					autocomplete={'off'}
+					required
+				/>
+			</article>
+
+			<!--  -->
+			<!-- Description -->
 			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
-				<Label for="projectId" class="text-sm md:text-lg">Project</Label>
-				<Combobox
-					dataBox={projectsForProcess}
-					bind:value={projectId}
-					reset={resetProcessCombo}
-					id="projectId"
+				<Label for="description" class="text-sm md:text-lg"
+					>Description <span class="text-xs text-chart-info">[Optional]</span></Label
+				>
+				<Input
+					type="text"
+					max={64}
+					alt="description"
+					class="inputNormalize max-w-[350px]"
+					placeholder="Short info..."
+					bind:value={descriptionInput}
 				/>
 
-				<input type="hidden" name="projectId" required bind:value={projectId} />
+				<input type="hidden" name="description" required bind:value={descriptionInput} />
 			</article>
+
 			<!--  -->
 			<!-- Side [optional] -->
 			<article class="flex flex-col justify-between lg:items-center gap-2 lg:flex-row">
@@ -203,21 +191,7 @@
 
 				<input type="hidden" name="partSide" required bind:value={partSide} />
 			</article>
-			<!--  -->
-			<!-- Part inputs !!! -->
-			<article class="flex justify-between items-center gap-2">
-				<Label for="partNumber" class="text-sm md:text-lg">Part number</Label>
-				<Input
-					type="text"
-					name="partNumber"
-					id="partNumber"
-					bind:value={partProdNumberId}
-					placeholder="Insert part number"
-					class="inputNormalize lg:w-[350px] text-xl! text-warning font-semibold"
-					autocomplete={'off'}
-					required
-				/>
-			</article>
+
 			<!--  -->
 			<!-- Part group !!! -->
 			<article class="flex justify-between items-center gap-2">
@@ -256,7 +230,7 @@
 		<!--  -->
 		<!-- Filter -->
 		<section>
-			<Filter allProcesses={processes} allProjects={projects} whereUse="part" />
+			<Filter whereUse="part" />
 		</section>
 	</section>
 

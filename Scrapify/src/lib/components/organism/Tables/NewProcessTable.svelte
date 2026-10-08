@@ -7,7 +7,7 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import { editProcessData } from '@/stores/stores';
 	import type { ProcessWithRelationsAll } from '@/utils/types';
-	import type { Part } from '../../../../../prisma/generated/client/client';
+	// import type { ProcessWi } from '@prisma/client';
 
 	let {
 		processes,
@@ -46,8 +46,8 @@
 				<Table.Row class="bg-chart-4/40 *:text-chart-1">
 					<Table.Head class="w-[100px]">ID</Table.Head>
 					<Table.Head class="w-[100px]">Name</Table.Head>
-					<Table.Head class="w-[100px]">Projects ID</Table.Head>
-					<Table.Head class="w-[100px]">Parts</Table.Head>
+					<Table.Head class="w-[100px]">Projects</Table.Head>
+					<!-- <Table.Head class="w-[100px]">Parts</Table.Head> -->
 					<Table.Head class="w-[100px]">Hall</Table.Head>
 					<Table.Head class="w-[100px]">Description</Table.Head>
 
@@ -60,12 +60,25 @@
 						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
 						<Table.Cell class="w-[100px]">{item.name}</Table.Cell>
 						<Table.Cell class="w-[100px]">
-							{#each item.project as project (project.project.id)}
-								{@render hoverCard(project.project.name, project.project.id)}
-							{/each}
+							<HoverCard.Root>
+								<HoverCard.Trigger>
+									{#each item.project as proj, index (proj.project.id)}
+										{#if index < 2}
+											{proj.project.name},
+										{:else}
+											...
+										{/if}
+									{/each}
+								</HoverCard.Trigger>
+								<HoverCard.Content>
+									{#each item.project as proj (proj.project.id)}
+										{proj.project.name},
+									{/each}
+								</HoverCard.Content>
+							</HoverCard.Root>
 						</Table.Cell>
 
-						<Table.Cell class="w-[100px]">{@render partsArr(item.parts)}</Table.Cell>
+						<!-- <Table.Cell class="w-[100px]">{@render partsArr(item.parts)}</Table.Cell> -->
 						<Table.Cell class="w-[100px]">{item.hallId}</Table.Cell>
 						<Table.Cell class="w-[100px]">{@render description(item.description!)}</Table.Cell>
 						<!-- ACTIONS BTNS -->
@@ -101,7 +114,7 @@
 	{/if}
 {/snippet}
 
-{#snippet partsArr(arr: Part[])}
+<!-- {#snippet partsArr(arr: Part[])}
 	{#if arr.length === 0}
 		<p class="text-muted">X</p>
 	{:else}
@@ -125,7 +138,7 @@
 			</HoverCard.Content>
 		</HoverCard.Root>
 	{/if}
-{/snippet}
+{/snippet} -->
 
 {#snippet hoverCard(hoverContent: string, triggerContent: number | string)}
 	<HoverCard.Root>

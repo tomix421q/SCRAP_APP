@@ -11,7 +11,6 @@
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import { currentConfirmDeleteId, editScrapData } from '@/stores/stores';
 	import { onMount } from 'svelte';
-	import type { FilterType } from '@/utils/types';
 	import Filter from '@/components/organism/Filter.svelte';
 
 	let { data, form }: PageProps = $props();
@@ -44,7 +43,11 @@
 			if ($editScrapData.processId) processId = $editScrapData.processId.toString();
 			scrapcodeNum = $editScrapData.code;
 			scrapcodeName = $editScrapData.name;
-			if ($editScrapData.description) scrapDescription = $editScrapData.description;
+			if ($editScrapData.description) {
+				scrapDescription = $editScrapData.description;
+			} else {
+				scrapDescription = '';
+			}
 		}
 
 		if ($currentConfirmDeleteId) {

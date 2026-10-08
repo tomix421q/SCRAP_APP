@@ -6,7 +6,7 @@
 	import { editScrapData } from '@/stores/stores';
 	import Button from '@/components/ui/button/button.svelte';
 	import { SquarePenIcon } from '@lucide/svelte';
-	import type { Process, ScrapCode } from '../../../../../prisma/generated/client/client';
+	import type { Process, ScrapCode } from '@prisma/client';
 
 	let {
 		scrapCodes,
@@ -91,7 +91,7 @@
 
 {#snippet description(desc: string)}
 	{#if desc.length === 0}
-		<p class="text-muted-foreground">X</p>
+		<p class="text-muted-foreground"></p>
 	{:else}
 		<HoverCard.Root>
 			<HoverCard.Trigger>{desc.length > 15 ? desc?.slice(0, 15) + '...' : desc}</HoverCard.Trigger>

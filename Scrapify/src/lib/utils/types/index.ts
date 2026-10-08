@@ -4,23 +4,33 @@ import type { Prisma } from '@prisma/client';
 export const ROLES = ['USER', 'ENGINEER', 'MODERATOR', 'ADMIN'] as const;
 export type Role = (typeof ROLES)[number];
 
-export type PartSide = 'FRONT-LEFT' | 'FRONT-RIGHT' | 'REAR-LEFT' | 'REAR-RIGHT';
+export type PartSide =
+	| 'FRONT-LEFT'
+	| 'FRONT-RIGHT'
+	| 'REAR-LEFT'
+	| 'REAR-RIGHT'
+	| 'REAR-LEFT_RIGHT'
+	| 'FRONT-LEFT_RIGHT';
 
 export const PART_SIDES: { id: PartSide; name: string }[] = [
 	{ id: 'FRONT-LEFT', name: 'Front Left' },
 	{ id: 'FRONT-RIGHT', name: 'Front Right' },
 	{ id: 'REAR-LEFT', name: 'Rear Left' },
-	{ id: 'REAR-RIGHT', name: 'Rear Right' }
+	{ id: 'REAR-RIGHT', name: 'Rear Right' },
+	{ id: 'FRONT-LEFT_RIGHT', name: 'Front Left Right' },
+	{ id: 'REAR-LEFT_RIGHT', name: 'Rear Left Right' }
 ];
 
 export interface FilterType {
 	partNumber: string;
 	partId: string;
 	scrapCode: string;
+	scrapName: string;
 	processName: string;
 	projectName: string;
 	dateFrom: string;
 	dateTo: string;
+	description: string;
 }
 
 export interface DataAndResultData<T> extends ResultInfoData {
@@ -50,13 +60,6 @@ export type LoggerEntityType =
 	| 'PartGroup'
 	| 'LabelGroup';
 
-export type PartWithRelation = Prisma.PartGetPayload<{
-	include: {
-		process: { include: { hall: true } };
-		project: true;
-	};
-}>;
-
 export type ProcessWithRelations = Prisma.ProcessGetPayload<{
 	include: {
 		hall: true;
@@ -65,7 +68,6 @@ export type ProcessWithRelations = Prisma.ProcessGetPayload<{
 export type ProcessWithRelationsAll = Prisma.ProcessGetPayload<{
 	include: {
 		project: { include: { project: true } };
-		parts: { include: { process: true } };
 		hall: true;
 	};
 }>;
@@ -87,7 +89,7 @@ export type LabelGroupsWithRelations = Prisma.LabelGroupGetPayload<{
 }>;
 
 export type ScrapRecordWithRelations = Prisma.ScrapRecordGetPayload<{
-	include: { part: { include: { process: true } }; scrapCode: true };
+	include: { part: true; scrapCode: true };
 }>;
 
 export interface createScrapNoteType {

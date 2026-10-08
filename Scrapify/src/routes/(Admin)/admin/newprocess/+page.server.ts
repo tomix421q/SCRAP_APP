@@ -16,7 +16,6 @@ export const load: PageServerLoad = async (event) => {
 				orderBy: { id: 'desc' },
 				include: {
 					project: { include: { project: true } },
-					parts: { include: { process: true } },
 					hall: true
 				}
 			}),

@@ -14,21 +14,23 @@
 	import type { FilterType } from '@/utils/types';
 	import Combobox from '../atoms/Combobox.svelte';
 	import { tick } from 'svelte';
-	import type { Process, Project } from '../../../../prisma/generated/client/client';
+	import type { Process, Project } from '@prisma/client';
 
 	let {
 		allProcesses,
 		allProjects,
 		whereUse
-	}: { allProcesses: Process[]; allProjects?: Project[]; whereUse?: 'scrapCode' | 'part' } =
+	}: { allProcesses?: Process[]; allProjects?: Project[]; whereUse?: 'scrapCode' | 'part' } =
 		$props();
 
-	const filterOptions: FilterType = $state({
+	let filterOptions: FilterType = $state({
 		partNumber: '',
 		partId: '',
 		scrapCode: '',
+		scrapName: '',
 		processName: '',
 		projectName: '',
+		description: '',
 		dateFrom: '',
 		dateTo: ''
 	});
@@ -40,8 +42,10 @@
 		if (filterOptions.partNumber) params.set('partNumber', filterOptions.partNumber);
 		if (filterOptions.partId) params.set('partId', filterOptions.partId);
 		if (filterOptions.scrapCode) params.set('scrapCode', filterOptions.scrapCode);
+		if (filterOptions.scrapName) params.set('scrapName', filterOptions.scrapName);
 		if (filterOptions.processName) params.set('processName', filterOptions.processName);
 		if (filterOptions.projectName) params.set('projectName', filterOptions.projectName);
+		if (filterOptions.description) params.set('description', filterOptions.description);
 		if (filterOptions.dateFrom) params.set('dateFrom', filterOptions.dateFrom);
 		if (filterOptions.dateTo) params.set('dateTo', filterOptions.dateTo);
 
@@ -84,7 +88,9 @@
 
 	async function clearFilter() {
 		filterOptions.scrapCode = '';
+		filterOptions.scrapName = '';
 		filterOptions.partId = '';
+		filterOptions.description = '';
 		filterOptions.processName = '';
 		filterOptions.projectName = '';
 		filterOptions.partNumber = '';
@@ -121,11 +127,12 @@
 				>
 					<Label class="text-sm w-[200px]">Part Number</Label>
 					<Input
-						class="inputNormalize"
+						class="inputNormalize max-w-[350px]"
 						placeholder="Search part number"
 						bind:value={filterOptions.partNumber}
 					/>
 				</article>
+				<!--  -->
 				<article
 					class="justify-between items-center gap-2 {whereUse === 'scrapCode'
 						? 'hidden'
@@ -133,32 +140,58 @@
 				>
 					<Label class="text-sm w-[200px]">Part Id</Label>
 					<Input
-						class="inputNormalize"
+						class="inputNormalize max-w-[350px]"
 						placeholder="Search part id"
 						bind:value={filterOptions.partId}
 					/>
 				</article>
+				<!-- Scrap filter [code] -->
 				<article
 					class="justify-between items-center gap-2 {whereUse === 'part' ? 'hidden' : 'lg:flex'}"
 				>
 					<Label class="text-sm w-[200px]">Scrap Code</Label>
 					<Input
-						class="inputNormalize"
+						class="inputNormalize max-w-[350px]"
 						placeholder="Search scrap code"
 						bind:value={filterOptions.scrapCode}
 					/>
 				</article>
-				<article class="lg:flex justify-between items-center gap-2">
-					<Label class="text-sm w-[100px]">Process</Label>
-					<div class="inputNormalize border-primary border-b">
-						<Combobox
-							dataBox={allProcesses}
-							bind:value={filterOptions.processName}
-							reset={resetProcessCombo}
-						/>
-					</div>
-				</article>
+				<!-- Scrap filter [name] -->
 				<article
+					class="justify-between items-center gap-2 {whereUse === 'part' ? 'hidden' : 'lg:flex'}"
+				>
+					<Label class="text-sm w-[200px]">Name</Label>
+					<Input
+						class="inputNormalize max-w-[350px]"
+						placeholder="Scrap name..."
+						bind:value={filterOptions.scrapName}
+					/>
+				</article>
+
+				<article class="lg:flex justify-between items-center gap-2">
+					<Label class="text-sm w-[100px]">Description</Label>
+
+					<Input
+						class="inputNormalize max-w-[350px]"
+						placeholder="Description info..."
+						bind:value={filterOptions.description}
+					/>
+				</article>
+				{#if allProcesses}
+					<article class="lg:flex justify-between items-center gap-2">
+						<Label for="filterProcess" class="text-sm w-[100px]">Process</Label>
+						<div class="inputNormalize border-primary border-b">
+							<Combobox
+								id="filterProcess"
+								dataBox={allProcesses}
+								bind:value={filterOptions.processName}
+								reset={resetProcessCombo}
+							/>
+						</div>
+					</article>
+				{/if}
+
+				<!-- <article
 					class="justify-between items-center gap-2 {whereUse === 'scrapCode'
 						? 'hidden'
 						: 'lg:flex'}"
@@ -171,8 +204,10 @@
 							reset={resetProjectCombo}
 						/>
 					</div>
-				</article>
+				</article> -->
 			</div>
+
+			<!--  -->
 			<div
 				class="space-y-6 md:space-y-3 {whereUse === 'scrapCode' || whereUse === 'part'
 					? 'hidden'

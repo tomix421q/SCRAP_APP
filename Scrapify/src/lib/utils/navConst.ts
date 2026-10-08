@@ -13,18 +13,18 @@ export const navUrls = [
 		shortname: 'Sc-Sc',
 		url: '/scandmclabel'
 	},
-	{
-		icon: NewspaperIcon,
-		title: 'Record scrap',
-		shortname: 'Cr-Sc',
-		url: '/createScrap'
-	},
-	{
-		icon: Search,
-		title: 'Search',
-		shortname: 'SRCH',
-		url: '/search'
-	}
+	// {
+	// 	icon: NewspaperIcon,
+	// 	title: 'Record scrap',
+	// 	shortname: 'Cr-Sc',
+	// 	url: '/createScrap'
+	// },
+	// {
+	// 	icon: Search,
+	// 	title: 'Search',
+	// 	shortname: 'SRCH',
+	// 	url: '/search'
+	// }
 
 	// {
 	// 	icon: Flag,

@@ -17,6 +17,12 @@ export const partGroupSchema = z.object({
 	processId: z.coerce.number().int().positive('Please select process'),
 	projectId: z.coerce.number().int().positive('Please select project'),
 	groupName: z.string().trim().min(3).max(64),
+	isRebuild: z.preprocess((val) => {
+		if (typeof val === 'string') {
+			return val.toLocaleLowerCase() === 'true' || val === 'on' || val === '1';
+		}
+		return Boolean(val);
+	}, z.boolean()),
 	partIds: z
 		.string()
 		.transform((val, ctx) => {
@@ -63,6 +69,29 @@ export type LabelGroupInput = z.infer<typeof labelGroupsSchema>;
 
 export const saveScrapSchema = z.object({
 	dmc: z.string().min(1, 'DMC kód je povinný'),
+	isRebuild: z.preprocess((val) => {
+		if (typeof val === 'string') {
+			return val.toLocaleLowerCase() === 'true' || val === 'on' || val === '1';
+		}
+		return Boolean(val);
+	}, z.boolean()),
+	otherVariant: z
+		.string()
+		.optional()
+		.transform((str, ctx) => {
+			if (str) {
+				try {
+					const parsed = JSON.parse(str);
+					if (typeof parsed !== 'object' || parsed === null) {
+						throw new Error();
+					}
+					return parsed as Record<string, string>;
+				} catch {
+					ctx.addIssue({ code: 'custom', message: 'Neplatny format part ids' });
+				}
+				return z.NEVER;
+			}
+		}),
 	scrapCodes: z
 		.string()
 		.min(1, 'Chýbajú scrap kódy')

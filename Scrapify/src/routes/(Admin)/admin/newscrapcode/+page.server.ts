@@ -3,24 +3,34 @@ import type { PageServerLoad } from './$types';
 import prismaClient from '@/server/prisma';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import { writeToLogger } from '@/utils/serverHelp';
-import type { Prisma } from '../../../../../prisma/generated/client/client';
+import type { Prisma } from '@prisma/client';
 
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
 	const limit = 50;
 	const skip = (page - 1) * limit;
+	const description = event.url.searchParams.get('description') as string;
+	const scrapName = event.url.searchParams.get('scrapName') as string;
 
 	const filters = {
 		scrapCode: event.url.searchParams.get('scrapCode')?.trim(),
-		processName: Number(event.url.searchParams.get('processName'))
+		processName: Number(event.url.searchParams.get('processName')),
+		description: description,
+		scrapName: scrapName
 	};
 
 	const where: Prisma.ScrapCodeWhereInput = {};
 	if (filters.scrapCode) {
-		where.code = { equals: filters.scrapCode };
+		where.code = { contains: filters.scrapCode };
 	}
 	if (filters.processName) {
 		where.processId = { equals: filters.processName };
+	}
+	if (filters.description) {
+		where.description = { contains: filters.description };
+	}
+	if (filters.scrapName) {
+		where.name = { contains: filters.scrapName };
 	}
 
 	try {

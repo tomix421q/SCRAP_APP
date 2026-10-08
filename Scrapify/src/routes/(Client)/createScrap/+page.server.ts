@@ -19,13 +19,13 @@ export const load: PageServerLoad = async (event) => {
 			}
 		});
 		const allParts = await prismaClient.part.findMany({
-			where: { processId: processId }
+			// where: { processId: processId }
 		});
 		const scrapCodes = await prismaClient.scrapCode.findMany({
 			where: { processId: processId }
 		});
 		const scrapRecords = await prismaClient.scrapRecord.findMany({
-			include: { part: { include: { process: true } }, scrapCode: true },
+			include: { part: true, scrapCode: true },
 			orderBy: { createdAt: 'desc' },
 			take: 20,
 			where: { part: { processId: processId } }

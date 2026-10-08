@@ -13,6 +13,7 @@
 	import { Plus, X } from '@lucide/svelte';
 	import NewGroupTable from '@/components/organism/Tables/NewGroupTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
+	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
 
 	let { data, form }: PageProps = $props();
 	let { groups, groupsCount, processes, projects, parts, scrapCodes, totalPages } = $derived(
@@ -26,6 +27,7 @@
 	let resetProcessCombo = $state(false);
 	let resetGroupCombo = $state(false);
 	let resetScrapCodesCombo = $state(false);
+	let isRebuild = $state(false);
 
 	let comboboxParts = $state<Record<string, string>>(
 		Object.fromEntries(Array.from({ length: 100 }, (_, i) => [`slot${i + 1}`, '']))
@@ -135,7 +137,7 @@
 		showSlotScrap = { slot1: true };
 	});
 
-	// $inspect(groups);
+	// $inspect(isRebuild);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -150,6 +152,7 @@
 				formData.set('projectId', filterOptions.projectId);
 				formData.set('partIds', JSON.stringify(selectedPartIds));
 				formData.set('scrapCodesIds', JSON.stringify(selectedScrapCodesIds));
+				formData.set('isRebuild', JSON.stringify(isRebuild));
 				isSubmitting = true;
 				return async ({ update, result }) => {
 					if (result?.type === 'success') {
@@ -163,6 +166,7 @@
 						showSlotScrap = { slot1: true };
 						resetGroupCombo = true;
 						resetScrapCodesCombo = true;
+						isRebuild = false;
 					}
 
 					await update();
@@ -330,6 +334,25 @@
 					required
 					autocomplete={'off'}
 				/>
+			</article>
+
+			<!-- Is rebuild??? -->
+			<article class="flex flex-col justify-between w-full lg:items-center gap-4 lg:flex-row">
+				<Label for="isrebuild" class="text-sm md:text-lg">Contain rebuild</Label>
+				<div class="w-[350px]">
+					<Checkbox
+						id="isrebuild"
+						class="size-5! ring-2 ring-primary **:size-5"
+						checked={isRebuild}
+						onCheckedChange={(val: any) => {
+							if (val) {
+								isRebuild = true;
+							} else {
+								isRebuild = false;
+							}
+						}}
+					/>
+				</div>
 			</article>
 
 			<Button type="submit" class="mt-10" disabled={isSubmitting}>

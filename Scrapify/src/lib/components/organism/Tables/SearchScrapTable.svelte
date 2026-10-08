@@ -118,7 +118,7 @@
 						<Table.Head colspan={1} class="w-[50px]">Part ID</Table.Head>
 						<Table.Head class="w-[100px]">Part Number</Table.Head>
 						<Table.Head class="w-[100px]">Part Side</Table.Head>
-						<Table.Head class="w-[100px]">Processs Name</Table.Head>
+
 						<Table.Head class="w-[50px]">Quantity</Table.Head>
 						<Table.Head class="w-[100px]">Scrap description</Table.Head>
 						<Table.Head class="w-[100px]">Created by</Table.Head>
@@ -135,7 +135,7 @@
 							<Table.Cell class="w-[50px]">{item.part.id}</Table.Cell>
 							<Table.Cell class="w-[100px] text-primary">{item.part.partNumber}</Table.Cell>
 							<Table.Cell class="w-[100px]">{item.part.side ? item.part.side : 'X'}</Table.Cell>
-							<Table.Cell class="w-[100px]">{item.part.process.name}</Table.Cell>
+
 							<Table.Cell class="w-[50px]">{item.quantity}</Table.Cell>
 							<Table.Cell class="w-[100px]">{@render description(item.description!)}</Table.Cell>
 							<Table.Cell class="w-[100px]">{item.createdBy}</Table.Cell>

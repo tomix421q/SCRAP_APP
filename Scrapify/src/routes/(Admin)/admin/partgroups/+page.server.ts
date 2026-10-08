@@ -16,8 +16,8 @@ export const load = (async (event) => {
 	};
 	// console.log(filters);
 	const wherePart: Prisma.PartWhereInput = {};
-	if (filters.processId) wherePart.processId = { equals: Number(filters.processId) };
-	if (filters.projectId) wherePart.projectId = { equals: Number(filters.projectId) };
+	// if (filters.processId) wherePart.processId = { equals: Number(filters.processId) };
+	// if (filters.projectId) wherePart.projectId = { equals: Number(filters.projectId) };
 
 	const whereGroup: Prisma.PartGroupWhereInput = {};
 
@@ -66,6 +66,7 @@ export const actions = {
 		// console.log(event.request.formData());
 		const data = Object.fromEntries(await event.request.formData());
 		const result = partGroupSchema.safeParse(data);
+		console.log(result);
 		if (!result.success) {
 			return fail(400, {
 				success: false,
@@ -74,7 +75,7 @@ export const actions = {
 				values: data
 			});
 		}
-		const { processId, projectId, groupName, partIds, scrapCodesIds } = result.data;
+		const { processId, projectId, groupName, partIds, scrapCodesIds, isRebuild } = result.data;
 		try {
 			const newGroup = await prismaClient.partGroup.create({
 				data: {
@@ -84,6 +85,7 @@ export const actions = {
 					parts: {
 						connect: partIds.map((id) => ({ id }))
 					},
+					isRebuild: isRebuild,
 					scrapCodes: {
 						connect: scrapCodesIds.map((id) => ({ id }))
 					}

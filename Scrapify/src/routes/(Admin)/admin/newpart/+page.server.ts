@@ -6,8 +6,7 @@ import { writeToLogger } from '@/utils/serverHelp';
 import type { Prisma } from '@prisma/client';
 
 export const load: PageServerLoad = async (event) => {
-	const processId = Number(event.url.searchParams.get('processId'));
-	const projectId = Number(event.url.searchParams.get('projectId'));
+	const description = event.url.searchParams.get('description') as string;
 	const page = Number(event.url.searchParams.get('page') ?? '1');
 	const limit = 100;
 	const skip = (page - 1) * limit;
@@ -15,8 +14,9 @@ export const load: PageServerLoad = async (event) => {
 	const filters = {
 		partNumber: event.url.searchParams.get('partNumber')?.trim(),
 		partId: Number(event.url.searchParams.get('partId')),
-		processName: Number(event.url.searchParams.get('processName')),
-		projectName: Number(event.url.searchParams.get('projectName'))
+		// processName: Number(event.url.searchParams.get('processName')),
+		// projectName: Number(event.url.searchParams.get('projectName')),
+		description: description
 	};
 
 	const where: Prisma.PartWhereInput = {};
@@ -26,37 +26,23 @@ export const load: PageServerLoad = async (event) => {
 	if (filters.partId) {
 		where.id = filters.partId;
 	}
-	if (filters.processName) {
-		where.processId = { equals: filters.processName };
+	if (filters.description) {
+		where.description = { contains: filters.description };
 	}
-	if (filters.projectName) {
-		where.project = { id: { equals: filters.projectName } };
-	}
+	// if (processId && !Number.isNaN(processId)) wherePartGroup.processId = processId;
+	// if (projectId && !Number.isNaN(projectId)) wherePartGroup.projectId = projectId;
 	const wherePartGroup: Prisma.PartGroupWhereInput = {};
-	if (processId && !Number.isNaN(processId)) wherePartGroup.processId = processId;
-	if (projectId && !Number.isNaN(projectId)) wherePartGroup.projectId = projectId;
 
 	try {
-		const [
-			allParts,
-			allProcesses,
-			allProjectsForProcess,
-			allProjects,
-			allHalls,
-			availablePartGroups
-		] = await Promise.all([
+		const [allParts, allProcesses, allProjects, allHalls, availablePartGroups] = await Promise.all([
 			prismaClient.part.findMany({
 				where,
 				skip,
 				take: limit,
-				orderBy: { id: 'desc' },
-				include: { process: { include: { hall: true } }, project: true }
+				orderBy: { id: 'desc' }
 			}),
 			prismaClient.process.findMany(),
-			prismaClient.project.findMany({
-				include: { processes: true },
-				where: { processes: { some: { processId: processId } } }
-			}),
+
 			prismaClient.project.findMany(),
 			prismaClient.hall.findMany(),
 			prismaClient.partGroup.findMany({ where: wherePartGroup })
@@ -66,7 +52,6 @@ export const load: PageServerLoad = async (event) => {
 		const data = {
 			parts: allParts,
 			processes: allProcesses,
-			projectsForProcess: allProjectsForProcess,
 			projects: allProjects,
 			halls: allHalls,
 			totalPages,
@@ -83,26 +68,18 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions = {
-	createPart: async (event) => {
+	createPart: async (event: any) => {
 		const formData = await event.request.formData();
-		const processId = formData.get('processId') as string;
 		const partProdNumberId = formData.get('partNumber') as string;
 		const partSide = formData.get('partSide') as string;
-		const projectId = formData.get('projectId') as string;
-		const groupId = Number(formData.get('groupId'));
+		const description = String(formData.get('description') || '').trim();
+		const groupId = Number(formData.get('groupId')) || null;
 
-		if (!processId) {
+		if (description.length > 64) {
 			return fail(400, {
 				success: false,
 				error: true,
-				message: 'Process is required.Please select process.'
-			});
-		}
-		if (!projectId) {
-			return fail(400, {
-				success: false,
-				error: true,
-				message: 'Project is required.Please select project.'
+				message: 'Max character length for description is 64'
 			});
 		}
 		if (partProdNumberId.length > 100) {
@@ -113,61 +90,28 @@ export const actions = {
 			});
 		}
 		try {
-			const [findProcess, findSpecificProject] = await Promise.all([
-				prismaClient.process.findFirst({
-					where: { id: parseInt(processId, 10) },
-					include: {
-						project: { select: { project: { select: { id: true, name: true } } } }
-					}
-				}),
-				prismaClient.project.findFirst({
-					where: { id: Number(projectId) }
-				})
-			]);
-
-			if (!findProcess || !findSpecificProject) {
-				return fail(404, {
-					success: false,
-					error: true,
-					message: `Process with ID ${processId} not found or project with ID ${projectId} not found.`
-				});
-			} else {
-				const createPart = await prismaClient.part.create({
-					data: {
-						processId: findProcess.id,
-						projectId: findSpecificProject.id,
-						partNumber: partProdNumberId,
-						side: partSide,
-						...(groupId
-							? {
-									groups: {
-										connect: { id: groupId }
-									}
+			const createPart = await prismaClient.part.create({
+				data: {
+					description: description || null,
+					partNumber: partProdNumberId,
+					side: partSide,
+					...(groupId
+						? {
+								groups: {
+									connect: { id: groupId }
 								}
-							: {})
-					}
-				});
-				// if (groupId) {
-				// 	const isExist = await prismaClient.partGroup.findFirst({ where: { id: groupId } });
-				// 	if (isExist) {
-				// 		await prismaClient.partGroup.update({
-				// 			where: { id: groupId },
-				// 			data: {
-				// 				parts: {
-				// 					connect: { partNumber: partProdNumberId }
-				// 				}
-				// 			}
-				// 		});
-				// 	}
-				// }
-				writeToLogger({
-					request: event.request,
-					action: 'CREATE',
-					entityType: 'Part',
-					entityId: createPart.id
-				});
-				return { success: true, message: 'Part created successfully.' };
-			}
+							}
+						: {})
+				}
+			});
+
+			writeToLogger({
+				request: event.request,
+				action: 'CREATE',
+				entityType: 'Part',
+				entityId: createPart.id
+			});
+			return { success: true, message: 'Part created successfully.' };
 		} catch (error: any) {
 			return fail(500, {
 				success: false,

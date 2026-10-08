@@ -82,7 +82,6 @@ id Int @id @default(autoincrement())
 name String @unique
 description String?
 processes ProjectsOnProcess[]
-parts Part[]
 partGroups PartGroup[]
 labelGroups LabelGroup[]
 }
@@ -103,20 +102,17 @@ description String?
 hallId Int
 hall Hall @relation(fields: [hallId], references: [id],onDelete: Cascade)
 project ProjectsOnProcess[]
-parts Part[]
 partGroups PartGroup[]
 labelGroups LabelGroup[]
 }
 
 model Part {
 id Int @id @default(autoincrement())
-processId Int
-projectId Int
 partNumber String @unique
 side String
-project Project @relation(fields: [projectId],references: [id],onDelete: Cascade)
-process Process @relation(fields: [processId], references: [id],onDelete: Cascade)
-scrapRecords ScrapRecord[]
+description String?
+scrapRecords ScrapRecord[] @relation("ScrappedPart")
+replacementRecords ScrapRecord[] @relation("ReplacementPart")
 scrapSummary ScrapSummary[]
 groups     PartGroup[]
 }
@@ -128,11 +124,14 @@ model PartGroup {
   projectId Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  isRebuild Boolean @default(false)
   parts     Part[]
   scrapCodes ScrapCode[]
+  scrapRecords ScrapRecord[]
   labelGroups LabelGroup[]  
   process   Process  @relation(fields: [processId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   project   Project  @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
   @@unique([name, projectId, processId])
   @@index([processId])
   @@index([projectId])
@@ -167,19 +166,29 @@ groups PartGroup[]
 
 
 model ScrapRecord {
-id Int @id @default(autoincrement())
-partId Int
-scrapCodeId Int
-description String?
-quantity Float
-createdBy String
-createdAt DateTime @default(now())
-part Part @relation(fields: [partId], references: [id],onDelete: Cascade)
-scrapCode ScrapCode @relation(fields: [scrapCodeId], references: [id],onDelete: Cascade)
+  id                Int          @id @default(autoincrement())
+  dmc               String       @db.NVarChar(128) 
+  partGroupId       Int                            
+  partId            Int                            
+  scrapCodeId       Int                            
+  isRebuild         Boolean      @default(false) 
+  replacementPartId Int?                           
+  quantity          Float        @default(1)
+  description       String?
+  createdBy         String                         
+  createdAt         DateTime     @default(now())
+  QADExported       Boolean?     @default(false)
 
-@@index([createdAt])
-@@index([scrapCodeId])
-@@index([partId])
+  part            Part       @relation("ScrappedPart", fields: [partId], references: [id], onDelete: Cascade)
+  replacementPart Part?      @relation("ReplacementPart", fields: [replacementPartId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  partGroup       PartGroup  @relation(fields: [partGroupId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  scrapCode       ScrapCode  @relation(fields: [scrapCodeId], references: [id], onDelete: Cascade)
+
+  @@index([dmc])
+  @@index([createdAt])
+  @@index([partGroupId])
+  @@index([scrapCodeId])
+  @@index([partId])
 }
 
 model ScrapSummary {

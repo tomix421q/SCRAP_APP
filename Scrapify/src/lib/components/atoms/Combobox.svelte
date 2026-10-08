@@ -7,87 +7,89 @@
 	import { tick } from 'svelte';
 	import { isEditing } from '@/stores/stores';
 
-	// global store is $isEditing - state for editing something
-
 	type NameLabel = 'name' | 'codeName' | 'partnumSideColor' | 'nameAndHall';
 
 	let {
-		dataBox,
+		dataBox = [],
 		value = $bindable(),
-		reset = $bindable(),
+		reset = $bindable(false),
 		id = '',
-		nameLabel = 'name'
+		nameLabel = 'name',
+		width = 'sm',
+		firstText = 'Select item',
+		onchange
 	}: {
 		dataBox: any[];
-		value: string;
-		reset: boolean;
+		value?: string;
+		reset?: boolean;
 		id?: string;
 		nameLabel?: NameLabel;
+		width?: 'sm' | 'lg';
+		firstText?: string;
+		onchange?: (val: string) => void;
 	} = $props();
+
 	let open = $state(false);
-	let InternalValue = $derived(String(value));
 	let editMode = $state(false);
 	let triggerRef = $state<HTMLButtonElement>(null!);
 
-	// console.log(dataBox);
-	// const selectedLabel = $derived(dataBox?.find((f: any) => f.id === InternalValue)?.name);
+	// LABEL TEXT
 	const selectedLabel = $derived.by<string | undefined>(() => {
-		const foundItem = dataBox?.find((f: { id: number }) => f.id.toString() === InternalValue);
-		if (!foundItem) {
-			return undefined;
-		}
-		// extra info for page createScrap (Process filter)
+		if (!value) return undefined;
+		const foundItem = dataBox?.find(
+			(f: { id: number | string }) => f.id.toString() === value!.toString()
+		);
+		if (!foundItem) return undefined;
+
 		if (foundItem.name && foundItem.project?.hall) {
-			let name = foundItem.name + ' - ' + foundItem.hall.name;
-			return name;
+			return `${foundItem.name} - ${foundItem.hall.name}`;
 		}
 		if (foundItem.name && foundItem.code) {
-			let name = foundItem.code + ' - ' + foundItem.name;
-			return name;
+			return `${foundItem.code} - ${foundItem.name}`;
 		}
 		if (foundItem.partNumber) {
-			let name = foundItem.partNumber + ' - ' + foundItem.side;
-			return name;
+			return `${foundItem.partNumber} - ${foundItem.side}`;
 		}
 		if (foundItem.name) {
-			let name = foundItem.name;
-			return name;
+			return foundItem.name;
 		}
 		return undefined;
 	});
-	let changeCss = $derived<boolean>(selectedLabel && selectedLabel?.length > 25 ? true : false);
+
+	let changeCss = $derived<boolean>(!!selectedLabel && selectedLabel.length > 35);
 
 	function closeAndFocusTrigger() {
 		open = false;
 		tick().then(() => {
-			if (triggerRef) {
-				triggerRef.focus();
-			}
+			triggerRef?.focus();
 		});
 	}
 
+	// SEARCH
+	function getItemSearchText(item: any): string {
+		if (item.code && item.name) return `${item.code} ${item.name}`;
+		if (item.partNumber) return `${item.partNumber} ${item.side ?? ''}`;
+		return String(item.name ?? item.id);
+	}
+
+	// RESET
 	$effect(() => {
-		if (InternalValue && !reset) {
-			value = InternalValue;
-		}
 		if (reset) {
-			InternalValue = '';
 			value = '';
+			onchange?.('');
 			reset = false;
 		}
-		if ($isEditing && editMode === false) {
+
+		if ($isEditing && !editMode) {
 			editMode = true;
-			InternalValue = '';
+			value = '';
+			onchange?.('');
 		}
-		if ($isEditing === false) editMode = false;
-	});
 
-	// testing [create process]
-	$effect(() => {
-		InternalValue = value;
+		if (!$isEditing) {
+			editMode = false;
+		}
 	});
-
-	// $inspect(InternalValue);
 </script>
 
 <div class="max-sm:w-full">
@@ -100,34 +102,39 @@
 					variant="secondary"
 					role="combobox"
 					aria-expanded={open}
-					class="w-full lg:w-[370px] text-md justify-between whitespace-break-spaces {changeCss &&
-						'lg:h-[50px]'}"
+					class="max-sm:w-full  text-md justify-between whitespace-break-spaces {changeCss &&
+						'lg:text-sm'} {width === 'sm' ? 'w-[370px]' : 'w-[430px]'}"
 				>
-					{selectedLabel || 'Select item'}
+					{selectedLabel || firstText}
 					<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" />
 				</Button>
 			{/snippet}
 		</Popover.Trigger>
-		<Popover.Content class="w-full lg:w-[370px] p-0 border-primary">
+
+		<Popover.Content
+			class="max-sm:w-full {width === 'sm' ? 'w-[370px]' : 'w-[430px]'} p-0 border-primary"
+		>
 			<Command.Root>
 				<Command.Input placeholder="Search ..." class="h-4! inputNormalize" />
 
 				<Command.List class="mt-2">
 					<Command.Empty>Empty</Command.Empty>
 					<Command.Group>
-						{#each dataBox as item}
+						{#each dataBox as item (item.id)}
 							<Command.Item
 								class="hover:bg-primary/20!"
-								value={selectedLabel}
+								value={getItemSearchText(item)}
 								onSelect={() => {
-									InternalValue = item.id.toString();
+									const selectedId = item.id.toString();
+									value = selectedId;
+									onchange?.(selectedId);
 									closeAndFocusTrigger();
 								}}
 							>
 								<CheckIcon
 									class={cn(
 										'mr-2 size-4',
-										InternalValue == item.id ? 'text-chart-success' : 'text-transparent'
+										value === item.id.toString() ? 'text-chart-success' : 'text-transparent'
 									)}
 								/>
 								<div class="cursor-pointer min-w-full">

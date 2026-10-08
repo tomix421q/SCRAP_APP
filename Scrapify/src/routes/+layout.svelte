@@ -84,7 +84,7 @@
 					><span class="text-chart-1">S</span>crapify</span
 				>
 				<div class="flex flex-col gap-0.5 text-muted-foreground">
-					<span class="mb-auto leading-3 mx-2 text-xs">Version 3.3</span>
+					<span class="mb-auto leading-3 mx-2 text-xs">Version 3.8</span>
 					<span class="mb-auto leading-3 mx-2 text-xs">{user?.role}</span>
 					<span class="mb-auto leading-3 mx-2 text-xs">{userIdCardFromLc}</span>
 				</div>
