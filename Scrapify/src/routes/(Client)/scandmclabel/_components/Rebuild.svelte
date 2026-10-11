@@ -44,107 +44,35 @@
 		<!--  -->
 		<!-- IS REBUILD? ... -->
 
-		{#if group.isRebuild}
-			<article class="flex justify-between items-center flex-col sm:flex-row border-b-2 pb-3">
-				<p class="text-xl font-semibold relative">
-					{group.name}
-					<span class="text-xs absolute text-chart-3 w-max ml-1 -top-0 bg-black px-3 rounded-lg"
-						>Big</span
-					>
-				</p>
-
-				<!-- {@const availableScrapCodes = scrapCodes.filter((c) => c.name.includes(group.name))} -->
-				<div class="flex gap-2 justify-between items-center">
-					<Button
-						title="Remove item"
-						size="icon"
-						variant="ghost"
-						class={scrapCodesRecord[group.name]?.length > 0
-							? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
-							: 'hidden'}
-						onclick={() => {
-							scrapCodesRecord[group.name] = '';
-							otherVariantPN = {};
-							checkBoxes = {};
-							scrapCodesRecord = {};
-						}}><X /></Button
-					>
-					{#if !checkBoxes[group.name]}
-						<div class="flex flex-col gap-1">
-							<Combobox
-								dataBox={group.scrapCodes}
-								nameLabel="codeName"
-								id="dmcScrapCode"
-								width="lg"
-								firstText="Vyber dovod scrapu"
-								bind:value={scrapCodesRecord[group.name]}
-								onchange={(selectedId) => selectScrapForGroup(group.name, selectedId)}
-							/>
-							{#if otherVariantPN[group.name]}
-								<Combobox
-									dataBox={group.parts}
-									nameLabel="partnumSideColor"
-									id="partNumber"
-									width="lg"
-									firstText="Vyber cislo partu"
-									bind:value={otherVariantPN[group.name]}
-								/>
-							{/if}
-						</div>
+		<article class="flex justify-between items-center flex-col sm:flex-row border-b-2 pb-3">
+			<p class="text-xl font-semibold relative">
+				{group.name}
+				<span class="text-xs absolute w-max ml-1 -top-0 bg-black px-3 py-0.5 rounded-lg">
+					{#if group.isRebuild}
+						<span class="text-chart-1">Rebuild</span>
 					{:else}
-						<article
-							class="h-9 my-auto w-[430px] justify-between flex items-center border-chart-1 border-2 px-2 bg-secondary rounded-lg"
-						>
-							<p>Iny komponent</p>
-							<Lock class="stroke-primary stroke-3 size-5" />
-						</article>
+						<span class="text-chart-3">Small</span>
 					{/if}
+				</span>
+			</p>
 
-					<div class="flex items-center gap-2 ">
-						<Label for={`other-${group.name}`} class="w-[80px] text-center">Iny komponent</Label>
-						<Checkbox
-							id={`other-${group.name}`}
-							class="size-5! ring-2 ring-primary **:size-5"
-							checked={checkBoxes[group.name] === true}
-							onCheckedChange={(val: any) => {
-								if (val) {
-									scrapCodesRecord[group.name] = '';
-									checkBoxes[group.name] = true;
-									console.log('bum');
-								} else {
-									checkBoxes[group.name] = false;
-								}
-							}}
-						/>
-					</div>
-				</div>
-			</article>
-		{/if}
-
-		<!--  -->
-		<!-- IS ANY SELECTION? AND NO REBUILD FLAG ... -->
-		{#if hasAnySelection && !group.isRebuild}
-			<article class="flex justify-between items-center flex-col sm:flex-row">
-				<p class="text-xl font-semibold relative">
-					{group.name}
-					<span class="text-xs absolute text-chart-2 w-max ml-1 -top-0 bg-black px-3 rounded-lg"
-						>Small</span
-					>
-				</p>
-
-				<!-- {@const availableScrapCodes = scrapCodes.filter((c) => c.name.includes(group.name))} -->
-				<div class="flex gap-2 justify-between items-center">
-					<Button
-						title="Remove item"
-						size="icon"
-						variant="ghost"
-						class={scrapCodesRecord[group.name]?.length > 0
-							? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
-							: 'hidden'}
-						onclick={() => {
-							scrapCodesRecord[group.name] = '';
-						}}><X /></Button
-					>
+			<!-- {@const availableScrapCodes = scrapCodes.filter((c) => c.name.includes(group.name))} -->
+			<div class="flex gap-2 justify-between items-center">
+				<Button
+					title="Remove item"
+					size="icon"
+					variant="ghost"
+					class={scrapCodesRecord[group.name]?.length > 0
+						? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
+						: 'hidden'}
+					onclick={() => {
+						scrapCodesRecord[group.name] = '';
+						otherVariantPN = {};
+						checkBoxes = {};
+						// scrapCodesRecord = {};
+					}}><X /></Button
+				>
+				{#if !checkBoxes[group.name]}
 					<div class="flex flex-col gap-1">
 						<Combobox
 							dataBox={group.scrapCodes}
@@ -154,7 +82,6 @@
 							firstText="Vyber dovod scrapu"
 							bind:value={scrapCodesRecord[group.name]}
 							onchange={(selectedId) => selectScrapForGroup(group.name, selectedId)}
-							reset
 						/>
 						{#if otherVariantPN[group.name]}
 							<Combobox
@@ -162,31 +89,38 @@
 								nameLabel="partnumSideColor"
 								id="partNumber"
 								width="lg"
-								firstText="Vyber part"
+								firstText="Vyber cislo partu"
 								bind:value={otherVariantPN[group.name]}
 							/>
 						{/if}
 					</div>
+				{:else}
+					<article
+						class="h-9 my-auto w-[430px] justify-between flex items-center border-chart-1 border-2 px-2 bg-secondary rounded-lg"
+					>
+						<p>Iny komponent</p>
+						<Lock class="stroke-primary stroke-3 size-5" />
+					</article>
+				{/if}
 
-					<div class="flex items-center gap-2 w-[105px]">
-						<!-- <Label for={`other-${group.name}`} class="w-[80px] text-center">Iny komponent</Label>
-						<Checkbox
-							id={`other-${group.name}`}
-							class="size-5! ring-2 ring-primary **:size-5"
-							checked={checkBoxes[group.name] === true}
-							onCheckedChange={(val: any) => {
-								if (val) {
-									scrapCodesRecord[group.name] = '';
-									checkBoxes[group.name] = true;
-									console.log('bum');
-								} else {
-									checkBoxes[group.name] = false;
-								}
-							}}
-						/> -->
-					</div>
+				<div class="flex items-center gap-2">
+					<Label for={`other-${group.name}`} class="w-[80px] text-center">Iny komponent</Label>
+					<Checkbox
+						id={`other-${group.name}`}
+						class="size-5! ring-2 ring-primary **:size-5"
+						checked={checkBoxes[group.name] === true}
+						onCheckedChange={(val: any) => {
+							if (val) {
+								scrapCodesRecord[group.name] = '';
+								checkBoxes[group.name] = true;
+								console.log('bum');
+							} else {
+								checkBoxes[group.name] = false;
+							}
+						}}
+					/>
 				</div>
-			</article>
-		{/if}
+			</div>
+		</article>
 	{/each}
 {/if}

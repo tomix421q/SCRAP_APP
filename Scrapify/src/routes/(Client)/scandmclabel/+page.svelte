@@ -9,10 +9,13 @@
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import { slide } from 'svelte/transition';
 	import Rebuild from './_components/Rebuild.svelte';
+	import { ScrapManager } from './_components/ScrapManager.svelte';
 
 	let { form }: PageProps = $props();
 
 	// vars
+	const scrapManager = new ScrapManager();
+
 	let isSubmitting = $state(false);
 	let barcodeValue = $state('SK54333j444');
 	let isScanning = $state(false);
@@ -28,51 +31,51 @@
 	let scrapCodesRecord = $state<Record<string, string>>({});
 
 	// DB prepare
-	let scrapCodesRecordCode = $derived.by(() => {
-		const result: Record<string, string> = {};
-		for (const [groupName, selectedId] of Object.entries(scrapCodesRecord)) {
-			if (!selectedId) continue;
-			const group = scanData?.groups.find((g) => g.name === groupName);
-			const scrap = group?.scrapCodes.find((s) => s.id.toString() === selectedId.toString());
-			if (scrap) {
-				result[groupName] = scrap.code;
-			}
-		}
-		return result;
-	});
-	let partIdsRecordToPartNumber = $derived.by(() => {
-		const result: Record<string, string> = {};
-		for (const [groupName, selectedId] of Object.entries(otherVariantPN)) {
-			if (!selectedId) continue;
-			const _gName = scanData?.groups.find((g) => g.name === groupName);
-			const _partNum = _gName?.parts.find((p) => p.id === Number(selectedId));
-			if (_partNum && _gName) {
-				result[_gName?.name] = _partNum.partNumber;
-			}
-		}
-		return result;
-	});
-	//
+	// let scrapCodesRecordCode = $derived.by(() => {
+	// 	const result: Record<string, string> = {};
+	// 	for (const [groupName, selectedId] of Object.entries(scrapCodesRecord)) {
+	// 		if (!selectedId) continue;
+	// 		const group = scanData?.groups.find((g) => g.name === groupName);
+	// 		const scrap = group?.scrapCodes.find((s) => s.id.toString() === selectedId.toString());
+	// 		if (scrap) {
+	// 			result[groupName] = scrap.code;
+	// 		}
+	// 	}
+	// 	return result;
+	// });
+	// let partIdsRecordToPartNumber = $derived.by(() => {
+	// 	const result: Record<string, string> = {};
+	// 	for (const [groupName, selectedId] of Object.entries(otherVariantPN)) {
+	// 		if (!selectedId) continue;
+	// 		const _gName = scanData?.groups.find((g) => g.name === groupName);
+	// 		const _partNum = _gName?.parts.find((p) => p.id === Number(selectedId));
+	// 		if (_partNum && _gName) {
+	// 			result[_gName?.name] = _partNum.partNumber;
+	// 		}
+	// 	}
+	// 	return result;
+	// });
+	// //
 
-	let hasAnySelection = $derived(Object.values(scrapCodesRecord).some((val) => val !== ''));
+	// let hasAnySelection = $derived(Object.values(scrapCodesRecord).some((val) => val !== ''));
 
-	let isMissingOtherVariantPN = $derived.by(() => {
-		for (const [groupName, selectedId] of Object.entries(scrapCodesRecord)) {
-			if (!selectedId) continue;
-			const group = scanData?.groups.find((g) => g.name === groupName);
-			const scrap = group?.scrapCodes.find((s) => s.id.toString() === selectedId.toString());
-			const scrapName = scrap?.name?.toLowerCase() ?? '';
+	// let isMissingOtherVariantPN = $derived.by(() => {
+	// 	for (const [groupName, selectedId] of Object.entries(scrapCodesRecord)) {
+	// 		if (!selectedId) continue;
+	// 		const group = scanData?.groups.find((g) => g.name === groupName);
+	// 		const scrap = group?.scrapCodes.find((s) => s.id.toString() === selectedId.toString());
+	// 		const scrapName = scrap?.name?.toLowerCase() ?? '';
 
-			if (scrapName.includes('iny variant') || scrapName.includes('iný variant')) {
-				const chosenPN = otherVariantPN[groupName];
-				if (!chosenPN || chosenPN === 'empty') {
-					return true;
-				}
-			}
-		}
+	// 		if (scrapName.includes('iny variant') || scrapName.includes('iný variant')) {
+	// 			const chosenPN = otherVariantPN[groupName];
+	// 			if (!chosenPN || chosenPN === 'empty') {
+	// 				return true;
+	// 			}
+	// 		}
+	// 	}
 
-		return false;
-	});
+	// 	return false;
+	// });
 
 	// func
 	async function refocus() {
@@ -80,68 +83,70 @@
 		inputEl?.focus();
 	}
 
-	function selectScrapForGroup(groupName: string, selectedId: string) {
-		scrapCodesRecord[groupName] = selectedId;
-		if (scrapMode !== 'rebuild' || !scanData?.groups) return;
-		const currentGroup = scanData.groups.find((g) => g.name === groupName);
+	// function selectScrapForGroup(groupName: string, selectedId: string) {
+	// 	scrapCodesRecord[groupName] = selectedId;
+	// 	if (scrapMode !== 'rebuild' || !scanData?.groups) return;
+	// 	const currentGroup = scanData.groups.find((g) => g.name === groupName);
 
-		if (currentGroup?.isRebuild) {
-			//
-			// Other component
-			const otherRebuildGroups = scanData.groups.filter((g) => g.isRebuild && g.name !== groupName);
-			const isCurGroupBadChoice = currentGroup.scrapCodes
-				.find((s) => s.id === Number(selectedId))
-				?.name.toLocaleLowerCase()
-				.includes('iný komponent');
-			if (isCurGroupBadChoice) {
-				return;
-			}
-			if (selectedId) {
-				for (const other of otherRebuildGroups) {
-					checkBoxes[other.name] = true;
-					scrapCodesRecord[other.name] = '';
-					otherVariantPN = {};
-				}
+	// 	if (scrapMode === 'rebuild' && currentGroup) {
+	// 		//
+	// 		// Other component
+	// 		const otherRebuildGroups = scanData.groups.filter((g) => g.isRebuild && g.name !== groupName);
+	// 		const isCurGroupBadChoice = currentGroup.scrapCodes
+	// 			.find((s) => s.id === Number(selectedId))
+	// 			?.name.toLocaleLowerCase()
+	// 			.includes('iný komponent');
+	// 		if (isCurGroupBadChoice) {
+	// 			return;
+	// 		}
+	// 		if (selectedId) {
+	// 			for (const other of otherRebuildGroups) {
+	// 				if (scrapCodesRecord && !scrapCodesRecord[other.name]) {
+	// 					checkBoxes[other.name] = true;
+	// 					scrapCodesRecord[other.name] = '';
+	// 					otherVariantPN = {};
+	// 				}
+	// 			}
 
-				// for (const other of otherRebuildGroups) {
-				// 	const matchScrap = other.scrapCodes.find((s) => {
-				// 		const sName = s.name.toLowerCase();
-				// 		return (
-				// 			(sName.includes('iný komponent') || sName.includes('iny komponent')) &&
-				// 			sName.includes(groupName.toLowerCase())
-				// 		);
-				// 	});
-				// 	if (matchScrap) {
-				// 		scrapCodesRecord[other.name] = matchScrap.id.toString();
-				// 	}
-				// }
-			}
-		}
+	// 			// for (const other of otherRebuildGroups) {
+	// 			// 	const matchScrap = other.scrapCodes.find((s) => {
+	// 			// 		const sName = s.name.toLowerCase();
+	// 			// 		return (
+	// 			// 			(sName.includes('iný komponent') || sName.includes('iny komponent')) &&
+	// 			// 			sName.includes(groupName.toLowerCase())
+	// 			// 		);
+	// 			// 	});
+	// 			// 	if (matchScrap) {
+	// 			// 		scrapCodesRecord[other.name] = matchScrap.id.toString();
+	// 			// 	}
+	// 			// }
+	// 		}
+	// 	}
 
-		//
-		// Other variant
-		if (selectedId) {
-			const selectedScrap = currentGroup?.scrapCodes.find((sc) => sc.id === Number(selectedId));
-			const scrapName = selectedScrap?.name?.toLowerCase() ?? '';
+	// 	//
+	// 	// Other variant
+	// 	if (selectedId) {
+	// 		const selectedScrap = currentGroup?.scrapCodes.find((sc) => sc.id === Number(selectedId));
+	// 		const scrapName = selectedScrap?.name?.toLowerCase() ?? '';
 
-			if (scrapName.includes('iny variant') || scrapName.includes('iný variant')) {
-				if (!otherVariantPN[groupName]) {
-					otherVariantPN[groupName] = 'empty';
-				} else {
-					delete otherVariantPN[groupName];
-				}
-			} else {
-				delete otherVariantPN[groupName];
-			}
-		}
-	}
+	// 		if (scrapName.includes('iny variant') || scrapName.includes('iný variant')) {
+	// 			if (!otherVariantPN[groupName]) {
+	// 				otherVariantPN[groupName] = 'empty';
+	// 			} else {
+	// 				delete otherVariantPN[groupName];
+	// 			}
+	// 		} else {
+	// 			delete otherVariantPN[groupName];
+	// 		}
+	// 	}
+	// }
 
 	// efect
 	$effect(() => {
 		refocus();
 	});
 
-	$inspect(scanData);
+	$inspect(scrapCodesRecord);
 </script>
 
 <main class="flex flex-col items-center gap-3">
@@ -164,7 +169,7 @@
 					isScanning = false;
 					if (result.type === 'success' && result.data) {
 						status = 'success';
-						// barcodeValue = '';
+						scrapManager.init(result.data, barcodeValue);
 						playBeep('ok');
 					} else if (result.type === 'failure') {
 						scrapMode = null;

@@ -30,7 +30,7 @@
 	} = $props();
 
 	let open = $state(false);
-	let editMode = $state(false);
+	// let editMode = $state(false);
 	let triggerRef = $state<HTMLButtonElement>(null!);
 
 	// LABEL TEXT
@@ -56,7 +56,7 @@
 		return undefined;
 	});
 
-	let changeCss = $derived<boolean>(!!selectedLabel && selectedLabel.length > 35);
+	let changeCss = $derived<boolean>(!!selectedLabel && selectedLabel.length > 30);
 
 	function closeAndFocusTrigger() {
 		open = false;
@@ -80,15 +80,15 @@
 			reset = false;
 		}
 
-		if ($isEditing && !editMode) {
-			editMode = true;
-			value = '';
-			onchange?.('');
-		}
+		// if ($isEditing && !editMode) {
+		// 	editMode = true;
+		// 	value = '';
+		// 	onchange?.('');
+		// }
 
-		if (!$isEditing) {
-			editMode = false;
-		}
+		// if (!$isEditing) {
+		// 	editMode = false;
+		// }
 	});
 </script>
 

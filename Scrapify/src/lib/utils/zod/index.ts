@@ -13,10 +13,15 @@ export const scrapRecordSchema = z.object({
 });
 
 export const partGroupSchema = z.object({
-	id: z.coerce.number().int().positive().optional(),
+	id: z.preprocess(
+		(val) => (val === '' || val === null || val === undefined ? undefined : val),
+		z.coerce.number().int().positive().optional()
+	),
 	processId: z.coerce.number().int().positive('Please select process'),
 	projectId: z.coerce.number().int().positive('Please select project'),
-	groupName: z.string().trim().min(3).max(64),
+	groupName: z.string().trim().min(3).max(32),
+	interfaceName: z.string().trim().min(3).max(32),
+	qadIdentity: z.string().trim().optional(),
 	isRebuild: z.preprocess((val) => {
 		if (typeof val === 'string') {
 			return val.toLocaleLowerCase() === 'true' || val === 'on' || val === '1';

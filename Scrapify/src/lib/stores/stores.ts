@@ -1,5 +1,6 @@
 import {
 	type createScrapNoteType,
+	type PartGroupWithRelations,
 	type ProcessWithRelationsAll,
 	type ScrapRecordWithRelations
 } from '@/utils/types';
@@ -14,16 +15,26 @@ export const editProcessData = writable<ProcessWithRelationsAll | undefined>(und
 export const editPartData = writable<Part | undefined>(undefined);
 export const editScrapData = writable<ScrapCode | undefined>(undefined);
 export const editSearchData = writable<ScrapRecordWithRelations | undefined>(undefined);
+export const editPartGroupData = writable<PartGroupWithRelations | undefined>(undefined);
 
 export const isEditing: Readable<boolean> = derived(
-	[editHallData, editProjectData, editProcessData, editPartData, editScrapData, editSearchData],
+	[
+		editHallData,
+		editProjectData,
+		editProcessData,
+		editPartData,
+		editScrapData,
+		editSearchData,
+		editPartGroupData
+	],
 	([
 		$editHallData,
 		$editProjectData,
 		$editProcessData,
 		$editPartData,
 		$editScrapData,
-		$editSearchData
+		$editSearchData,
+		$editPartGroupData
 	]: any) => {
 		return (
 			$editHallData !== undefined ||
@@ -31,6 +42,7 @@ export const isEditing: Readable<boolean> = derived(
 			$editProcessData !== undefined ||
 			$editPartData !== undefined ||
 			$editScrapData !== undefined ||
+			$editPartGroupData !== undefined ||
 			$editSearchData !== undefined
 		);
 	}

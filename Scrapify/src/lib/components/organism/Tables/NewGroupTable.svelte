@@ -2,10 +2,11 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import * as Table from '@/components/ui/table';
 	import type { PartGroupWithRelations } from '@/utils/types';
-	import { Info } from '@lucide/svelte';
+	import { Info, SquarePenIcon } from '@lucide/svelte';
 	import * as HoverCard from '$lib/components/ui/hover-card/index.js';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
 	import type { PartGroup } from '@prisma/client';
+	import { editPartGroupData } from '@/stores/stores';
 
 	let {
 		groups,
@@ -19,9 +20,9 @@
 		groupsCount?: number;
 	} = $props();
 
-	function handleEditPartGroupRec(item: PartGroup) {
-		// editPartData.set(item);
-		// window.scrollTo({ top: 0, behavior: 'instant' });
+	function handleEditPartGroupRec(item: PartGroupWithRelations) {
+		editPartGroupData.set(item);
+		window.scrollTo({ top: 0, behavior: 'instant' });
 	}
 	// $inspect(groups);
 </script>
@@ -41,6 +42,8 @@
 				<Table.Row class="bg-chart-4/40 *:text-chart-1">
 					<Table.Head class="w-[100px]">ID</Table.Head>
 					<Table.Head class="w-[100px]">Name</Table.Head>
+					<Table.Head class="w-[100px]">UI name</Table.Head>
+					<Table.Head class="w-[100px]">Qad identity</Table.Head>
 					<Table.Head class="w-[100px]">Parts</Table.Head>
 					<Table.Head class="w-[100px]">Scrap codes</Table.Head>
 					<Table.Head class="w-[100px]">Process</Table.Head>
@@ -51,11 +54,13 @@
 			<Table.Body>
 				{#each groups as item (item.id)}
 					<Table.Row>
-						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.name}</Table.Cell>
+						<Table.Cell class="w-[100px] border">{item.id}</Table.Cell>
+						<Table.Cell class="w-[100px] border">{item.name}</Table.Cell>
+						<Table.Cell class="w-[100px] border">{item.interfaceName}</Table.Cell>
+						<Table.Cell class="w-[100px] border">{item.qadIdentity?.slice(0, 1)}</Table.Cell>
 						<!--  -->
 						<!-- Parts -->
-						<Table.Cell class="w-[100px]"
+						<Table.Cell class="w-[100px] border"
 							><p class="flex gap-2">
 								{item.parts.length}
 								{#if item.parts.length > 0}
@@ -86,7 +91,7 @@
 						>
 						<!--  -->
 						<!-- Scrap codes -->
-						<Table.Cell class="w-[100px]"
+						<Table.Cell class="w-[100px] border"
 							><p class="flex gap-2">
 								{item.scrapCodes.length}
 								{#if item.scrapCodes.length > 0}
@@ -117,19 +122,19 @@
 								{/if}
 							</p></Table.Cell
 						>
-						<Table.Cell class="w-[100px]">{item.process.name}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.project.name}</Table.Cell>
+						<Table.Cell class="w-[100px] border">{item.process.name}</Table.Cell>
+						<Table.Cell class="w-[100px] border">{item.project.name}</Table.Cell>
 
 						<Table.Cell class="w-[50px]">
 							<div class="flex justify-end gap-2">
-								<!-- <Button
+								<Button
 									onclick={() => handleEditPartGroupRec(item)}
 									variant="ghost"
 									size="icon"
 									title="Edit"
 									class="text-chart-warning hover:text-chart-warning"
 									><SquarePenIcon class="size-5!" /></Button
-								> -->
+								>
 								<EditDeleteBtns id={item.id} actionRoute={'?/deleteGroup'} />
 							</div>
 						</Table.Cell>

@@ -39,31 +39,6 @@
 		$editPartData = undefined;
 	}
 
-	// function updateFilterParams(procId: string, projId: string) {
-	// 	const params = new URLSearchParams(page.url.searchParams);
-	// 	const currentUrlProc = params.get('description') ?? '';
-
-	// 	if (currentUrlProc === procId && currentUrlProj === (projId || '')) {
-	// 		return;
-	// 	}
-	// 	if (procId) {
-	// 		params.set('processId', procId);
-	// 	} else {
-	// 		params.delete('processId');
-	// 	}
-
-	// 	if (projId) {
-	// 		params.set('projectId', projId);
-	// 	} else {
-	// 		params.delete('projectId');
-	// 	}
-	// 	goto(`?${params.toString()}`, {
-	// 		keepFocus: true,
-	// 		noScroll: true,
-	// 		replaceState: true
-	// 	});
-	// }
-
 	$effect(() => {
 		if ($editPartData) {
 			form = null;
@@ -111,7 +86,7 @@
 				isSubmitting = true;
 				return async ({ update, result }) => {
 					if (result?.type === 'success') {
-						// descriptionInput = '';
+						clearEditForm();
 					}
 					await update();
 					isSubmitting = false;
@@ -194,7 +169,7 @@
 
 			<!--  -->
 			<!-- Part group !!! -->
-			<article class="flex justify-between items-center gap-2">
+			<!-- <article class="flex justify-between items-center gap-2">
 				<Label for="groupId" class="text-sm md:text-lg"
 					>Part group <span class="text-xs text-chart-info">[Optional]</span></Label
 				>
@@ -214,7 +189,7 @@
 				</div>
 
 				<input type="hidden" name="groupId" required bind:value={groupId} />
-			</article>
+			</article> -->
 
 			<Button type="submit" class="mt-10 ">
 				{#if isSubmitting}

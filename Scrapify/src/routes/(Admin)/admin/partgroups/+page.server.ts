@@ -16,7 +16,7 @@ export const load = (async (event) => {
 	};
 	// console.log(filters);
 	const wherePart: Prisma.PartWhereInput = {};
-	// if (filters.processId) wherePart.processId = { equals: Number(filters.processId) };
+	// if (filters.processId) whereProject.processId = { equals: Number(filters.processId) };
 	// if (filters.projectId) wherePart.projectId = { equals: Number(filters.projectId) };
 
 	const whereGroup: Prisma.PartGroupWhereInput = {};
@@ -26,12 +26,16 @@ export const load = (async (event) => {
 			await prismaClient.$transaction([
 				prismaClient.partGroup.findMany({
 					where: whereGroup,
-					orderBy: { createdAt: 'desc' },
+					orderBy: { updatedAt: 'desc' },
 					include: { parts: true, process: true, project: true, scrapCodes: true }
 				}),
 				prismaClient.process.findMany(),
 				prismaClient.project.findMany({
-					where: { processes: { some: { processId: Number(filters.processId) } } }
+					where: {
+						...(filters.processId
+							? { processes: { some: { processId: Number(filters.processId) } } }
+							: {})
+					}
 				}),
 				prismaClient.part.findMany({
 					where: wherePart
@@ -66,7 +70,7 @@ export const actions = {
 		// console.log(event.request.formData());
 		const data = Object.fromEntries(await event.request.formData());
 		const result = partGroupSchema.safeParse(data);
-		console.log(result);
+		// console.log(result);
 		if (!result.success) {
 			return fail(400, {
 				success: false,
@@ -75,7 +79,16 @@ export const actions = {
 				values: data
 			});
 		}
-		const { processId, projectId, groupName, partIds, scrapCodesIds, isRebuild } = result.data;
+		const {
+			processId,
+			projectId,
+			groupName,
+			partIds,
+			scrapCodesIds,
+			isRebuild,
+			interfaceName,
+			qadIdentity
+		} = result.data;
 		try {
 			const newGroup = await prismaClient.partGroup.create({
 				data: {
@@ -86,6 +99,8 @@ export const actions = {
 						connect: partIds.map((id) => ({ id }))
 					},
 					isRebuild: isRebuild,
+					interfaceName,
+					qadIdentity,
 					scrapCodes: {
 						connect: scrapCodesIds.map((id) => ({ id }))
 					}
@@ -99,6 +114,74 @@ export const actions = {
 			return {
 				success: true,
 				message: `Group with name: "${newGroup.name}" was successfull created.`
+			};
+		} catch (err: any) {
+			console.error('Create part group error:', err);
+			if (err.code === 'P2002') {
+				return fail(500, {
+					success: false,
+					message: 'This group name with this process and project already exist'
+				});
+			}
+			return fail(500, {
+				success: false,
+				message: `Internal server error`,
+				error: err.message
+			});
+		}
+	},
+	editGroup: async (event) => {
+		const data = Object.fromEntries(await event.request.formData());
+		const result = partGroupSchema.safeParse(data);
+		// console.log(result);
+		if (!result.success) {
+			return fail(400, {
+				success: false,
+				message: 'Validation failed',
+				error: result.error.flatten((issue) => issue.message).fieldErrors,
+				values: data
+			});
+		}
+
+		const {
+			id,
+			processId,
+			projectId,
+			groupName,
+			partIds,
+			scrapCodesIds,
+			isRebuild,
+			interfaceName,
+			qadIdentity
+		} = result.data;
+		try {
+			const newGroup = await prismaClient.partGroup.update({
+				where: {
+					id
+				},
+				data: {
+					processId,
+					projectId,
+					name: groupName,
+					parts: {
+						set: partIds.map((id) => ({ id }))
+					},
+					isRebuild: isRebuild,
+					interfaceName,
+					qadIdentity,
+					scrapCodes: {
+						set: scrapCodesIds.map((id) => ({ id }))
+					}
+				},
+				select: {
+					id: true,
+					name: true
+				}
+			});
+
+			return {
+				success: true,
+				message: `Group with name: "${newGroup.name}" was successfull edited.`
 			};
 		} catch (err: any) {
 			console.error('Create part group error:', err);

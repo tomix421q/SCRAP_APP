@@ -123,26 +123,11 @@ export const actions = {
 	editPart: async (event) => {
 		const formData = await event.request.formData();
 		const partId = formData.get('partId') as string;
-		const processId = formData.get('processId') as string;
 		const partProdNumberId = formData.get('partNumber') as string;
+		const description = formData.get('description') as string;
 		const partSide = formData.get('partSide') as string;
-		const projectId = formData.get('projectId') as string;
 		// console.log(projectName);
 
-		if (!processId) {
-			return fail(400, {
-				success: false,
-				error: true,
-				message: 'Process is required.Please select process.'
-			});
-		}
-		if (!projectId) {
-			return fail(400, {
-				success: false,
-				error: true,
-				message: 'Project is required.Please select project.'
-			});
-		}
 		if (partProdNumberId.length > 100) {
 			return fail(400, {
 				success: false,
@@ -151,15 +136,8 @@ export const actions = {
 			});
 		}
 		try {
-			const [findPart, findProcess, findSpecificProject] = await Promise.all([
-				prismaClient.part.findFirst({ where: { id: Number(partId) } }),
-				prismaClient.process.findFirst({
-					where: { id: Number(processId) },
-					include: { project: true }
-				}),
-				prismaClient.project.findFirst({
-					where: { id: Number(projectId) }
-				})
+			const [findPart] = await Promise.all([
+				prismaClient.part.findFirst({ where: { id: Number(partId) } })
 			]);
 			if (!findPart) {
 				return fail(404, {
@@ -168,22 +146,14 @@ export const actions = {
 					message: `Part with ID ${partId} not found.`
 				});
 			}
-			if (!findProcess || !findSpecificProject) {
-				return fail(404, {
-					success: false,
-					error: true,
-					message: `Process with ID ${processId} not found or project with ID ${projectId} not found.`
-				});
-			}
 
 			const updatePart = await prismaClient.part.update({
 				where: {
 					id: findPart.id
 				},
 				data: {
-					processId: findProcess.id,
-					projectId: findSpecificProject.id,
 					partNumber: partProdNumberId,
+					description,
 					side: partSide
 				}
 			});
