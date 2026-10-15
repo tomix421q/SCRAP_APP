@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
 	import CircleIcon from '@lucide/svelte/icons/circle';
-	import { cn, type WithoutChild } from '$lib/components/ui/utils.js';
+	import { cn } from '$lib/components/ui/utils.js';
 
 	let {
 		ref = $bindable(null),
 		class: className,
 		children: childrenProp,
 		...restProps
-	}: WithoutChild<DropdownMenuPrimitive.RadioItemProps> = $props();
+	}: DropdownMenuPrimitive.RadioItemProps = $props();
 </script>
 
 <DropdownMenuPrimitive.RadioItem

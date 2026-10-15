@@ -6,7 +6,7 @@
 	import { editProjectData } from '@/stores/stores';
 	import { SquarePenIcon } from '@lucide/svelte';
 	import Button from '@/components/ui/button/button.svelte';
-	import type { Project } from '../../../../../prisma/generated/client/client';
+	import type { Project } from '@prisma/client';
 
 	let {
 		projects,

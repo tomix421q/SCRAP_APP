@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { LinkPreview as HoverCardPrimitive } from "bits-ui";
-	import { cn, type WithoutChildrenOrChild } from "$lib/components/ui/utils.js";
+	import { cn } from "$lib/components/ui/utils.js";
 	import HoverCardPortal from "./hover-card-portal.svelte";
 	import type { ComponentProps } from "svelte";
 
@@ -12,7 +12,7 @@
 		portalProps,
 		...restProps
 	}: HoverCardPrimitive.ContentProps & {
-		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof HoverCardPortal>>;
+		portalProps?: ComponentProps<typeof HoverCardPortal>;
 	} = $props();
 </script>
 

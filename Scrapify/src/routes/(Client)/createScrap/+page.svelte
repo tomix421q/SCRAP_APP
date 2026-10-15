@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import type { PageProps } from './$types';
 	import { goto } from '$app/navigation';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
@@ -42,44 +42,44 @@
 		}
 	});
 
-	// $inspect(projectsForFilteredProcess);
+
 </script>
 
 <main class="flex flex-col lg:flex-wrap gap-3 relative">
-	<!-- Result info -->
+
 	<section class=" w-full mx-auto">
 		<ResultInfo data={form} />
 	</section>
 
 	<section class="flex flex-col gap-3">
-		<!--  IF Edit scrap else Create Scrap-->
+	
 		{#if $editSearchData}
-			<!-- data for edit change name ... -->
+
 			{@const dataForEdit = { allPartsPromise: parts, scrapCodesPromise: scrapCodes }}
 			<div class="lg:min-h-[400px] lg:w-2xl mx-auto">
 				<EditSearchScrapForm data={dataForEdit} {form} />
 			</div>
 		{:else}
-			<!-- IF Create scrap -->
+
 			<div class="lg:grid grid-cols-2 gap-3 justify-between items-start">
-				<!-- Create scrap form -->
+		
 				<div>
 					<CreateScrapForm {processes} {parts} {scrapCodes} bind:filterOptions />
 				</div>
 
 				<div class="flex flex-col gap-3 h-full">
-					<!-- Favorite processes in LC -->
+		
 					<FavoriteList bind:filterOptions />
-					<!-- NOTES summary info LC -->
+				
 					<CreateScrapNoteSumary />
 				</div>
 			</div>
-			<!-- NOTES LC-->
+
 			<CreateScrapNote {parts} {projectsForFilteredProcess} {filterOptions} {scrapCodes} />
 		{/if}
 	</section>
 
-	<!-- Last 20 records -->
+
 	<section>
 		<SearchScrapTable
 			findRecords={scrapRecords}
@@ -88,4 +88,4 @@
 			userInfo={user}
 		/>
 	</section>
-</main>
+</main> -->

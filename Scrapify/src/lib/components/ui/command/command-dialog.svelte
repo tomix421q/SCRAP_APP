@@ -3,7 +3,7 @@
 	import type { Snippet } from 'svelte';
 	import Command from './command.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import type { WithoutChildrenOrChild } from '$lib/components/ui/utils.js';
+	
 
 	let {
 		open = $bindable(false),
@@ -14,8 +14,8 @@
 		portalProps,
 		children,
 		...restProps
-	}: WithoutChildrenOrChild<DialogPrimitive.RootProps> &
-		WithoutChildrenOrChild<CommandPrimitive.RootProps> & {
+	}: DialogPrimitive.RootProps &
+		CommandPrimitive.RootProps & {
 			portalProps?: DialogPrimitive.PortalProps;
 			children: Snippet;
 			title?: string;

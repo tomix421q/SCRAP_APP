@@ -2,7 +2,7 @@
 	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
 	import CheckIcon from '@lucide/svelte/icons/check';
 	import MinusIcon from '@lucide/svelte/icons/minus';
-	import { cn, type WithoutChildrenOrChild } from '$lib/components/ui/utils.js';
+	import { cn } from '$lib/components/ui/utils.js';
 	import type { Snippet } from 'svelte';
 
 	let {
@@ -12,7 +12,7 @@
 		class: className,
 		children: childrenProp,
 		...restProps
-	}: WithoutChildrenOrChild<DropdownMenuPrimitive.CheckboxItemProps> & {
+	}: DropdownMenuPrimitive.CheckboxItemProps & {
 		children?: Snippet;
 	} = $props();
 </script>

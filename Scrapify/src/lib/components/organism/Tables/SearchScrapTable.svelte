@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import { Download, SquarePenIcon } from '@lucide/svelte';
 	import Button from '../../ui/button/button.svelte';
 	import * as Table from '@/components/ui/table';
@@ -48,20 +48,20 @@
 			return;
 		}
 
-		let originalSearchParams = page.url.search; // Získa '?processName=1&dateFrom=2025-11-24T06%3A00&...'
+		let originalSearchParams = page.url.search; 
 		let modifiedSearchParams = originalSearchParams.replace(/%3A/g, '_');
 		modifiedSearchParams = modifiedSearchParams.replace(/:/g, '_');
 		const downloadUrl = `/api/export/scrap${modifiedSearchParams}`;
 		window.location.href = downloadUrl;
 	}
 
-	// $inspect(group);
+
 </script>
 
 <main>
 	<div>
 		<div class="text-sm listNormalize">
-			<!-- HEADER -->
+	
 			<div class="mb-2 gap-x-10 md:flex w-full justify-between">
 				<article class="flex text-muted items-center gap-10 tracking-widest font-bold">
 					<p>
@@ -90,7 +90,7 @@
 					</Button>
 				{/if}
 			</div>
-			<!-- Sumar parts total -->
+
 			<article class="pb-2">
 				{#await group then groupData}
 					<div class="flex flex-wrap gap-1 text-xs">
@@ -142,7 +142,7 @@
 							<Table.Cell class="w-[100px] text-xs"
 								>{dateTimeLocalTimeDb(item.createdAt)}</Table.Cell
 							>
-							<!-- ACTIONS BTNS  -->
+			
 							<Table.Cell>
 								<div class="flex justify-end gap-2">
 									{#if (operatorId === item.createdBy && isWithinTimeLimit(item.createdAt, 60)) || (userInfo?.role as Role) === 'ADMIN' || (userInfo?.role as Role) === 'MODERATOR' || (userInfo?.role as Role) === 'ENGINEER'}
@@ -176,4 +176,4 @@
 			<HoverCard.Content>{desc}</HoverCard.Content>
 		</HoverCard.Root>
 	{/if}
-{/snippet}
+{/snippet} -->

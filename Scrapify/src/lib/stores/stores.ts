@@ -1,3 +1,4 @@
+import { browser } from '$app/environment';
 import {
 	type createScrapNoteType,
 	type PartGroupWithRelations,
@@ -53,3 +54,7 @@ export const favoriteProcesses = writable<{ id: string; name: string }[]>([]);
 
 // CREATE SCRAP NOTES
 export const createScrapNotesStore = writable<createScrapNoteType[]>([]);
+
+// OPERATOR CARD
+	export const operatorCardId = writable<string>('');
+

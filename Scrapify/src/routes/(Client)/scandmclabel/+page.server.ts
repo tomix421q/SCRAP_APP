@@ -3,6 +3,7 @@ import { fail, type Action, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { matchDmcWithMask } from '@/utils/serverHelp';
 import { saveScrapSchema } from '@/utils/zod';
+import { success } from 'zod';
 
 export const load = (async () => {
 	return {};
@@ -56,18 +57,19 @@ export const actions = {
 					processId: matchedLabel.processId
 				}
 			});
-
+			// console.log(matchedLabel);
 			// const allPartsInLabel = matchedLabel.groups.flatMap((g) => g.parts);
 			return {
 				success: true,
 				message: `Dmc ${barcode} bol úspešne nájdený.`,
-				data: { label: extractedSerial, match: matchedLabel, scrapCodes }
+				data: { label: barcode, match: matchedLabel, scrapCodes }
 			};
 		} catch {}
 	},
 
 	saveScrap: async (event) => {
 		const rawData = Object.fromEntries(await event.request.formData());
+
 		const result = saveScrapSchema.safeParse(rawData);
 		if (!result.success) {
 			return fail(400, {
@@ -77,16 +79,40 @@ export const actions = {
 				values: rawData
 			});
 		}
-		const { dmc, isRebuild, scrapCodes, otherVariant } = result.data;
+		console.log(result.data);
+		const { dmc, isRebuild,operator, scrapPayload } = result.data;
 
-		console.log('Label:', dmc);
-		console.log('Is Rebuild', isRebuild);
-		console.log('Scrap codes:', scrapCodes);
-		console.log('Other variant', otherVariant);
+		try {
+			const recordsToInsert = scrapPayload.map((row) => ({
+				dmc,
+				partGroupId: Number(row.groupId),
+				scrapCodeId: Number(row.selectedScrapId) ?? null,
+				isRebuild,
+				replacementPartId:
+					row.isOtherVariant && row.replacementPartId && row.replacementPartId
+						? Number(row.replacementPartId)
+						: null,
+				isOtherComponent: row.isOtherComponent,
+				quantity: 1,
+				description: '',
+				createdBy: operator
+			}));
 
-		return {
-			success: true,
-			message: `Scrap pre Label:${dmc} bol úspešne zaevidovaný `
-		};
+			const created = await prismaClient.scrapRecord.createMany({
+				data: recordsToInsert
+			});
+
+			return {
+				success: true,
+				message: `👍 Scrap pre Label:${dmc} bol úspešne zaevidovaný `
+			};
+		} catch (err: any) {
+			console.log('Problem with db', err);
+			return fail(500, {
+				success: false,
+				message: 'Nepodarilo sa ulozit zaznam do databazy.',
+				error: err.message
+			});
+		}
 	}
 } satisfies Actions;

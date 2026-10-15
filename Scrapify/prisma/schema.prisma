@@ -111,7 +111,6 @@ id Int @id @default(autoincrement())
 partNumber String @unique
 side String
 description String?
-scrapRecords ScrapRecord[] @relation("ScrappedPart")
 replacementRecords ScrapRecord[] @relation("ReplacementPart")
 scrapSummary ScrapSummary[]
 groups     PartGroup[]
@@ -170,27 +169,25 @@ groups PartGroup[]
 model ScrapRecord {
   id                Int          @id @default(autoincrement())
   dmc               String       @db.NVarChar(128) 
-  partGroupId       Int                            
-  partId            Int                            
-  scrapCodeId       Int                            
+  partGroupId       Int                                                   
+  scrapCodeId       Int?                            
   isRebuild         Boolean      @default(false) 
-  replacementPartId Int?                           
+  replacementPartId Int?
+  isOtherComponent  Boolean      @default(false)                           
   quantity          Float        @default(1)
   description       String?
   createdBy         String                         
   createdAt         DateTime     @default(now())
   QADExported       Boolean?     @default(false)
 
-  part            Part       @relation("ScrappedPart", fields: [partId], references: [id], onDelete: Cascade)
-  replacementPart Part?      @relation("ReplacementPart", fields: [replacementPartId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   partGroup       PartGroup  @relation(fields: [partGroupId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  scrapCode       ScrapCode  @relation(fields: [scrapCodeId], references: [id], onDelete: Cascade)
+  replacementPart Part?      @relation("ReplacementPart", fields: [replacementPartId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  scrapCode       ScrapCode?  @relation(fields: [scrapCodeId], references: [id], onDelete: Cascade)
 
   @@index([dmc])
   @@index([createdAt])
   @@index([partGroupId])
   @@index([scrapCodeId])
-  @@index([partId])
 }
 
 model ScrapSummary {

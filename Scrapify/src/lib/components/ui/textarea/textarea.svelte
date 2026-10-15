@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn, type WithElementRef, type WithoutChildren } from '$lib/components/ui/utils.js';
+	import { cn, type WithElementRef } from '$lib/components/ui/utils.js';
 	import type { HTMLTextareaAttributes } from 'svelte/elements';
 
 	let {
@@ -7,7 +7,7 @@
 		value = $bindable(),
 		class: className,
 		...restProps
-	}: WithoutChildren<WithElementRef<HTMLTextareaAttributes>> = $props();
+	}: WithElementRef<HTMLTextareaAttributes> = $props();
 </script>
 
 <textarea

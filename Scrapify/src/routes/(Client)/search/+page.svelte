@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import Filter from '@/components/organism/Filter.svelte';
 	import type { PageProps } from './$types';
 	import Pagination from '@/components/molecules/Pagination.svelte';
@@ -13,7 +13,7 @@
 	let { findRecords, totalRecords, totalPages, allProcesses, allProjects, totalPartQnt, user } =
 		$derived(data);
 
-	// $inspect();
+
 
 	onMount(() => {
 		$editSearchData = undefined;
@@ -22,18 +22,18 @@
 
 <main class="space-y-4">
 	<div>
-		<!-- Result info -->
+
 		<section class="max-w-4xl mx-auto">
 			<ResultInfo data={form} />
 		</section>
 
 		<section class="max-w-6xl mx-auto">
-			<!-- Edit -->
+	>
 			{#if $editSearchData}
 				<div transition:slide class="lg:min-h-[400px]">
 					<EditSearchScrapForm {data} {form} />
 				</div>
-				<!-- Filter -->
+
 			{:else}
 				<div transition:slide>
 					<Filter {allProcesses} {allProjects} />
@@ -41,8 +41,7 @@
 			{/if}
 		</section>
 	</div>
-	<!--  -->
-	<!-- Table -->
+
 	<section>
 		<ScrapTable
 			{findRecords}
@@ -50,11 +49,11 @@
 			partsQnt={totalPartQnt._sum.quantity}
 			userInfo={user}
 			group={data.groupScrapCodeByPartIdPromise as any}
-		/>
+		/> 
 	</section>
 
-	<!-- PAGINATION -->
+
 	<section>
 		<Pagination {totalPages} />
 	</section>
-</main>
+</main> -->

@@ -3,7 +3,7 @@
 	import XIcon from '@lucide/svelte/icons/x';
 	import type { Snippet } from 'svelte';
 	import * as Dialog from './index.js';
-	import { cn, type WithoutChildrenOrChild } from '$lib/components/ui/utils.js';
+	import { cn } from '$lib/components/ui/utils.js';
 
 	let {
 		ref = $bindable(null),
@@ -12,7 +12,7 @@
 		children,
 		showCloseButton = true,
 		...restProps
-	}: WithoutChildrenOrChild<DialogPrimitive.ContentProps> & {
+	}: DialogPrimitive.ContentProps & {
 		portalProps?: DialogPrimitive.PortalProps;
 		children: Snippet;
 		showCloseButton?: boolean;

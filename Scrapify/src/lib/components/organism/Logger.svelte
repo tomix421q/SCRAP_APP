@@ -2,7 +2,8 @@
 	import * as HoverCard from '@/components/ui/hover-card/index';
 	import { dateTimmeUTCformatter } from '@/index';
 	import Pagination from '../molecules/Pagination.svelte';
-	import type { Prisma } from '../../../../prisma/generated/client/client';
+	import { Prisma } from '@prisma/client';
+
 
 
 	export type ActivityLogsWithRelations = Prisma.ActivityLogsGetPayload<{

@@ -10,7 +10,8 @@ export type PartSide =
 	| 'REAR-LEFT'
 	| 'REAR-RIGHT'
 	| 'REAR-LEFT_RIGHT'
-	| 'FRONT-LEFT_RIGHT';
+	| 'FRONT-LEFT_RIGHT'
+	| 'FRONT & REAR';
 
 export const PART_SIDES: { id: PartSide; name: string }[] = [
 	{ id: 'FRONT-LEFT', name: 'Front Left' },
@@ -18,7 +19,8 @@ export const PART_SIDES: { id: PartSide; name: string }[] = [
 	{ id: 'REAR-LEFT', name: 'Rear Left' },
 	{ id: 'REAR-RIGHT', name: 'Rear Right' },
 	{ id: 'FRONT-LEFT_RIGHT', name: 'Front Left Right' },
-	{ id: 'REAR-LEFT_RIGHT', name: 'Rear Left Right' }
+	{ id: 'REAR-LEFT_RIGHT', name: 'Rear Left Right' },
+	{ id: 'FRONT & REAR', name: 'Front & Rear' }
 ];
 
 export interface FilterType {

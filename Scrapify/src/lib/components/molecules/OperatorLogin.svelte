@@ -5,6 +5,8 @@
 	import ResultInfo, { type ResultInfoData } from './ResultInfo.svelte';
 	import Separator from '../ui/separator/separator.svelte';
 	import Label from '../ui/label/label.svelte';
+	import { operatorCardId } from '@/stores/stores';
+	import { toast } from 'svelte-sonner';
 
 	let cardId = $state('');
 	let isSubmitting = $state(false);
@@ -42,7 +44,7 @@
 			} else {
 				infoResult = apiResult;
 				setOperatorToLc();
-				form.reset();
+				// window.location.reload();
 			}
 		} catch (err: any) {
 			infoResult = {
@@ -52,20 +54,26 @@
 			};
 		} finally {
 			isSubmitting = false;
+			// form.reset();
 		}
 	}
 
 	const logoutOperator = () => {
 		localStorage.removeItem('operatorId');
 		cardId = '';
+		$operatorCardId = '';
 		verifiedOperator = false;
+		infoResult = undefined;
 	};
 
 	function setOperatorToLc() {
 		verifiedOperator = true;
 		if (verifiedOperator) {
 			localStorage.setItem('operatorId', cardId);
-			goto('/createScrap');
+			verifiedOperator = true;
+			$operatorCardId = cardId;
+			toast.success('Uspesne prihlaseny');
+			goto('/scandmclabel');
 		}
 	}
 
@@ -74,27 +82,27 @@
 		if (isOperator) {
 			verifiedOperator = true;
 			cardId = isOperator;
+			$operatorCardId = cardId;
 		}
 	});
 
-	// $inspect(actuallTime);
+	// $inspect();
 </script>
 
-<main class="mx-auto text-center w-full lg:w-4xl">
+<main class="w-fit mx-auto">
 	{#if verifiedOperator}
-		<div class="formNormalize bg-primary/30 lg:text-xl">
-			<section class="grid lg:grid-cols-2 gap-6">
-				<h3 class="m-auto text-4xl lg:text-7xl font-bold uppercase tracking-wider">Card ID</h3>
+		<div class="formNormalize">
+			<section class="flex justify-between">
+				<h3 class="text-2xl lg:text-4xl font-bold uppercase tracking-wider">Card ID</h3>
 
-				<div class="flex justify-center gap-6">
-					<Separator orientation="vertical" class={'hidden lg:block'} />
-					<p class="m-auto w-full text-4xl lg:text-6xl font-bold text-primary text-start">
+				<div class="flex">
+					<p class="text-2xl lg:text-4xl font-bold text-primary">
 						{cardId}
 					</p>
 
 					<Button
 						variant="destructive"
-						class=" my-auto"
+						class="ml-4"
 						size="lg"
 						onclick={() => {
 							logoutOperator();
@@ -104,22 +112,17 @@
 			</section>
 		</div>
 	{:else}
-		<form
-			method="POST"
-			onsubmit={handleLoginOperator}
-			class="formNormalize bg-secondary/30 gap-4 rounded-3xl"
-		>
+		<form method="POST" onsubmit={handleLoginOperator} class="formNormalize">
 			<div>
 				<ResultInfo data={infoResult} />
 			</div>
 
-			<section class="grid lg:grid-cols-2 gap-6">
-				<Label for="cardId" class="m-auto text-4xl lg:text-7xl font-bold uppercase tracking-wider"
+			<section class="flex justify-between">
+				<Label for="cardId" class="text-2xl lg:text-4xl font-bold uppercase tracking-wider"
 					>Card ID</Label
 				>
-				<div class="flex justify-center gap-6">
-					<Separator orientation="vertical" />
-					<article class="flex justify-between items-center gap-2">
+				<div class="flex gap-4">
+					<article class="text-2xl lg:text-4xl font-bold text-primary">
 						<!-- <Label for="cardId" class="text-xl">ID karty</Label> -->
 						<Input
 							type="number"
@@ -127,7 +130,7 @@
 							autocomplete={'off'}
 							bind:value={cardId}
 							placeholder="Zadaj ID karty"
-							class="inputNormalize max-w-[240px] text-3xl!"
+							class="inputNormalize text-2xl lg:text-4xl font-bold text-primary max-w-[220px] placeholder:text-xl"
 							id="cardId"
 							required
 						/>

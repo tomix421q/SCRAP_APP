@@ -72,6 +72,20 @@ export const labelGroupsSchema = z.object({
 });
 export type LabelGroupInput = z.infer<typeof labelGroupsSchema>;
 
+export const scrapRowSchema = z.object({
+	label: z.string().default(''),
+	groupId: z.coerce.number().int().positive(),
+	groupName: z.string().min(1),
+	qadIdentifySymbol: z.string().default(''),
+	isRebuildGroup: z.boolean().default(false),
+	selectedScrapId: z.coerce.number().int().positive().optional().nullable(),
+	selectedScrapCode: z.string().default(''),
+	selectedScrapName: z.string().default(''),
+	isOtherVariant: z.boolean().default(false),
+	replacementPartId: z.string().optional().nullable(),
+	isOtherComponent: z.boolean().default(false)
+});
+
 export const saveScrapSchema = z.object({
 	dmc: z.string().min(1, 'DMC kód je povinný'),
 	isRebuild: z.preprocess((val) => {
@@ -80,42 +94,37 @@ export const saveScrapSchema = z.object({
 		}
 		return Boolean(val);
 	}, z.boolean()),
-	otherVariant: z
+	operator: z.string(),
+	scrapPayload: z
 		.string()
-		.optional()
-		.transform((str, ctx) => {
-			if (str) {
-				try {
-					const parsed = JSON.parse(str);
-					if (typeof parsed !== 'object' || parsed === null) {
-						throw new Error();
-					}
-					return parsed as Record<string, string>;
-				} catch {
-					ctx.addIssue({ code: 'custom', message: 'Neplatny format part ids' });
-				}
-				return z.NEVER;
-			}
-		}),
-	scrapCodes: z
-		.string()
-		.min(1, 'Chýbajú scrap kódy')
+		.min(1, 'Data scrapu su povinne')
 		.transform((str, ctx) => {
 			try {
 				const parsed = JSON.parse(str);
-				if (typeof parsed !== 'object' || parsed === null) {
-					throw new Error();
+				if (!Array.isArray(parsed)) {
+					ctx.addIssue({ code: 'custom', message: 'Data scrapu musia byt pole' });
+					return z.NEVER;
 				}
-				return parsed as Record<string, string>;
+				return parsed;
 			} catch {
-				ctx.addIssue({
-					code: 'custom',
-					message: 'Neplatný formát scrap kódov'
-				});
+				ctx.addIssue({ code: 'custom', message: 'Neplatny JSON format dat scrapu' });
 				return z.NEVER;
 			}
 		})
-		.refine((codes) => Object.values(codes).some((val) => val.trim().length > 0), {
-			message: 'Musí byť vybraný aspoň jeden scrap kód'
+		.pipe(z.array(scrapRowSchema))
+		.refine((rows) => rows.some((r) => Boolean(r.selectedScrapId)), {
+			message: 'Musi byt vyrany aspon jeden dovod scrapu'
 		})
+		.refine(
+			(rows) =>
+				!rows.some(
+					(r) =>
+						r.isOtherVariant &&
+						(!r.replacementPartId ||
+							r.replacementPartId === 'empty' ||
+							r.replacementPartId.trim() === '')
+				),
+			{ message: 'Pri volbe "Iny variant" musite vybrat konrektny variant PN' }
+		)
 });
+export type SaveScrapInput = z.infer<typeof saveScrapSchema>;

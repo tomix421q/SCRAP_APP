@@ -1,256 +1,257 @@
-import { writeToLogger } from '@/utils/serverHelp';
-import prismaClient from '@/server/prisma';
-import type { Actions, PageServerLoad } from './$types';
-import { error, fail, type ActionFailure } from '@sveltejs/kit';
-import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
-import { scrapRecordSchema } from '@/utils/zod';
-import type { Prisma } from '../../../../prisma/generated/client/client';
+// import { writeToLogger } from '@/utils/serverHelp';
+// import prismaClient from '@/server/prisma';
+// import type { Actions, PageServerLoad } from './$types';
+// import { error, fail, type ActionFailure } from '@sveltejs/kit';
+// import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
+// import { scrapRecordSchema } from '@/utils/zod';
+// import type { Prisma } from '@prisma/client';
 
-export const load: PageServerLoad = async (event) => {
-	const page = Number(event.url.searchParams.get('page') ?? '1');
-	const limit = 100;
-	const skip = (page - 1) * limit;
 
-	const filters = {
-		partNumber: event.url.searchParams.get('partNumber')?.trim(),
-		partId: Number(event.url.searchParams.get('partId')),
-		scrapCode: event.url.searchParams.get('scrapCode')?.trim(),
-		processName: Number(event.url.searchParams.get('processName')),
-		projectName: Number(event.url.searchParams.get('projectName')),
-		dateFrom: event.url.searchParams.get('dateFrom')?.trim(),
-		dateTo: event.url.searchParams.get('dateTo')?.trim()
-	};
+// export const load: PageServerLoad = async (event) => {
+// 	const page = Number(event.url.searchParams.get('page') ?? '1');
+// 	const limit = 100;
+// 	const skip = (page - 1) * limit;
 
-	const where: Prisma.ScrapRecordWhereInput = {};
-	const partWhere: Prisma.PartWhereInput = {};
-	if (filters.partNumber) {
-		if (!where.part) where.part = {};
-		partWhere.partNumber = { contains: filters.partNumber };
-	}
-	if (filters.partId) {
-		partWhere.id = filters.partId;
-	}
+// 	const filters = {
+// 		partNumber: event.url.searchParams.get('partNumber')?.trim(),
+// 		partId: Number(event.url.searchParams.get('partId')),
+// 		scrapCode: event.url.searchParams.get('scrapCode')?.trim(),
+// 		processName: Number(event.url.searchParams.get('processName')),
+// 		projectName: Number(event.url.searchParams.get('projectName')),
+// 		dateFrom: event.url.searchParams.get('dateFrom')?.trim(),
+// 		dateTo: event.url.searchParams.get('dateTo')?.trim()
+// 	};
 
-	if (filters.processName) {
-		partWhere.process = { id: { equals: filters.processName } };
-	}
-	if (filters.projectName) {
-		partWhere.project = { id: { equals: filters.projectName } };
-	}
-	if (Object.keys(partWhere).length > 0) {
-		where.part = partWhere;
-	}
-	if (filters.scrapCode) {
-		where.scrapCode = { code: { contains: filters.scrapCode } };
-	}
-	// Date filter
-	const createdAtFilter: Prisma.DateTimeFilter = {};
-	if (filters.dateFrom) {
-		const dateFromISO = new Date(`${filters.dateFrom}:00Z`);
-		if (!isNaN(dateFromISO.getTime())) {
-			createdAtFilter.gte = dateFromISO;
-		}
-	}
-	if (filters.dateTo) {
-		const dateToISO = new Date(`${filters.dateTo}:59Z`);
-		if (!isNaN(dateToISO.getTime())) {
-			createdAtFilter.lte = dateToISO;
-		}
-	}
-	if (Object.keys(createdAtFilter).length > 0) {
-		where.createdAt = createdAtFilter;
-	}
+// 	const where: Prisma.ScrapRecordWhereInput = {};
+// 	const partWhere: Prisma.PartWhereInput = {};
+// 	if (filters.partNumber) {
+// 		if (!where.part) where.part = {};
+// 		partWhere.partNumber = { contains: filters.partNumber };
+// 	}
+// 	if (filters.partId) {
+// 		partWhere.id = filters.partId;
+// 	}
 
-	try {
-		const [findRecords, totalRecords, allProcesses, allProjects, totalPartQnt] = await Promise.all([
-			prismaClient.scrapRecord.findMany({
-				where,
-				include: { part: { include: { process: true } }, scrapCode: true },
-				skip,
-				take: limit,
-				orderBy: { createdAt: 'desc' }
-			}),
-			prismaClient.scrapRecord.count({ where }),
-			prismaClient.process.findMany(),
-			prismaClient.project.findMany(),
-			prismaClient.scrapRecord.aggregate({
-				where,
-				_sum: {
-					quantity: true
-				}
-			})
-		]);
+// 	if (filters.processName) {
+// 		partWhere.process = { id: { equals: filters.processName } };
+// 	}
+// 	if (filters.projectName) {
+// 		partWhere.project = { id: { equals: filters.projectName } };
+// 	}
+// 	if (Object.keys(partWhere).length > 0) {
+// 		where.part = partWhere;
+// 	}
+// 	if (filters.scrapCode) {
+// 		where.scrapCode = { code: { contains: filters.scrapCode } };
+// 	}
+// 	// Date filter
+// 	const createdAtFilter: Prisma.DateTimeFilter = {};
+// 	if (filters.dateFrom) {
+// 		const dateFromISO = new Date(`${filters.dateFrom}:00Z`);
+// 		if (!isNaN(dateFromISO.getTime())) {
+// 			createdAtFilter.gte = dateFromISO;
+// 		}
+// 	}
+// 	if (filters.dateTo) {
+// 		const dateToISO = new Date(`${filters.dateTo}:59Z`);
+// 		if (!isNaN(dateToISO.getTime())) {
+// 			createdAtFilter.lte = dateToISO;
+// 		}
+// 	}
+// 	if (Object.keys(createdAtFilter).length > 0) {
+// 		where.createdAt = createdAtFilter;
+// 	}
 
-		const totalPages = Math.ceil(totalRecords / limit);
+// 	try {
+// 		const [findRecords, totalRecords, allProcesses, allProjects, totalPartQnt] = await Promise.all([
+// 			prismaClient.scrapRecord.findMany({
+// 				where,
+// 				include: { part: { include: { process: true } }, scrapCode: true },
+// 				skip,
+// 				take: limit,
+// 				orderBy: { createdAt: 'desc' }
+// 			}),
+// 			prismaClient.scrapRecord.count({ where }),
+// 			prismaClient.process.findMany(),
+// 			prismaClient.project.findMany(),
+// 			prismaClient.scrapRecord.aggregate({
+// 				where,
+// 				_sum: {
+// 					quantity: true
+// 				}
+// 			})
+// 		]);
 
-		// Lazy load
-		const allPartsPromise = (async () => {
-			return prismaClient.part.findMany();
-		})();
+// 		const totalPages = Math.ceil(totalRecords / limit);
 
-		const scrapCodesPromise = (async () => {
-			return prismaClient.scrapCode.findMany();
-		})();
+// 		// Lazy load
+// 		const allPartsPromise = (async () => {
+// 			return prismaClient.part.findMany();
+// 		})();
 
-		const groupScrapCodeByPartIdPromise = (async () => {
-			if (
-				filters.dateFrom ||
-				filters.dateTo ||
-				filters.partId ||
-				filters.partNumber ||
-				filters.processName ||
-				filters.projectName ||
-				filters.scrapCode
-			) {
-				return prismaClient.scrapRecord.groupBy({
-					where,
-					by: 'partId',
-					_sum: {
-						quantity: true
-					}
-				});
-			}
-		})();
+// 		const scrapCodesPromise = (async () => {
+// 			return prismaClient.scrapCode.findMany();
+// 		})();
 
-		// console.log(totalPartQnt);
-		return {
-			findRecords,
-			totalRecords,
-			totalPages,
-			allProcesses,
-			allProjects,
-			totalPartQnt,
-			allPartsPromise,
-			scrapCodesPromise,
-			groupScrapCodeByPartIdPromise
-		};
-	} catch (err: any) {
-		throw error(500, {
-			message: `${err}`
-		});
-	}
-};
+// 		const groupScrapCodeByPartIdPromise = (async () => {
+// 			if (
+// 				filters.dateFrom ||
+// 				filters.dateTo ||
+// 				filters.partId ||
+// 				filters.partNumber ||
+// 				filters.processName ||
+// 				filters.projectName ||
+// 				filters.scrapCode
+// 			) {
+// 				return prismaClient.scrapRecord.groupBy({
+// 					where,
+// 					by: 'partId',
+// 					_sum: {
+// 						quantity: true
+// 					}
+// 				});
+// 			}
+// 		})();
 
-export const actions: Actions = {
-	editSearchScrapRecord: async (event) => {
-		const formData = await event.request.formData();
+// 		// console.log(totalPartQnt);
+// 		return {
+// 			findRecords,
+// 			totalRecords,
+// 			totalPages,
+// 			allProcesses,
+// 			allProjects,
+// 			totalPartQnt,
+// 			allPartsPromise,
+// 			scrapCodesPromise,
+// 			groupScrapCodeByPartIdPromise
+// 		};
+// 	} catch (err: any) {
+// 		throw error(500, {
+// 			message: `${err}`
+// 		});
+// 	}
+// };
 
-		const formDataRaw = {
-			scrapRecordId: formData.get('scrapRecordId'),
-			partId: formData.get('partId'),
-			scrapId: formData.get('scrapCodeId'),
-			description: formData.get('description'),
-			quantity: formData.get('quantity'),
-			operatorId: formData.get('operatorId')
-		};
-		const parseZod = scrapRecordSchema.safeParse(formDataRaw);
-		if (!formDataRaw.scrapRecordId) {
-			return fail(400, {
-				success: false,
-				message: 'Validation error',
-				error: `Scrap record id:${formDataRaw.scrapRecordId} not found.`
-			});
-		}
-		if (!parseZod.success) {
-			const fieldErrors = parseZod.error.flatten().fieldErrors;
-			return fail(400, {
-				success: false,
-				message: 'Validation error',
-				error: fieldErrors
-			});
-		}
+// export const actions: Actions = {
+// 	editSearchScrapRecord: async (event) => {
+// 		const formData = await event.request.formData();
 
-		try {
-			if (parseZod.success) {
-				const [findScrapRecord, findPartId, findScrapId] = await Promise.all([
-					prismaClient.scrapRecord.findFirst({
-						where: { id: Number(parseZod.data.scrapRecordId) }
-					}),
-					prismaClient.part.findFirst({ where: { id: parseZod.data.partId } }),
-					prismaClient.scrapCode.findFirst({ where: { id: parseZod.data.scrapId } })
-				]);
+// 		const formDataRaw = {
+// 			scrapRecordId: formData.get('scrapRecordId'),
+// 			partId: formData.get('partId'),
+// 			scrapId: formData.get('scrapCodeId'),
+// 			description: formData.get('description'),
+// 			quantity: formData.get('quantity'),
+// 			operatorId: formData.get('operatorId')
+// 		};
+// 		const parseZod = scrapRecordSchema.safeParse(formDataRaw);
+// 		if (!formDataRaw.scrapRecordId) {
+// 			return fail(400, {
+// 				success: false,
+// 				message: 'Validation error',
+// 				error: `Scrap record id:${formDataRaw.scrapRecordId} not found.`
+// 			});
+// 		}
+// 		if (!parseZod.success) {
+// 			const fieldErrors = parseZod.error.flatten().fieldErrors;
+// 			return fail(400, {
+// 				success: false,
+// 				message: 'Validation error',
+// 				error: fieldErrors
+// 			});
+// 		}
 
-				if (!findScrapId) {
-					return fail(404, {
-						success: false,
-						error: true,
-						message: `Scrap record with id ${parseZod.data.scrapRecordId} not found in DB.`
-					});
-				}
-				if (!findPartId || !findScrapId) {
-					return fail(404, {
-						success: false,
-						error: true,
-						message: `Part with id ${parseZod.data.partId} or ${parseZod.data.scrapId} not found in DB.`
-					});
-				}
+// 		try {
+// 			if (parseZod.success) {
+// 				const [findScrapRecord, findPartId, findScrapId] = await Promise.all([
+// 					prismaClient.scrapRecord.findFirst({
+// 						where: { id: Number(parseZod.data.scrapRecordId) }
+// 					}),
+// 					prismaClient.part.findFirst({ where: { id: parseZod.data.partId } }),
+// 					prismaClient.scrapCode.findFirst({ where: { id: parseZod.data.scrapId } })
+// 				]);
 
-				if (findScrapRecord && findPartId && findScrapId) {
-					const editSc = await prismaClient.scrapRecord.update({
-						where: {
-							id: findScrapRecord.id
-						},
-						data: {
-							partId: findPartId.id,
-							scrapCodeId: findScrapId.id,
-							description: parseZod.data.description,
-							quantity: parseZod.data.quantity,
-							createdBy: parseZod.data.operatorId
-						}
-					});
+// 				if (!findScrapId) {
+// 					return fail(404, {
+// 						success: false,
+// 						error: true,
+// 						message: `Scrap record with id ${parseZod.data.scrapRecordId} not found in DB.`
+// 					});
+// 				}
+// 				if (!findPartId || !findScrapId) {
+// 					return fail(404, {
+// 						success: false,
+// 						error: true,
+// 						message: `Part with id ${parseZod.data.partId} or ${parseZod.data.scrapId} not found in DB.`
+// 					});
+// 				}
 
-					writeToLogger({
-						request: event.request,
-						action: 'EDIT',
-						entityType: 'ScrapRecord',
-						entityId: editSc.id
-					});
-					return {
-						success: true,
-						message: `Scrap record with id ${findScrapRecord.id} updated successfully.`
-					};
-				}
-			} else {
-			}
-		} catch (error: any) {
-			return fail(500, {
-				success: false,
-				error: error.message || 'Unknown error',
-				message: `Something is wrong :( Please try again later. ${error.message ? `Error ${error.message}` : error}`
-			});
-		}
-	},
-	deleteScrapRecord: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
-		const formData = await event.request.formData();
-		const id = formData.get('deleteId');
+// 				if (findScrapRecord && findPartId && findScrapId) {
+// 					const editSc = await prismaClient.scrapRecord.update({
+// 						where: {
+// 							id: findScrapRecord.id
+// 						},
+// 						data: {
+// 							partId: findPartId.id,
+// 							scrapCodeId: findScrapId.id,
+// 							description: parseZod.data.description,
+// 							quantity: parseZod.data.quantity,
+// 							createdBy: parseZod.data.operatorId
+// 						}
+// 					});
 
-		if (!id) {
-			return fail(400, { success: false, message: 'Validation', error: 'Id not found.' });
-		}
+// 					writeToLogger({
+// 						request: event.request,
+// 						action: 'EDIT',
+// 						entityType: 'ScrapRecord',
+// 						entityId: editSc.id
+// 					});
+// 					return {
+// 						success: true,
+// 						message: `Scrap record with id ${findScrapRecord.id} updated successfully.`
+// 					};
+// 				}
+// 			} else {
+// 			}
+// 		} catch (error: any) {
+// 			return fail(500, {
+// 				success: false,
+// 				error: error.message || 'Unknown error',
+// 				message: `Something is wrong :( Please try again later. ${error.message ? `Error ${error.message}` : error}`
+// 			});
+// 		}
+// 	},
+// 	deleteScrapRecord: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
+// 		const formData = await event.request.formData();
+// 		const id = formData.get('deleteId');
 
-		try {
-			const deleteScrapRecord = await prismaClient.scrapRecord.delete({
-				where: { id: Number(id) }
-			});
+// 		if (!id) {
+// 			return fail(400, { success: false, message: 'Validation', error: 'Id not found.' });
+// 		}
 
-			writeToLogger({
-				request: event.request,
-				action: 'DELETE',
-				entityType: 'ScrapRecord',
-				entityId: deleteScrapRecord.id
-			});
-			return {
-				success: true,
-				message: `Successful deleted id: ${deleteScrapRecord.id}.`,
-				error: false
-			};
-		} catch (error: any) {
-			console.log(error);
-			return {
-				success: false,
-				message: 'Something is wrong, Please try again later.',
-				error: error.message + ' ' + error.code || 'Unknown error'
-			};
-		}
-	}
-};
+// 		try {
+// 			const deleteScrapRecord = await prismaClient.scrapRecord.delete({
+// 				where: { id: Number(id) }
+// 			});
+
+// 			writeToLogger({
+// 				request: event.request,
+// 				action: 'DELETE',
+// 				entityType: 'ScrapRecord',
+// 				entityId: deleteScrapRecord.id
+// 			});
+// 			return {
+// 				success: true,
+// 				message: `Successful deleted id: ${deleteScrapRecord.id}.`,
+// 				error: false
+// 			};
+// 		} catch (error: any) {
+// 			console.log(error);
+// 			return {
+// 				success: false,
+// 				message: 'Something is wrong, Please try again later.',
+// 				error: error.message + ' ' + error.code || 'Unknown error'
+// 			};
+// 		}
+// 	}
+// };

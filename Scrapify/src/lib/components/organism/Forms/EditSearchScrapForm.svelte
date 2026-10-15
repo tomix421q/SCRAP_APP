@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import { enhance } from '$app/forms';
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Button from '@/components/ui/button/button.svelte';
@@ -19,7 +19,7 @@
 	let quantity = $state('');
 	let operatorId = $state('');
 
-	// let resetProcessCombo = $state(false);
+
 	let resetPartCombo = $state(false);
 	let resetScrapCodeCombo = $state(false);
 
@@ -50,11 +50,11 @@
 	});
 
 	onMount(() => {
-		// clearEditForm();
+
 		$currentConfirmDeleteId = undefined;
 	});
 
-	// $inspect(partId);
+
 </script>
 
 <form
@@ -79,10 +79,9 @@
 >
 	<h2 class="text-center font-semibold text-2xl text-warning mb-6">Edit scrap</h2>
 
-	<!-- if edit  -->
+
 	<input type="text" hidden name="scrapRecordId" bind:value={idEditScrapRecord} />
-	<!-- -->
-	<!-- part COMBO -->
+
 	<article class="flex justify-between items-center gap-2">
 		{#await data.allPartsPromise}
 			<span>Loading...</span>
@@ -100,8 +99,7 @@
 			<input type="hidden" name="partId" required bind:value={partId} />
 		{/await}
 	</article>
-	<!-- -->
-	<!-- scrap code COMBO -->
+	
 	<article class="flex justify-between items-center gap-2">
 		{#await data.scrapCodesPromise}
 			<span>Loading...</span>
@@ -120,8 +118,7 @@
 
 		<input type="hidden" name="scrapCodeId" required bind:value={scrapId} />
 	</article>
-	<!-- -->
-	<!-- input description -->
+
 	<article class="flex justify-between items-center gap-2">
 		<Label for="description" class="text-sm md:text-lg">Description</Label>
 		<Input
@@ -132,8 +129,7 @@
 			bind:value={description}
 		/>
 	</article>
-	<!-- -->
-	<!-- input quantity -->
+
 	<article class="flex justify-between items-center gap-2">
 		<Label for="quantity" class="text-sm md:text-lg">Quantity</Label>
 		<Input
@@ -144,8 +140,7 @@
 			bind:value={quantity}
 		/>
 	</article>
-	<!-- -->
-	<!-- input createdBy -->
+
 	<article class="flex justify-between items-center gap-2">
 		<Label for="operatorId" class="text-sm md:text-lg">Operator ID</Label>
 
@@ -169,4 +164,4 @@
 
 		<Button variant="destructive" onclick={() => clearEditForm()}>Close Edit</Button>
 	</div>
-</form>
+</form> -->

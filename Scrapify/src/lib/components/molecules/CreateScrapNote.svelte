@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import { Minus, Plus, Trash, X } from '@lucide/svelte';
 	import Button from '../ui/button/button.svelte';
 	import Input from '../ui/input/input.svelte';
@@ -6,10 +6,10 @@
 	import Combobox from '../atoms/Combobox.svelte';
 	import Separator from '../ui/separator/separator.svelte';
 	import Label from '../ui/label/label.svelte';
-	import type { Part, Project, ScrapCode } from '../../../../prisma/generated/client/client';
 	import { browser } from '$app/environment';
 	import type { createScrapNoteType } from '@/utils/types';
 	import { createScrapNotesStore } from '@/stores/stores';
+	import type { Part, Project, ScrapCode } from '@prisma/client';
 
 	let {
 		parts,
@@ -50,11 +50,11 @@
 
 	function handleClickPlus(partNumber: string, selectedScrapCode: string) {
 		let existingNote = partNotes.find((note) => note.partNumber === partNumber);
-		// exist note for this PN ?
+
 		if (existingNote) {
 			existingNote.quantity++;
 			let existingScrapCode = existingNote.scrapCode.find((item) => item.sc === selectedScrapCode);
-			// exist in PN scrapcode ?
+	
 			if (existingScrapCode) {
 				existingScrapCode.qnt++;
 			} else {
@@ -83,11 +83,11 @@
 			if (existingScrapCode) {
 				existingScrapCode.qnt--;
 				existingNote.quantity--;
-				// Remove the scrap code entry if its quantity dropped to 0
+			
 				if (existingScrapCode.qnt <= 0) {
 					existingNote.scrapCode = existingNote.scrapCode.filter((item) => item.sc !== sc);
 				}
-				// Remove the entire note if total quantity is 0
+
 				if (existingNote.quantity <= 0) {
 					partNotes = partNotes.filter((n) => n.partNumber !== partNumber);
 				}
@@ -167,7 +167,7 @@
 		}
 	});
 
-	// $inspect(partNotes);
+
 </script>
 
 <main
@@ -181,7 +181,7 @@
 		<span class="text-xs text-muted-foreground"
 			>Priebezny a rychly zapis scrapu ktory nikto nevidi,na zapis do Quadu je nutne vytvorit scrap.</span
 		>
-		<!-- Filter -->
+
 		<article class="flex items-center justify-between gap-4 mt-6">
 			<div class="flex gap-2">
 				<div class="relative">
@@ -238,7 +238,7 @@
 		</article>
 	</section>
 
-	<!-- parts list -->
+
 	<section class="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-1.5">
 		{#each parts as part}
 			{@render addNoteInScrapRecord(part.partNumber)}
@@ -253,13 +253,13 @@
 				filteredParts?.some((fp) => fp.partNumber === partNumber) ? 'flex' : 'hidden'
 			}`}
 			><Plus size={16} class="text-chart-1" />
-			<!-- part number -->
+
 			<article class={`flex justify-between w-full`}>
 				<p>
 					{partNumber}
 				</p>
 
-				<!-- Number -->
+
 				<p class="text-md text-warning font-bold">
 					{#each partNotes as note}
 						{#if note.partNumber === partNumber}
@@ -270,14 +270,14 @@
 			</article>
 		</Dialog.Trigger>
 
-		<!-- dialog -->
+
 		<Dialog.Content class="min-h-[500px] flex flex-col bg-transparent cardNormalize">
 			<Dialog.Header class="mb-4">
 				<Dialog.Title class="text-primary font-bold text-3xl text-center">{partNumber}</Dialog.Title
 				>
 			</Dialog.Header>
 
-			<!-- BTNs -->
+	
 			<div class="flex flex-col justify-between">
 				<section class="space-y-4 w-fit mx-auto">
 					<div>
@@ -326,5 +326,5 @@
 			</div>
 		</Dialog.Content>
 	</Dialog.Root>
-	<!--  -->
-{/snippet}
+
+{/snippet} -->

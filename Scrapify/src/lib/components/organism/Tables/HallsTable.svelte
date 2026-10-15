@@ -6,7 +6,8 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import { SquarePenIcon } from '@lucide/svelte';
 	import { editHallData } from '@/stores/stores';
-	import type { Hall } from '../../../../../prisma/generated/client/client';
+	import type { Hall } from '@prisma/client';
+
 
 	let {
 		halls,
