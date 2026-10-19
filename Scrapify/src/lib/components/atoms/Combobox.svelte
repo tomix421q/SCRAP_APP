@@ -24,7 +24,7 @@
 		reset?: boolean;
 		id?: string;
 		nameLabel?: NameLabel;
-		width?: 'sm' | 'lg';
+		width?: 'sm' | 'lg' | 'xl';
 		firstText?: string;
 		onchange?: (val: string) => void;
 	} = $props();
@@ -103,7 +103,11 @@
 					role="combobox"
 					aria-expanded={open}
 					class="max-sm:w-full  text-md justify-between whitespace-break-spaces {changeCss &&
-						'lg:text-sm'} {width === 'sm' ? 'w-[370px]' : 'w-[430px]'}"
+						'lg:text-sm'} {width === 'sm'
+						? 'w-[370px]'
+						: width === 'lg'
+							? 'w-[430px]'
+							: 'w-[660px]'}"
 				>
 					{selectedLabel || firstText}
 					<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" />
@@ -112,7 +116,11 @@
 		</Popover.Trigger>
 
 		<Popover.Content
-			class="max-sm:w-full {width === 'sm' ? 'w-[370px]' : 'w-[430px]'} p-0 border-primary"
+			class="max-sm:w-full {width === 'sm'
+				? 'w-[370px]'
+				: width === 'lg'
+					? 'w-[430px]'
+					: 'w-[660px]'} p-0 border-primary"
 		>
 			<Command.Root>
 				<Command.Input placeholder="Search ..." class="h-4! inputNormalize" />
@@ -122,7 +130,7 @@
 					<Command.Group>
 						{#each dataBox as item (item.id)}
 							<Command.Item
-								class="hover:bg-primary/20!"
+								class="hover:bg-primary/20! [content-visibility:auto]! [contain-intrinsic-size:36px]! transition-none! hover:transition-none!"
 								value={getItemSearchText(item)}
 								onSelect={() => {
 									const selectedId = item.id.toString();

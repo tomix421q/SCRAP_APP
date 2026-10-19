@@ -30,26 +30,25 @@
 			</p>
 			<h2 class="lg:text-lg tracking-widest font-bold">{headerText}</h2>
 		</div>
-		<Table.Root>
-			<Table.Header>
-				<Table.Row class="bg-chart-4/40 *:text-chart-1">
-					<Table.Head class="w-[100px]">ID</Table.Head>
-					<Table.Head class="w-[100px]">DMC</Table.Head>
-					<Table.Head class="w-[100px]">Groups</Table.Head>
-					<Table.Head class="w-[100px]">Process</Table.Head>
-					<Table.Head class="w-[100px]">Project</Table.Head>
-					<Table.Head colspan={1} class="text-end">Actions</Table.Head>
+		<Table.Root class="lg:table-fixed w-full">
+			<Table.Header class="">
+				<Table.Row class="bg-chart-4/40 *:text-chart-1 *:border">
+					<Table.Head class="w-20">ID</Table.Head>
+					<Table.Head class="min-w-20 max-w-60">DMC</Table.Head>
+					<Table.Head class="min-w-20 max-w-50">Groups</Table.Head>
+					<Table.Head class="min-w-20 max-w-50">Project</Table.Head>
+					<Table.Head class="text-end">Actions</Table.Head>
 				</Table.Row>
 			</Table.Header>
 			<Table.Body>
 				{#each labelGroups as item (item.id)}
-					<Table.Row>
-						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.code}</Table.Cell>
+					<Table.Row class="*:border *:truncate">
+						<Table.Cell class="">{item.id}</Table.Cell>
+						<Table.Cell class="" title={item.code}>{item.code}</Table.Cell>
 
 						<!--  -->
 						<!-- Groups -->
-						<Table.Cell class="w-[100px]"
+						<Table.Cell class=""
 							><p class="flex gap-2">
 								{item.groups.length}
 								{#if item.groups.length > 0}
@@ -72,8 +71,8 @@
 														<article>
 															<span class="text-muted-foreground">PARTS:</span>
 															<div class="flex flex-col flex-1">
-																{#each group.parts as p}
-																	<p>{p.partNumber}</p>
+																{#each group.materials as p}
+																	<p>{p.material}</p>
 																{/each}
 															</div>
 														</article>
@@ -85,10 +84,10 @@
 								{/if}
 							</p></Table.Cell
 						>
-						<Table.Cell class="w-[100px]">{item.process.name}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.project.name}</Table.Cell>
 
-						<Table.Cell class="w-[50px]">
+						<Table.Cell class="">{item.vProject}</Table.Cell>
+
+						<Table.Cell class="">
 							<div class="flex justify-end gap-2">
 								<!-- <Button
 									onclick={() => handleEditPartGroupRec(item)}

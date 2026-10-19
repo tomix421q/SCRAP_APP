@@ -7,74 +7,54 @@
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import Input from '@/components/ui/input/input.svelte';
-	import { page } from '$app/state';
+	import { navigating, page } from '$app/state';
 	import { onMount, tick, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { Plus, X } from '@lucide/svelte';
+	import { DatabaseArrowDownIcon, Plus, X } from '@lucide/svelte';
 	import NewGroupTable from '@/components/organism/Tables/NewGroupTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
 	import { QAD_COMPONENTS_TYPES } from '@/utils/qadComponentsTypes';
 	import { currentConfirmDeleteId, editPartGroupData } from '@/stores/stores';
 	import Separator from '@/components/ui/separator/separator.svelte';
+	import { crossfade, fade, slide } from 'svelte/transition';
 
 	let { data, form }: PageProps = $props();
-	let { groups, groupsCount, processes, projects, parts, scrapCodes, totalPages } = $derived(
-		data.data
-	);
+	let { groups, groupsCount, parts, scrapCodes, totalPages } = $derived(data.data);
+	let { vProjects } = $derived(data);
 
 	// vars
-	let isMounted = false;
 	let idEditGroup = $state<number>();
 	let isSettingEdit = false;
 	let isSubmitting = $state(false);
-	let resetProcessCombo = $state(false);
+
+	let resetProjectCombo = $state(false);
 	let resetGroupCombo = $state(false);
 	let resetScrapCodesCombo = $state(false);
-	let isRebuild = $state(false);
-	let qadSelectedItemType = $state('');
-	let partGroupName = $state('');
-	let interfaceName = $state('');
-
 	let partSlots = $state<string[]>(['']);
 	let scrapSlots = $state<string[]>(['']);
+
+	let selectedVproject = $state(page.url.searchParams.get('vProject') ?? '');
 	let selectedPartIds = $derived(partSlots.filter((val) => val && val.trim() !== ''));
 	let selectedScrapCodesIds = $derived(scrapSlots.filter((val) => val && val.trim() !== ''));
+	let partGroupName = $state('');
+	let interfaceName = $state('');
+	let isRebuild = $state(false);
+	let qadSelectedItemType = $state('');
 
-	let filterOptions = $state({
-		processId: page.url.searchParams.get('processId') ?? '',
-		projectId: page.url.searchParams.get('projectId') ?? ''
-	});
-	let prevProc = $state(filterOptions.processId);
-	let prevProj = $state(filterOptions.projectId);
-
+	let isLoadingParts = $derived(Boolean(navigating.to?.url.searchParams.has('vProject')));
+	let projectItems = $derived(
+		vProjects.map((p: string) => ({
+			id: p,
+			name: p
+		}))
+	);
 	let filteredQadItems = $derived.by(() => {
 		return QAD_COMPONENTS_TYPES.map((item) => ({
 			id: `${item.itemType}__${item.project}-${item.description}`,
 			name: `[${item.itemType}] - ${item.project}_${item.description}`
 		}));
 	});
-
-	// func
-	function applyFilter() {
-		const params = new URLSearchParams(page.url.searchParams);
-		if (filterOptions.processId) {
-			params.set('processId', filterOptions.processId.toString());
-		} else {
-			params.delete('processId');
-		}
-		if (filterOptions.projectId) {
-			params.set('projectId', filterOptions.projectId.toString());
-		} else {
-			params.delete('projectId');
-		}
-		const query = params.toString();
-		goto(query ? `?${query}` : page.url.pathname, {
-			keepFocus: true,
-			noScroll: true,
-			replaceState: true
-		});
-	}
 
 	function addPartSlot() {
 		partSlots.push('');
@@ -86,7 +66,6 @@
 			partSlots.splice(index, 1);
 		}
 	}
-
 	function addScrapSlot() {
 		scrapSlots.push('');
 	}
@@ -100,8 +79,6 @@
 
 	async function clearEditForm() {
 		idEditGroup = undefined;
-		filterOptions.processId = '';
-		filterOptions.projectId = '';
 		partGroupName = '';
 		interfaceName = '';
 		resetGroupCombo = true;
@@ -115,23 +92,25 @@
 
 	// efect
 	$effect(() => {
-		const currentProc = filterOptions.processId;
-		const currentProj = filterOptions.projectId;
+		const currentUrlParam = page.url.searchParams.get('vProject') ?? '';
+		if (selectedVproject !== currentUrlParam) {
+			if (!idEditGroup) {
+				partSlots = [''];
+				scrapSlots = [''];
+			}
 
-		if (!isMounted) {
-			isMounted = true;
-			return;
-		}
-		if (currentProc !== prevProc || currentProj !== prevProj) {
-			prevProc = currentProc;
-			prevProj = currentProj;
-			if (isSettingEdit) return;
-			partSlots = [''];
-			scrapSlots = [''];
-			resetGroupCombo = true;
-			resetScrapCodesCombo = true;
-			untrack(() => {
-				applyFilter();
+			selectedPartIds = [];
+			const url = new URL(page.url);
+			if (selectedVproject) {
+				url.searchParams.set('vProject', selectedVproject);
+			} else {
+				url.searchParams.delete('vProject');
+			}
+
+			goto(url.toString(), {
+				keepFocus: true,
+				noScroll: true,
+				invalidateAll: true
 			});
 		}
 	});
@@ -145,13 +124,11 @@
 			untrack(() => {
 				form = null;
 				idEditGroup = editData.id;
-				filterOptions.processId = String(editData.process?.id ?? '');
-				prevProc = filterOptions.processId;
-				filterOptions.projectId = String(editData.projectId ?? '');
-				prevProj = filterOptions.projectId;
-				// Parts
-				if (editData.parts && editData.parts.length > 0) {
-					partSlots = editData.parts.map((p: any) => String(p.id));
+				selectedVproject = editData.vProject ? editData.vProject : '';
+
+				// Parts / Materials
+				if (editData.materials && editData.materials.length > 0) {
+					partSlots = editData.materials.map((p) => p.material);
 				} else {
 					partSlots = [''];
 				}
@@ -167,7 +144,7 @@
 				isRebuild = editData.isRebuild;
 				qadSelectedItemType = editData.qadIdentity ?? '';
 
-				applyFilter();
+				// applyFilter();
 				tick().then(() => {
 					isSettingEdit = false;
 				});
@@ -180,7 +157,7 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	// $inspect(idEditGroup);
+	$inspect(selectedPartIds);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -191,9 +168,8 @@
 			method="POST"
 			action={idEditGroup ? '?/editGroup' : '?/createPartGroup'}
 			use:enhance={({ formData, cancel }) => {
-				formData.set('processId', filterOptions.processId);
-				formData.set('projectId', filterOptions.projectId);
-				formData.set('partIds', JSON.stringify(selectedPartIds));
+				formData.set('vProject', selectedVproject);
+				formData.set('partNumbers', JSON.stringify(selectedPartIds));
 				formData.set('scrapCodesIds', JSON.stringify(selectedScrapCodesIds));
 				formData.set('groupName', partGroupName);
 				formData.set('interfaceName', interfaceName);
@@ -210,7 +186,7 @@
 					isSubmitting = false;
 				};
 			}}
-			class="formNormalize md:max-w-6xl"
+			class="formNormalize md:w-[840px]"
 		>
 			<h1 class="mx-auto md:mb-6 text-2xl font-semibold tracking-wider">
 				{idEditGroup ? 'Edit component group' : 'Create new component group'}
@@ -223,33 +199,39 @@
 			<input type="text" hidden name="id" bind:value={idEditGroup} />
 
 			<!--  -->
-			<!-- Project && Process -->
-			<div class="md:flex gap-12">
-				<article class="flex flex-col w-full gap-2 justify-between lg:flex-row lg:w-lg">
-					<Label for="processId" class="text-sm md:text-lg">Process</Label>
+			<!-- Project -->
+			<div class="md:flex gap-2 items-center mb-6">
+				<article class="flex flex-col w-full lg:w-fit lg:flex-row gap-2">
+					<Label for="projectId" class="text-sm md:text-lg">vProject <span class="text-sm text-chart-info capitalize tracking-widest"
+										>[filter]</span
+									></Label>
 					<Combobox
-						dataBox={processes}
-						bind:value={filterOptions.processId}
-						reset={resetProcessCombo}
-						id="processId"
+						dataBox={projectItems}
+						bind:value={selectedVproject}
+						bind:reset={resetProjectCombo}
+						id="project"
 					/>
+					<Button
+						type="button"
+						title="Remove item"
+						size="icon"
+						variant="ghost"
+						class={selectedVproject
+							? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
+							: 'hidden'}
+						onclick={() => (selectedVproject = '')}
+					>
+						<X />
+					</Button>
 				</article>
-				<article class="flex flex-col w-full lg:flex-row lg:w-lg gap-2 justify-between">
-					<Label for="projectId" class="text-sm md:text-lg">Project</Label>
-					<Combobox
-						dataBox={projects}
-						bind:value={filterOptions.projectId}
-						reset={resetProcessCombo}
-						id="projectId"
-					/>
-				</article>
+				<p class="font-bold text-chart-1">{parts.length} parts</p>
 			</div>
 
 			<!--  -->
 			<!-- Parts && Scrap codes -->
-			<div class="md:flex gap-12">
+			<div class="flex flex-col gap-12">
 				<!-- parts  -->
-				<article class="flex flex-col gap-2 w-full lg:w-lg">
+				<article class="flex flex-col gap-2 w-full lg:w-max">
 					<ul
 						class="flex flex-col gap-2 space-y-1 max-h-[520px] overscroll-y-auto overflow-auto w-full overflow-x-hidden"
 					>
@@ -257,16 +239,33 @@
 							{@const currentPartId = partSlots[index]}
 							{@const availableParts = parts.filter(
 								(part: any) =>
-									!selectedPartIds.includes(part.id.toString()) ||
-									part.id.toString() === currentPartId
+									!selectedPartIds.includes(String(part.id)) || String(part.id) === currentPartId
 							)}
-							<li class="flex flex-col lg:flex-row justify-between">
-								<Label for={`part-slot-${index}`} class="text-sm md:text-lg">
-									Part <span class="text-sm text-chart-info capitalize tracking-widest"
+							<li class="flex flex-col lg:flex-row gap-1 justify-start">
+								<Label for={`part-slot-${index}`} class="text-sm md:text-lg ">
+									<span class="">vPart</span>
+									<span class="text-sm text-chart-info capitalize tracking-widest"
 										>[{index + 1}]</span
 									>
 								</Label>
-								<div class="flex gap-2">
+								<div class="flex gap-1 relative">
+									{#if isLoadingParts}
+										<span
+											class="absolute inset-0 bg-chart-5 flex items-center gap-4 z-20 justify-center rounded-lg"
+											>Loading parts... <DatabaseArrowDownIcon
+												class="animate-bounce size-6 stroke-chart-1"
+											/></span
+										>
+									{/if}
+
+									<Combobox
+										dataBox={availableParts}
+										bind:value={partSlots[index]}
+										id={`part-slot-${index}`}
+										width={'xl'}
+										nameLabel={'name'}
+										firstText={selectedVproject ? 'Select part' : 'Select project first'}
+									/>
 									<Button
 										type="button"
 										title="Remove item"
@@ -279,13 +278,6 @@
 									>
 										<X />
 									</Button>
-
-									<Combobox
-										dataBox={availableParts}
-										bind:value={partSlots[index]}
-										id={`part-slot-${index}`}
-										nameLabel={'partnumSideColor'}
-									/>
 								</div>
 							</li>
 						{/each}
@@ -295,15 +287,14 @@
 						size="sm"
 						variant="outline"
 						onclick={addPartSlot}
-						class="w-full lg:w-[370px] ml-auto text-chart-1 bg-chart-1/10"
-						><Plus /> Add more parts</Button
+						class="w-full mx-auto text-chart-1 bg-chart-1/10"><Plus /> Add more parts</Button
 					>
 				</article>
 
 				<!-- scrap -->
-				<article class="flex flex-col gap-2 w-full lg:w-lg">
+				<article class="flex flex-col gap-2 w-full lg:w-max">
 					<ul
-						class="flex flex-col gap-2 space-y-1 max-h-[520px] overscroll-y-auto overflow-auto overflow-x-hidden w-full"
+						class="flex flex-col gap-2 space-y-1 max-h-[520px] overscroll-y-auto overflow-auto w-full overflow-x-hidden"
 					>
 						{#each scrapSlots as _, index (index)}
 							{@const currentScrapId = scrapSlots[index]}
@@ -312,14 +303,22 @@
 									!selectedScrapCodesIds.includes(sc.id.toString()) ||
 									sc.id.toString() === currentScrapId
 							)}
-							<li class="flex flex-col lg:flex-row justify-between">
+							<li class="flex flex-col lg:flex-row gap-1 justify-start">
 								<Label for={`scrap-slot-${index}`} class="text-sm md:text-lg">
-									<span class="">Scrap</span>
+									<span>Scrap</span>
 									<span class="text-sm text-chart-info capitalize tracking-widest"
 										>[{index + 1}]</span
 									>
 								</Label>
-								<div class="flex gap-2">
+								<div class="flex gap-1">
+									<Combobox
+										dataBox={availableScrapCodes}
+										bind:value={scrapSlots[index]}
+										id={`scrap-slot-${index}`}
+										width="xl"
+										nameLabel={'codeName'}
+										firstText={selectedVproject ? 'Select scrap' : 'Select project first'}
+									/>
 									<Button
 										type="button"
 										title="Remove item"
@@ -332,13 +331,6 @@
 									>
 										<X />
 									</Button>
-
-									<Combobox
-										dataBox={availableScrapCodes}
-										bind:value={scrapSlots[index]}
-										id={`scrap-slot-${index}`}
-										nameLabel={'codeName'}
-									/>
 								</div>
 							</li>
 						{/each}
@@ -348,7 +340,7 @@
 						variant="outline"
 						type="button"
 						onclick={addScrapSlot}
-						class="w-full lg:w-[370px] ml-auto text-chart-1 bg-chart-1/10"
+						class="w-full mx-auto text-chart-1 bg-chart-1/10"
 					>
 						<Plus /> Add more scrap codes
 					</Button>
@@ -357,14 +349,12 @@
 			<Separator />
 			<!--  -->
 			<!-- Group name && Interface name -->
-			<div class="md:flex gap-12">
+			<div class="flex flex-col gap-12">
 				<!-- group name !!! -->
 				<article
 					class="flex flex-col w-full lg:flex-row lg:w-lg justify-between items-center gap-2 max-sm:mb-2"
 				>
-					<Label for="groupName" class="text-sm md:text-lg"
-						>Group <br class="lg:block hidden" />name</Label
-					>
+					<Label for="groupName" class="text-sm md:text-lg">Group name</Label>
 					<Input
 						type="text"
 						name="groupName"
@@ -380,9 +370,7 @@
 				<article
 					class="flex flex-col w-full lg:flex-row lg:w-lg justify-between items-center gap-2"
 				>
-					<Label for="interfaceName" class="text-sm md:text-lg"
-						>Interface <br class="lg:block hidden" />name</Label
-					>
+					<Label for="interfaceName" class="text-sm md:text-lg">Interface name</Label>
 					<Input
 						type="text"
 						name="interfaceName"
@@ -439,7 +427,7 @@
 						<Combobox
 							dataBox={filteredQadItems}
 							bind:value={qadSelectedItemType}
-							reset={resetProcessCombo}
+							reset={resetProjectCombo}
 							width="lg"
 							firstText="Select qad identity"
 							id="qad-item-type"
@@ -456,7 +444,14 @@
 				{/if}
 			</Button>
 			{#if idEditGroup}
-				<Button variant="destructive" onclick={() => clearEditForm()}>Close Edit</Button>
+				<Button
+					variant="destructive"
+					onclick={() => {
+						clearEditForm();
+						selectedVproject = '';
+						console.log(selectedVproject);
+					}}>Close Edit</Button
+				>
 			{/if}
 		</form>
 	</section>

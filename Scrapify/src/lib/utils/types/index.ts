@@ -25,11 +25,11 @@ export const PART_SIDES: { id: PartSide; name: string }[] = [
 
 export interface FilterType {
 	partNumber: string;
+	vProject: string;
+	vHall: string;
 	partId: string;
 	scrapCode: string;
 	scrapName: string;
-	processName: string;
-	projectName: string;
 	dateFrom: string;
 	dateTo: string;
 	description: string;
@@ -62,31 +62,16 @@ export type LoggerEntityType =
 	| 'PartGroup'
 	| 'LabelGroup';
 
-export type ProcessWithRelations = Prisma.ProcessGetPayload<{
-	include: {
-		hall: true;
-	};
-}>;
-export type ProcessWithRelationsAll = Prisma.ProcessGetPayload<{
-	include: {
-		project: { include: { project: true } };
-		hall: true;
-	};
-}>;
 export type PartGroupWithRelations = Prisma.PartGroupGetPayload<{
 	include: {
-		parts: true;
-		process: true;
-		project: true;
 		scrapCodes: true;
+		materials: true;
 	};
 }>;
 
 export type LabelGroupsWithRelations = Prisma.LabelGroupGetPayload<{
 	include: {
-		groups: { include: { parts: true } };
-		process: true;
-		project: true;
+		groups: { include: { materials: true } };
 	};
 }>;
 
@@ -103,14 +88,14 @@ export interface createScrapNoteType {
 	}[];
 }
 
-export type LabelGroupsWithRelationsScan = Prisma.LabelGroupGetPayload<{
-	include: {
-		process: true;
-		project: true;
-		groups: {
-			include: {
-				parts: true;
-			};
-		};
-	};
-}>;
+// export type LabelGroupsWithRelationsScan = Prisma.LabelGroupGetPayload<{
+// 	include: {
+// 		process: true;
+// 		project: true;
+// 		groups: {
+// 			include: {
+// 				parts: true;
+// 			};
+// 		};
+// 	};
+// }>;

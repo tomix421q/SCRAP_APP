@@ -11,29 +11,20 @@ export const load = (async (event) => {
 	const skip = (page - 1) * limit;
 
 	const filters = {
-		processId: Number(event.url.searchParams.get('processId')),
-		projectId: Number(event.url.searchParams.get('projectId'))
+		projectId: event.url.searchParams.get('vProject')
 	};
 	const whereGroup: Prisma.PartGroupWhereInput = {};
-	if (filters.processId) whereGroup.processId = filters.processId;
-	if (filters.projectId) whereGroup.projectId = filters.projectId;
+	if (filters.projectId) whereGroup.vProject = filters.projectId;
 
 	try {
-		const [processes, projects, groups, labelGroups, labelGroupsCount] = await Promise.all([
-			prismaClient.process.findMany(),
-			prismaClient.project.findMany({
-				include: { processes: true },
-				where: { processes: { some: { processId: filters.processId } } }
-			}),
+		const [groups, labelGroups, labelGroupsCount] = await Promise.all([
 			prismaClient.partGroup.findMany({ where: whereGroup }),
 			prismaClient.labelGroup.findMany({
 				skip,
 				take: limit,
 				orderBy: { id: 'desc' },
 				include: {
-					groups: { include: { parts: true } },
-					process: true,
-					project: true
+					groups: { include: { materials: true } }
 				}
 			}),
 			prismaClient.labelGroup.count()
@@ -42,8 +33,6 @@ export const load = (async (event) => {
 
 		const data = {
 			groups: groups,
-			processes,
-			projects,
 			labelGroups,
 			labelGroupsCount,
 			totalPages
@@ -69,14 +58,13 @@ export const actions = {
 				values: data
 			});
 		}
-		const { processId, projectId, labelNumber, groups } = result.data;
+		const { vProject, labelNumber, groups } = result.data;
 
 		try {
 			const newLabel = await prismaClient.labelGroup.create({
 				data: {
 					code: labelNumber,
-					processId: processId,
-					projectId: projectId,
+					vProject,
 					groups: {
 						connect: groups.map((id) => ({ id }))
 					}
@@ -90,7 +78,7 @@ export const actions = {
 			if (err.code === 'P2002') {
 				return fail(400, {
 					success: false,
-					message: `This label group with this process and project already exist`
+					message: `This label group with this project already exist`
 				});
 			}
 			return fail(500, {

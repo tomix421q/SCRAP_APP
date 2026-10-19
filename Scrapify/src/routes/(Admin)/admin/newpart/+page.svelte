@@ -10,17 +10,16 @@
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import NewPartTable from '@/components/organism/Tables/NewPartTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
-	import { currentConfirmDeleteId, editPartData, isEditing } from '@/stores/stores';
+	import { currentConfirmDeleteId, isEditing } from '@/stores/stores';
 	import { onMount, untrack } from 'svelte';
 	import Filter from '@/components/organism/Filter.svelte';
-	import { X } from '@lucide/svelte';
-	import { page } from '$app/state';
 
 	let { data, form }: PageProps = $props();
-	let { parts, processes, projects, totalPages, partsCount, groups } = $derived(data.data);
+	let { parts, processes, totalPages, partsCount } = $derived(data.data);
 	let isSubmitting = $state(false);
 
 	// id
+	let isImport = $state(false);
 	let idEditPart = $state<number>();
 	let descriptionInput = $state<string | null>('');
 	let partProdNumberId = $state('');
@@ -35,19 +34,9 @@
 		idEditPart = undefined;
 		descriptionInput = '';
 		partProdNumberId = '';
-		partSide = '' as PartSide;
-		$editPartData = undefined;
+		// partSide = '' as PartSide;
 	}
 
-	$effect(() => {
-		if ($editPartData) {
-			form = null;
-			idEditPart = $editPartData.id;
-			partProdNumberId = $editPartData.partNumber;
-			descriptionInput = $editPartData.description;
-			partSide = $editPartData.side as PartSide;
-		}
-	});
 	$effect(() => {
 		if ($currentConfirmDeleteId) {
 			clearEditForm();
@@ -55,15 +44,10 @@
 	});
 	$effect(() => {
 		const curDesc = descriptionInput;
-		untrack(() => {
-			const edit = $editPartData?.id.toString();
-			if (edit && curDesc !== descriptionInput) {
-				descriptionInput = '';
-			}
-			// if(edit)
 
-			// updateFilterParams(curProc, curProj);
-		});
+		if (isImport) {
+			form = undefined!;
+		}
 	});
 
 	onMount(() => {
@@ -74,137 +58,108 @@
 	// $inspect($editPartData);
 </script>
 
-<ToNavigateBtn text="Back to admin panel" href="/admin" />
+<article class="flex gap-8">
+	<ToNavigateBtn text="Back to admin panel" href="/admin" />
+	<div class="flex gap-1 items-center h-fit text-muted-foreground text-sm uppercase">
+		<!-- <Button
+			variant="link"
+			size="icon"
+			class="rounded-xl transition-all"
+			onclick={() => (isImport = !isImport)}
+		>
+			{#if isImport}
+				<ToggleLeft class="size-10 stroke-1" title="Import parts" />
+			{:else}
+				<ToggleRight class="size-10 stroke-1" title="Import parts" />
+			{/if}
+		</Button>
+		{isImport ? 'Import' : 'Create'} -->
+	</div>
+</article>
+
 <main class="flex flex-col lg:flex-wrap gap-10">
 	<!--  -->
 	<!-- CREATE & EDIT PART -->
-	<section class="w-full flex max-md:flex-col gap-5 justify-between">
-		<form
-			method="POST"
-			action={idEditPart ? '?/editPart' : '?/createPart'}
-			use:enhance={() => {
-				isSubmitting = true;
-				return async ({ update, result }) => {
-					if (result?.type === 'success') {
-						clearEditForm();
-					}
-					await update();
-					isSubmitting = false;
-					// if ($isEditing) {
-					// 	clearEditForm();
-					// }
-				};
-			}}
-			class="formNormalize sm:w-xl"
-		>
-			<h1 class="mx-auto mb-6 text-2xl">{idEditPart ? 'Edit part' : 'Create new part'}</h1>
-			<div>
-				<ResultInfo data={form} />
-			</div>
-			<!-- if edit  -->
-			<input type="text" hidden name="partId" bind:value={idEditPart} />
+	<section class="w-full items-start flex max-md:flex-col gap-5 justify-between">
+		{#if false}
+			<form
+				method="POST"
+				action={idEditPart ? '?/editPart' : '?/createPart'}
+				use:enhance={() => {
+					isSubmitting = true;
+					return async ({ update, result }) => {
+						if (result?.type === 'success') {
+							clearEditForm();
+						}
+						await update();
+						isSubmitting = false;
+						// if ($isEditing) {
+						// 	clearEditForm();
+						// }
+					};
+				}}
+				class="formNormalize sm:w-xl"
+			>
+				<div class="flex">
+					<h1 class="mx-auto mb-6 text-2xl">{idEditPart ? 'Edit part' : 'Create new part'}</h1>
+				</div>
 
-			<!--  -->
-			<!-- Part inputs !!! -->
-			<article class="flex flex-col lg:flex-row justify-between gap-2">
-				<Label for="partNumber" class="text-sm md:text-lg">Part number</Label>
-				<Input
-					type="text"
-					name="partNumber"
-					id="partNumber"
-					bind:value={partProdNumberId}
-					placeholder="Insert part number..."
-					class="inputNormalize lg:w-[350px] text-xl! text-warning placeholder:text-sm"
-					autocomplete={'off'}
-					required
-				/>
-			</article>
+				<div>
+					<ResultInfo data={form} />
+				</div>
+				<!-- if edit  -->
+				<input type="text" hidden name="partId" bind:value={idEditPart} />
 
-			<!--  -->
-			<!-- Description -->
-			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
-				<Label for="description" class="text-sm md:text-lg"
-					>Description <span class="text-xs text-chart-info">[Optional]</span></Label
-				>
-				<Input
-					type="text"
-					max={64}
-					alt="description"
-					class="inputNormalize max-w-[350px]"
-					placeholder="Short info..."
-					bind:value={descriptionInput}
-				/>
-
-				<input type="hidden" name="description" required bind:value={descriptionInput} />
-			</article>
-
-			<!--  -->
-			<!-- Side [optional] -->
-			<article class="flex flex-col justify-between lg:items-center gap-2 lg:flex-row">
-				<Label for="partSide" class="text-sm md:text-lg"
-					>Side <span class="text-xs text-chart-info">[Optional]</span></Label
-				>
-				<div class="flex gap-2">
-					{#if partSide}
-						<Button
-							title="Remove filter"
-							size="icon"
-							variant="ghost"
-							class="flex text-destructive bg-destructive/10 hover:bg-destructive/50"
-							onclick={() => {
-								partSide = '' as PartSide;
-							}}><X /></Button
-						>
-					{/if}
-					<Combobox
-						dataBox={PART_SIDES}
-						bind:value={partSide}
-						reset={resetPartSideCombo}
-						id={'partSide'}
+				<!--  -->
+				<!-- Part inputs !!! -->
+				<article class="flex flex-col lg:flex-row justify-between gap-2">
+					<Label for="partNumber" class="text-sm md:text-lg">Part number</Label>
+					<Input
+						type="text"
+						name="partNumber"
+						id="partNumber"
+						bind:value={partProdNumberId}
+						placeholder="Insert part number..."
+						class="inputNormalize lg:w-[350px] text-xl! text-warning placeholder:text-sm"
+						autocomplete={'off'}
+						required
 					/>
-				</div>
+				</article>
 
-				<input type="hidden" name="partSide" required bind:value={partSide} />
-			</article>
+				<!--  -->
+				<!-- Description -->
+				<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
+					<Label for="description" class="text-sm md:text-lg"
+						>Description <span class="text-xs text-chart-info">[Optional]</span></Label
+					>
+					<Input
+						type="text"
+						max={64}
+						alt="description"
+						class="inputNormalize max-w-[350px]"
+						placeholder="Short info..."
+						bind:value={descriptionInput}
+					/>
 
-			<!--  -->
-			<!-- Part group !!! -->
-			<!-- <article class="flex justify-between items-center gap-2">
-				<Label for="groupId" class="text-sm md:text-lg"
-					>Part group <span class="text-xs text-chart-info">[Optional]</span></Label
-				>
-				<div class="flex gap-2">
-					{#if groupId}
-						<Button
-							title="Remove filter"
-							size="icon"
-							variant="ghost"
-							class="flex text-destructive bg-destructive/10 hover:bg-destructive/50"
-							onclick={() => {
-								groupId = '';
-							}}><X /></Button
-						>
+					<input type="hidden" name="description" required bind:value={descriptionInput} />
+				</article>
+
+				<Button type="submit" class="mt-10 ">
+					{#if isSubmitting}
+						<span>Submitting...</span>
+					{:else}
+						{idEditPart ? 'Edit part' : 'Create part'}
 					{/if}
-					<Combobox dataBox={groups} bind:value={groupId} reset={resetProcessCombo} id="groupId" />
-				</div>
-
-				<input type="hidden" name="groupId" required bind:value={groupId} />
-			</article> -->
-
-			<Button type="submit" class="mt-10 ">
-				{#if isSubmitting}
-					<span>Submitting...</span>
-				{:else}
-					{idEditPart ? 'Edit part' : 'Create part'}
+				</Button>
+				{#if idEditPart}
+					<Button variant="destructive" onclick={() => clearEditForm()}>Close Edit</Button>
 				{/if}
-			</Button>
-			{#if idEditPart}
-				<Button variant="destructive" onclick={() => clearEditForm()}>Close Edit</Button>
-			{/if}
-		</form>
+			</form>
+		{/if}
+
 		<!--  -->
 		<!-- Filter -->
-		<section>
+		<section class="flex flex-col gap-4">
 			<Filter whereUse="part" />
 		</section>
 	</section>

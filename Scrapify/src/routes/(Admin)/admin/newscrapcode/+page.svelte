@@ -12,21 +12,30 @@
 	import { currentConfirmDeleteId, editScrapData } from '@/stores/stores';
 	import { onMount } from 'svelte';
 	import Filter from '@/components/organism/Filter.svelte';
+	import { page } from '$app/state';
 
 	let { data, form }: PageProps = $props();
-	let { scrapCodes, processes, scrapCodeCount, totalPages } = $derived(data.data);
+	let { scrapCodes = [], scrapCodeCount = 0, totalPages = 1 } = $derived(data.data);
+	let { vProjects } = $derived(data);
 	let isSubmitting = $state(false);
 
 	// ids
 	let idEditScrapCode = $state<number>();
-	let processId = $state('');
+	let project = $state('');
 	let scrapcodeNum = $state('');
 	let scrapcodeName = $state('');
 	let scrapDescription = $state('');
 
-	//reset combo
-	let resetProcessCombo = $state(false);
+	let resetProjectCombo = $state(false);
 
+	let projectItems = $derived(
+		vProjects.map((p: string) => ({
+			id: p,
+			name: p
+		}))
+	);
+
+	// Funcs
 	function clearEditForm() {
 		idEditScrapCode = undefined;
 		// processId = '';
@@ -36,11 +45,12 @@
 		$editScrapData = undefined;
 	}
 
+	// Efects
 	$effect(() => {
 		if ($editScrapData) {
 			form = null;
 			idEditScrapCode = $editScrapData.id;
-			if ($editScrapData.processId) processId = $editScrapData.processId.toString();
+			if ($editScrapData.vProject) project = $editScrapData.vProject.toString();
 			scrapcodeNum = $editScrapData.code;
 			scrapcodeName = $editScrapData.name;
 			if ($editScrapData.description) {
@@ -60,7 +70,7 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	// $inspect(processId);
+	// $inspect(scrapCodes);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -95,18 +105,18 @@
 			<input type="text" hidden name="scrapCodeId" bind:value={idEditScrapCode} />
 
 			<!--  -->
-			<!-- process COMBO -->
+			<!-- project COMBO -->
 			<article class="flex justify-between items-center gap-2">
-				<Label for="processId" class="text-sm md:text-lg">Process</Label>
+				<Label for="processId" class="text-sm md:text-lg">Project</Label>
 				<div class="flex gap-2">
 					<Combobox
-						dataBox={processes}
-						bind:value={processId}
-						reset={resetProcessCombo}
-						id="processId"
+						dataBox={projectItems}
+						bind:value={project}
+						reset={resetProjectCombo}
+						id="vProject"
 					/>
 				</div>
-				<input type="hidden" name="processId" required bind:value={processId} />
+				<input type="hidden" name="vProject" required bind:value={project} />
 			</article>
 			<!--  -->
 			<!-- Inputs -->
@@ -145,7 +155,7 @@
 					name="scrapDescription"
 					id="scrapDescription"
 					bind:value={scrapDescription}
-					placeholder="Scrap description (optional)"
+					placeholder="Scrap description [optional]"
 					class="inputNormalize lg:w-[350px]"
 				/>
 			</article>
@@ -162,7 +172,7 @@
 		</form>
 		<!-- Filter -->
 		<section>
-			<Filter allProcesses={processes} whereUse="scrapCode" />
+			<Filter allProjects={projectItems} whereUse="scrapCode" />
 		</section>
 	</section>
 
@@ -173,7 +183,7 @@
 			{scrapCodes}
 			{totalPages}
 			{scrapCodeCount}
-			{processes}
+			{vProjects}
 			headerText="Codes list"
 		/>
 	</section>

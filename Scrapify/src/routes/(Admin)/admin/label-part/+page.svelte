@@ -15,9 +15,8 @@
 	import Pagination from '@/components/molecules/Pagination.svelte';
 
 	let { data, form }: PageProps = $props();
-	let { groups, processes, projects, labelGroups, labelGroupsCount, totalPages } = $derived(
-		data.data
-	);
+	let { groups, labelGroups, labelGroupsCount, totalPages } = $derived(data.data);
+	let { vProjects } = $derived(data);
 
 	// vars
 	let isMounted = false;
@@ -34,16 +33,14 @@
 		Object.values(comboGroups).filter((val) => val && val.trim() !== '')
 	);
 	let filterOptions = $state({
-		processId: page.url.searchParams.get('processId') ?? '',
-		projectId: page.url.searchParams.get('projectId') ?? ''
+		vProject: page.url.searchParams.get('vProject') ?? ''
 	});
-	let prevProc = $state(filterOptions.processId);
-	let prevProj = $state(filterOptions.projectId);
+	let prevProj = $state(filterOptions.vProject);
+
 	// func
 	async function clearEditForm() {
 		idEditLabel = undefined;
-		filterOptions.processId = '';
-		filterOptions.projectId = '';
+		filterOptions.vProject = '';
 		label = '';
 		resetGroupCombo = true;
 	}
@@ -56,18 +53,19 @@
 			}
 		}
 	}
+	let projectItems = $derived(
+		vProjects.map((p: string) => ({
+			id: p,
+			name: p
+		}))
+	);
 
 	function applyFilter() {
 		const params = new URLSearchParams(page.url.searchParams);
-		if (filterOptions.processId) {
-			params.set('processId', filterOptions.processId.toString());
+		if (filterOptions.vProject) {
+			params.set('vProject', filterOptions.vProject.toString());
 		} else {
-			params.delete('processId');
-		}
-		if (filterOptions.projectId) {
-			params.set('projectId', filterOptions.projectId.toString());
-		} else {
-			params.delete('projectId');
+			params.delete('vProject');
 		}
 		const query = params.toString();
 		goto(query ? `?${query}` : page.url.pathname, {
@@ -79,16 +77,15 @@
 
 	// efect
 	$effect(() => {
-		const currentProc = filterOptions.processId;
-		const currentProj = filterOptions.projectId;
+		const currentProj = filterOptions.vProject;
 
 		if (!isMounted) {
 			isMounted = true;
 			return;
 		}
 
-		if (currentProc !== prevProc || currentProj !== prevProj) {
-			prevProc = currentProc;
+		if (currentProj !== prevProj) {
+			prevProj = currentProj;
 			prevProj = currentProj;
 			for (const key in comboGroups) {
 				comboGroups[key] = '';
@@ -116,8 +113,7 @@
 			action={idEditLabel ? '?/editLabel' : '?/createLabel'}
 			use:enhance={({ formData, cancel }) => {
 				formData.set('labelNumber', label);
-				formData.set('processId', filterOptions.processId);
-				formData.set('projectId', filterOptions.projectId);
+				formData.set('vProject', filterOptions.vProject);
 				formData.set('groups', JSON.stringify(selectedGroupsIds));
 				isSubmitting = true;
 				return async ({ update, result }) => {
@@ -132,7 +128,7 @@
 					isSubmitting = false;
 				};
 			}}
-			class="formNormalize sm:w-xl"
+			class="formNormalize md:w-[840px]"
 		>
 			<h1 class="mx-auto mb-6 text-2xl">
 				{idEditLabel ? 'Edit group' : 'Create label multy group'}
@@ -158,23 +154,13 @@
 				/>
 			</article>
 
-			<!-- process COMBO -->
-			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
-				<Label for="processId" class="text-sm md:text-lg">Process</Label>
-				<Combobox
-					dataBox={processes}
-					bind:value={filterOptions.processId}
-					bind:reset={resetProcessCombo}
-					id="processId"
-				/>
-			</article>
 			<!--  -->
-			<!-- project dynamic combo -->
+			<!-- vProject dynamic combo -->
 			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
 				<Label for="projectId" class="text-sm md:text-lg">Project</Label>
 				<Combobox
-					dataBox={projects}
-					bind:value={filterOptions.projectId}
+					dataBox={projectItems}
+					bind:value={filterOptions.vProject}
 					bind:reset={resetProcessCombo}
 					id="projectId"
 				/>

@@ -11,49 +11,57 @@ export const load = (async (event) => {
 	const skip = (page - 1) * limit;
 
 	const filters = {
-		processId: event.url.searchParams.get('processId'),
-		projectId: event.url.searchParams.get('projectId')
+		vProject: event.url.searchParams.get('vProject')
 	};
 	// console.log(filters);
-	const wherePart: Prisma.PartWhereInput = {};
-	// if (filters.processId) whereProject.processId = { equals: Number(filters.processId) };
-	// if (filters.projectId) wherePart.projectId = { equals: Number(filters.projectId) };
+	const whereGroup: Prisma.PartGroupWhereInput = {
+		...(filters.vProject ? { vProject: filters.vProject } : {})
+	};
 
-	const whereGroup: Prisma.PartGroupWhereInput = {};
+	const wherePart: Prisma.vPartsWhereInput = {
+		...(filters.vProject ? { Project: filters.vProject } : {})
+	};
 
 	try {
-		const [groups, allProcess, allProjects, allParts, scrapCodes, groupsCount] =
-			await prismaClient.$transaction([
-				prismaClient.partGroup.findMany({
-					where: whereGroup,
-					orderBy: { updatedAt: 'desc' },
-					include: { parts: true, process: true, project: true, scrapCodes: true }
-				}),
-				prismaClient.process.findMany(),
-				prismaClient.project.findMany({
-					where: {
-						...(filters.processId
-							? { processes: { some: { processId: Number(filters.processId) } } }
-							: {})
-					}
-				}),
-				prismaClient.part.findMany({
-					where: wherePart
-				}),
-				prismaClient.scrapCode.findMany({
-					where: {
-						...(filters.processId ? { processId: Number(filters.processId) } : {})
-					}
-				}),
-				prismaClient.partGroup.count()
-			]);
+		const [groups, allParts, scrapCodes, groupsCount] = await prismaClient.$transaction([
+			// groups
+			prismaClient.partGroup.findMany({
+				where: whereGroup,
+				orderBy: { updatedAt: 'desc' },
+				include: { scrapCodes: true, materials: true }
+			}),
+			// vParts
+			filters.vProject
+				? prismaClient.vParts.findMany({
+						where: wherePart,
+						orderBy: { Material: 'asc' }
+					})
+				: prismaClient.vParts.findMany({ take: 0 }),
+
+			// scrap
+			filters.vProject
+				? prismaClient.scrapCode.findMany({
+						where: { ...(filters.vProject ? { vProject: filters.vProject } : {}) }
+					})
+				: prismaClient.scrapCode.findMany({ take: 0 }),
+			// group count
+			prismaClient.partGroup.count({ where: whereGroup })
+		]);
+
+		const formattedParts = allParts.map((p) => ({
+			id: p.Material,
+			name: p.Description ? `${p.Material} - ${p.Description} - ${p.Side ?? ''}` : p.Material,
+			Material: p.Material,
+			Side: p.Side,
+			Description: p.Description,
+			groupIdentity: p.P_L
+		}));
+
 		const totalPages = Math.ceil(groupsCount / limit);
 		const data = {
 			groups: groups,
 			groupsCount: groupsCount,
-			processes: allProcess,
-			projects: allProjects,
-			parts: allParts,
+			parts: formattedParts,
 			scrapCodes,
 			totalPages
 		};
@@ -67,10 +75,10 @@ export const load = (async (event) => {
 
 export const actions = {
 	createPartGroup: async (event) => {
-		// console.log(event.request.formData());
 		const data = Object.fromEntries(await event.request.formData());
 		const result = partGroupSchema.safeParse(data);
 		// console.log(result);
+
 		if (!result.success) {
 			return fail(400, {
 				success: false,
@@ -80,10 +88,9 @@ export const actions = {
 			});
 		}
 		const {
-			processId,
-			projectId,
 			groupName,
-			partIds,
+			vProject,
+			partNumbers,
 			scrapCodesIds,
 			isRebuild,
 			interfaceName,
@@ -92,11 +99,12 @@ export const actions = {
 		try {
 			const newGroup = await prismaClient.partGroup.create({
 				data: {
-					processId,
-					projectId,
 					name: groupName,
-					parts: {
-						connect: partIds.map((id) => ({ id }))
+					vProject,
+					materials: {
+						create: (partNumbers ?? []).map((mat) => ({
+							material: mat
+						}))
 					},
 					isRebuild: isRebuild,
 					interfaceName,
@@ -145,10 +153,9 @@ export const actions = {
 
 		const {
 			id,
-			processId,
-			projectId,
 			groupName,
-			partIds,
+			vProject,
+			partNumbers,
 			scrapCodesIds,
 			isRebuild,
 			interfaceName,
@@ -160,11 +167,13 @@ export const actions = {
 					id
 				},
 				data: {
-					processId,
-					projectId,
 					name: groupName,
-					parts: {
-						set: partIds.map((id) => ({ id }))
+					vProject,
+					materials: {
+						deleteMany: {},
+						create: (partNumbers ?? []).map((mat: string) => ({
+							material: mat
+						}))
 					},
 					isRebuild: isRebuild,
 					interfaceName,

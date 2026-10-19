@@ -2,35 +2,33 @@ import { error, fail, type ActionFailure, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import prismaClient from '@/server/prisma';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
-import { writeToLogger } from '@/utils/serverHelp';
+import { toFuzzyPattern, writeToLogger } from '@/utils/serverHelp';
 import type { Prisma } from '@prisma/client';
 
 export const load: PageServerLoad = async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
-	const limit = 50;
+	const limit = 100;
 	const skip = (page - 1) * limit;
-	const description = event.url.searchParams.get('description') as string;
-	const scrapName = event.url.searchParams.get('scrapName') as string;
 
 	const filters = {
-		scrapCode: event.url.searchParams.get('scrapCode')?.trim(),
-		processName: Number(event.url.searchParams.get('processName')),
-		description: description,
-		scrapName: scrapName
+		scrapCode: event.url.searchParams.get('scrapCode'),
+		vProjectName: event.url.searchParams.get('vProject'),
+		description: event.url.searchParams.get('description') as string,
+		scrapName: event.url.searchParams.get('scrapName') as string
 	};
-
+	// console.log(filters);
 	const where: Prisma.ScrapCodeWhereInput = {};
 	if (filters.scrapCode) {
-		where.code = { contains: filters.scrapCode };
+		where.code = { contains: toFuzzyPattern(filters.scrapCode) };
 	}
-	if (filters.processName) {
-		where.processId = { equals: filters.processName };
+	if (filters.vProjectName) {
+		where.vProject = { contains: toFuzzyPattern(filters.vProjectName) };
 	}
 	if (filters.description) {
-		where.description = { contains: filters.description };
+		where.description = { contains: toFuzzyPattern(filters.description) };
 	}
 	if (filters.scrapName) {
-		where.name = { contains: filters.scrapName };
+		where.name = { contains: toFuzzyPattern(filters.scrapName) };
 	}
 
 	try {
@@ -40,13 +38,10 @@ export const load: PageServerLoad = async (event) => {
 			take: limit,
 			orderBy: { id: 'desc' }
 		});
-		const findProcesses = await prismaClient.process.findMany();
-
 		const scrapCodeCount = await prismaClient.scrapCode.count({ where });
 		const totalPages = Math.ceil(scrapCodeCount / limit);
 		const data = {
 			scrapCodes: findScCodes,
-			processes: findProcesses,
 			scrapCodeCount,
 			totalPages
 		};
@@ -59,7 +54,7 @@ export const load: PageServerLoad = async (event) => {
 export const actions = {
 	createScrap: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
-		const processId = formData.get('processId') as String;
+		const vProject = formData.get('vProject') as string;
 		const scrapcodeNum = formData.get('scrapcodeNum') as string;
 		const scrapcodeName = formData.get('scrapcodeName') as string;
 		const scrapDescription = formData.get('scrapDescription') as string;
@@ -71,44 +66,38 @@ export const actions = {
 				message: 'Validation error'
 			});
 		}
-		if (!processId) {
+		if (!vProject) {
 			return fail(400, {
 				success: false,
-				error: 'Process is required. Please select a process.',
+				error: 'Project is required. Please select project.',
 				message: 'Validation error'
 			});
 		}
-		if (scrapcodeNum.length > 100 || scrapcodeName.length > 100 || scrapDescription.length > 200) {
+		if (scrapcodeNum.length > 100 || scrapcodeName.length > 100 || scrapDescription.length > 100) {
 			return fail(400, {
 				success: false,
 				error:
-					'Scrap code max 100 characters,Scrap name max 100 characters,Description max 200 characters',
+					'Scrap code max 100 characters,Scrap name max 100 characters,Description max 100 characters',
 				message: 'Validation error'
 			});
 		}
 
 		try {
-			const [findProcess, createScrap] = await Promise.all([
-				prismaClient.process.findFirst({ where: { id: Number(processId) } }),
-				prismaClient.scrapCode.create({
-					data: {
-						code: scrapcodeNum,
-						processId: Number(processId),
-						name: scrapcodeName,
-						description: scrapDescription
-					}
-				})
-			]);
+			const createScrap = await prismaClient.scrapCode.create({
+				data: {
+					code: scrapcodeNum,
+					vProject,
+					name: scrapcodeName,
+					description: scrapDescription
+				}
+			});
 
-			if (!findProcess) {
+			if (!createScrap) {
 				return fail(500, {
 					success: false,
 					error: true,
-					message: `Problem with find process ${processId},please select any process.`
+					message: `Problem with create scrap in db.`
 				});
-			}
-			if (!createScrap) {
-				return fail(500, { success: false, error: true, message: `Problem with create in db.` });
 			}
 
 			writeToLogger({
@@ -120,6 +109,12 @@ export const actions = {
 			return { success: true, error: true, message: 'Scrap code created successfully.' };
 		} catch (error: any) {
 			console.log(error);
+			if (error.code === 'P2002') {
+				return fail(500, {
+					success: false,
+					message: 'This scrapcode with this code and project already exist'
+				});
+			}
 			return fail(500, {
 				success: false,
 				message: `Something is wrong :( Please try again later.`,
@@ -130,54 +125,53 @@ export const actions = {
 	editScrap: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
 		const scrapCodeId = formData.get('scrapCodeId') as String;
-		const processId = formData.get('processId') as String;
-		const scrapcodeNum = formData.get('scrapcodeNum') as string;
+		const vProject = formData.get('vProject') as string;
+		const scrapcodeCode = formData.get('scrapcodeCode') as string;
 		const scrapcodeName = formData.get('scrapcodeName') as string;
 		const scrapDescription = formData.get('scrapDescription') as string;
 
-		if (!scrapcodeNum || !scrapcodeName) {
+		if (!scrapcodeCode || !scrapcodeName) {
 			return fail(400, {
 				success: false,
 				error: 'Scrap code number and scrap name are required.Please complete it.',
 				message: 'Validation error'
 			});
 		}
-		if (!processId) {
+		if (!vProject) {
 			return fail(400, {
 				success: false,
-				error: 'Process is required. Please select a process.',
+				error: 'Project is required. Please select a project.',
 				message: 'Validation error'
 			});
 		}
-		if (scrapcodeNum.length > 100 || scrapcodeName.length > 100 || scrapDescription.length > 200) {
+		if (scrapcodeCode.length > 100 || scrapcodeName.length > 100 || scrapDescription.length > 100) {
 			return fail(400, {
 				success: false,
 				error:
-					'Scrap code max 100 characters,Scrap name max 100 characters,Description max 200 characters',
+					'Scrap code max 100 characters,Scrap name max 100 characters,Description max 100 characters',
 				message: 'Validation error'
 			});
 		}
 
 		try {
-			const [findScrapCode, findProcess] = await Promise.all([
-				prismaClient.scrapCode.findFirst({ where: { id: Number(scrapCodeId) } }),
-				prismaClient.process.findFirst({ where: { id: Number(processId) } })
-			]);
+			const findScrapcode = await prismaClient.scrapCode.findFirst({
+				where: { id: Number(scrapCodeId) }
+			});
 
-			if (!findScrapCode || !findProcess) {
+			if (!findScrapcode) {
 				return fail(500, {
 					success: false,
 					error: true,
-					message: `Scrap code with id ${scrapCodeId} or process with id ${processId} not found.`
+					message: `Scrap code with id ${scrapCodeId}`
 				});
 			} else {
 				const editSc = await prismaClient.scrapCode.update({
 					where: {
-						id: Number(findScrapCode.id)
+						id: Number(findScrapcode.id)
 					},
 					data: {
-						code: scrapcodeNum,
-						processId: Number(processId),
+						code: scrapcodeCode,
+						vProject: vProject,
 						name: scrapcodeName,
 						description: scrapDescription
 					}
@@ -197,6 +191,12 @@ export const actions = {
 			}
 		} catch (error: any) {
 			console.log(error);
+			if (error.code === 'P2002') {
+				return fail(500, {
+					success: false,
+					message: 'This scrapcode with this code and project already exist'
+				});
+			}
 			return fail(500, {
 				success: false,
 				message: `Something is wrong :( Please try again later.`,

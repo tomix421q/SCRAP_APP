@@ -1,9 +1,10 @@
+import { getCachedProjects } from '@/server/cacheVprojects';
 import type { LayoutServerLoad } from './$types';
 import prismaClient from '@/server/prisma';
 import { getUserServer } from '@/utils/serverHelp';
 import { error } from '@sveltejs/kit';
 
-export const load = (async (event: any) => {
+export const load = (async (event) => {
 	const now = new Date();
 	let fullUser = null;
 
@@ -16,6 +17,8 @@ export const load = (async (event: any) => {
 
 	try {
 		const { user, session } = await getUserServer({ request: event.request });
+		const vProjects = await getCachedProjects();
+
 		if (user) {
 			fullUser = await prismaClient.user.findUnique({ where: { id: user?.id } });
 		}
@@ -34,6 +37,7 @@ export const load = (async (event: any) => {
 				}
 			})
 			.then((res) => res._sum.quantity || 0);
+
 		const totalScrapRecordsLast7DaysPromise = prismaClient.scrapRecord
 			.aggregate({
 				_sum: {
@@ -62,6 +66,7 @@ export const load = (async (event: any) => {
 			.then((res) => res._sum.quantity || 0);
 
 		return {
+			vProjects,
 			user: fullUser,
 			session: session,
 			stats: {

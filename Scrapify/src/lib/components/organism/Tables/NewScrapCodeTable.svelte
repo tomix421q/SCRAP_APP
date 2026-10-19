@@ -6,19 +6,19 @@
 	import { editScrapData } from '@/stores/stores';
 	import Button from '@/components/ui/button/button.svelte';
 	import { SquarePenIcon } from '@lucide/svelte';
-	import type { Process, ScrapCode } from '@prisma/client';
+	import type { ScrapCode } from '@prisma/client';
 
 	let {
 		scrapCodes,
 		headerText,
 		scrapCodeCount,
-		processes
+		vProjects
 	}: {
 		scrapCodes: ScrapCode[];
 		totalPages?: number;
 		scrapCodeCount?: number;
 		headerText?: string;
-		processes: Process[];
+		vProjects: string[];
 	} = $props();
 
 	const session = authClient.useSession();
@@ -29,7 +29,7 @@
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
-	// $inspect(processes);
+	// $inspect(scrapCodes);
 </script>
 
 <main>
@@ -42,34 +42,35 @@
 			</p>
 			<h2 class="lg:text-lg tracking-widest font-bold">{headerText}</h2>
 		</div>
-		<Table.Root>
+		<Table.Root class="table-fixed w-full ">
 			<Table.Header>
-				<Table.Row class="bg-chart-4/40 *:text-chart-1">
-					<Table.Head class="w-[40px]">ID</Table.Head>
-					<Table.Head class="w-[40px]">Active?</Table.Head>
-					<Table.Head class="w-[50px]">Code</Table.Head>
-					<Table.Head class="w-[200px]">Name</Table.Head>
-					<Table.Head class="w-[200px]">Process ID</Table.Head>
-					<Table.Head class="w-[100px]">Description</Table.Head>
+				<Table.Row class="bg-chart-4/40 *:text-chart-1 *:border">
+					<Table.Head class="w-20">ID</Table.Head>
+
+					<Table.Head class="w-60">Code</Table.Head>
+					<Table.Head class="w-60">Name</Table.Head>
+					<Table.Head class="w-30">Project</Table.Head>
+					<Table.Head class="w-30">Active?</Table.Head>
+					<Table.Head class="w-120">Description</Table.Head>
 
 					<Table.Head colspan={1} class="text-end">Actions</Table.Head>
 				</Table.Row>
 			</Table.Header>
 			<Table.Body class="">
 				{#each scrapCodes as item (item)}
-					<Table.Row>
-						<Table.Cell class="w-[40px]">{item.id}</Table.Cell>
-						<Table.Cell class="w-[40px]">{item.active}</Table.Cell>
-						<Table.Cell class="w-[50px]">{item.code}</Table.Cell>
-						<Table.Cell class="w-[200px]">{@render description(item.name!)}</Table.Cell>
-						<Table.Cell class="w-[200px]"
-							>{item.processId}-
-							{processes.find((process) => process.id === item.processId)?.name ??
-								`Process with id-${item.processId} was deleted,append process or delete it.`}</Table.Cell
+					<Table.Row class="*:border *:truncate">
+						<Table.Cell class="">{item.id}</Table.Cell>
+
+						<Table.Cell class="">{item.code}</Table.Cell>
+						<Table.Cell class="">{item.vProject}</Table.Cell>
+						<Table.Cell class="">{@render description(item.name!)}</Table.Cell>
+						<Table.Cell class="">{item.active}</Table.Cell>
+						<Table.Cell class="" title={item.description}
+							>{@render description(item.description!)}</Table.Cell
 						>
-						<Table.Cell class="w-[100px]">{@render description(item.description!)}</Table.Cell>
+
 						<!-- ACTIONS BTNS -->
-						<Table.Cell class="w-[50px]">
+						<Table.Cell class="">
 							<div class="flex justify-end gap-2">
 								<Button
 									onclick={() => handleEditScrapRec(item)}

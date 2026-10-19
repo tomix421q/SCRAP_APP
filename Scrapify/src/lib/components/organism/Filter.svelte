@@ -13,18 +13,17 @@
 	import CardFooter from '../ui/card/card-footer.svelte';
 	import type { FilterType } from '@/utils/types';
 	import Combobox from '../atoms/Combobox.svelte';
-	import { tick } from 'svelte';
-	import type { Process, Project } from '@prisma/client';
+	import { onMount, tick } from 'svelte';
 
 	let {
-		allProcesses,
 		allProjects,
 		whereUse
-	}: { allProcesses?: Process[]; allProjects?: Project[]; whereUse?: 'scrapCode' | 'part' } =
-		$props();
+	}: { allProjects?: { id: string; name: string }[]; whereUse?: 'scrapCode' | 'part' } = $props();
 
 	let filterOptions: FilterType = $state({
 		partNumber: '',
+		vProject: '',
+		vHall: '',
 		partId: '',
 		scrapCode: '',
 		scrapName: '',
@@ -40,11 +39,11 @@
 	function applyFilter() {
 		const params = new URLSearchParams();
 		if (filterOptions.partNumber) params.set('partNumber', filterOptions.partNumber);
+		if (filterOptions.vProject) params.set('vProject', filterOptions.vProject);
+		if (filterOptions.vHall) params.set('vHall', filterOptions.vHall);
 		if (filterOptions.partId) params.set('partId', filterOptions.partId);
 		if (filterOptions.scrapCode) params.set('scrapCode', filterOptions.scrapCode);
 		if (filterOptions.scrapName) params.set('scrapName', filterOptions.scrapName);
-		if (filterOptions.processName) params.set('processName', filterOptions.processName);
-		if (filterOptions.projectName) params.set('projectName', filterOptions.projectName);
 		if (filterOptions.description) params.set('description', filterOptions.description);
 		if (filterOptions.dateFrom) params.set('dateFrom', filterOptions.dateFrom);
 		if (filterOptions.dateTo) params.set('dateTo', filterOptions.dateTo);
@@ -87,12 +86,12 @@
 	}
 
 	async function clearFilter() {
+		filterOptions.vProject = '';
+		filterOptions.vHall = '';
 		filterOptions.scrapCode = '';
 		filterOptions.scrapName = '';
 		filterOptions.partId = '';
 		filterOptions.description = '';
-		filterOptions.processName = '';
-		filterOptions.projectName = '';
 		filterOptions.partNumber = '';
 		filterOptions.dateFrom = '';
 		filterOptions.dateTo = '';
@@ -105,7 +104,16 @@
 		goto(page.url.pathname, { keepFocus: true, noScroll: true, replaceState: true });
 	}
 
-	// $inspect();
+	onMount(() => {
+		clearFilter();
+		if (page.url.search) {
+			goto(page.url.pathname, {
+				replaceState: true,
+				noScroll: true,
+				keepFocus: true
+			});
+		}
+	});
 </script>
 
 <main>
@@ -138,11 +146,24 @@
 						? 'hidden'
 						: 'lg:flex'}"
 				>
-					<Label class="text-sm w-[200px]">Part Id</Label>
+					<Label class="text-sm w-[200px]">vProject</Label>
 					<Input
 						class="inputNormalize max-w-[350px]"
-						placeholder="Search part id"
-						bind:value={filterOptions.partId}
+						placeholder="Search project"
+						bind:value={filterOptions.vProject}
+					/>
+				</article>
+				<!--  -->
+				<article
+					class="justify-between items-center gap-2 {whereUse === 'scrapCode'
+						? 'hidden'
+						: 'lg:flex'}"
+				>
+					<Label class="text-sm w-[200px]">vHall</Label>
+					<Input
+						class="inputNormalize max-w-[350px]"
+						placeholder="Search project"
+						bind:value={filterOptions.vHall}
 					/>
 				</article>
 				<!-- Scrap filter [code] -->
@@ -177,14 +198,14 @@
 						bind:value={filterOptions.description}
 					/>
 				</article>
-				{#if allProcesses}
+				{#if allProjects}
 					<article class="lg:flex justify-between items-center gap-2">
-						<Label for="filterProcess" class="text-sm w-[100px]">Process</Label>
+						<Label for="filterProcess" class="text-sm w-[100px]">Project</Label>
 						<div class="inputNormalize border-primary border-b">
 							<Combobox
 								id="filterProcess"
-								dataBox={allProcesses}
-								bind:value={filterOptions.processName}
+								dataBox={allProjects}
+								bind:value={filterOptions.vProject}
 								reset={resetProcessCombo}
 							/>
 						</div>
@@ -237,6 +258,7 @@
 				</article>
 			</div>
 		</CardContent>
+
 		<CardFooter>
 			<div class="flex justify-center w-full gap-4">
 				<Button

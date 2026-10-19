@@ -3,11 +3,9 @@
 	import * as HoverCard from '@/components/ui/hover-card/index';
 	import { authClient } from '@/auth/auth-client';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
-	import { editPartData } from '@/stores/stores';
 	import Button from '@/components/ui/button/button.svelte';
 	import { SquarePenIcon } from '@lucide/svelte';
-	import type { Part } from '@prisma/client';
-	import HoverCardContent from '@/components/ui/hover-card/hover-card-content.svelte';
+	import type { vParts } from '@prisma/client';
 
 	let {
 		parts,
@@ -15,7 +13,7 @@
 		totalPages,
 		partsCount
 	}: {
-		parts: Part[];
+		parts: vParts[];
 		totalPages?: number;
 		partsCount?: number;
 		headerText?: string;
@@ -24,12 +22,7 @@
 	const session = authClient.useSession();
 	const userId = $derived($session.data?.user.id);
 
-	function handleEditPartRec(item: Part) {
-		editPartData.set(item);
-		window.scrollTo({ top: 0, behavior: 'auto' });
-	}
-
-	// $inspect(parts)
+	// $inspect(parts);
 </script>
 
 <main>
@@ -45,31 +38,34 @@
 		<Table.Root>
 			<Table.Header>
 				<Table.Row class="bg-chart-4/40 *:text-chart-1">
-					<Table.Head class="w-[100px]">ID</Table.Head>
-					<Table.Head class="w-[100px]">Part Number</Table.Head>
-					<Table.Head class="w-[200px]">Description</Table.Head>
-					<Table.Head class="w-[100px]">Side?</Table.Head>
-					<Table.Head colspan={1} class="text-end">Actions</Table.Head>
+					<!-- <Table.Head class="w-[100px]">ID</Table.Head> -->
+					<Table.Head class="w-[100px] border">Part Number</Table.Head>
+					<Table.Head class="w-[100px] border">Side</Table.Head>
+					<Table.Head class="w-[100px] border">Project</Table.Head>
+					<Table.Head class="w-[100px] border">Hall</Table.Head>
+					<Table.Head class="w-[200px] border">Description</Table.Head>
+					<!-- <Table.Head colspan={1} class="text-end">Actions</Table.Head> -->
 				</Table.Row>
 			</Table.Header>
 			<Table.Body>
 				{#each parts as item (item)}
 					<Table.Row>
-						<Table.Cell class="w-[100px]">{item.id}</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.partNumber}</Table.Cell>
-						<Table.Cell class="min-w-[220px]">
+						<!-- <Table.Cell class="w-[100px]">{item.id}</Table.Cell> -->
+						<Table.Cell class="w-[100px] border">{item.Material}</Table.Cell>
+						<Table.Cell class="w-[100px] border">{item.Side}</Table.Cell>
+						<Table.Cell class="w-[100px] border">{item.Project}</Table.Cell>
+						<Table.Cell class="w-[150px] border">{item.Hall}</Table.Cell>
+						<Table.Cell class="w-[200px] border">
 							<HoverCard.Root>
-								<HoverCard.Trigger
-									>{item.description && item.description?.length > 20
-										? item.description?.slice(0, 20) + '...'
-										: item.description}</HoverCard.Trigger
+								<HoverCard.Trigger class="text-xs"
+									>{item.Description && item.Description?.length > 50
+										? item.Description?.slice(0, 50) + '...'
+										: item.Description}</HoverCard.Trigger
 								>
-								<HoverCard.Content>{item.description}</HoverCard.Content>
+								<HoverCard.Content>{item.Description}</HoverCard.Content>
 							</HoverCard.Root>
 						</Table.Cell>
-						<Table.Cell class="w-[100px]">{item.side}</Table.Cell>
-
-						<Table.Cell class="w-[50px]">
+						<!-- <Table.Cell class="w-[50px]">
 							<div class="flex justify-end gap-2">
 								<Button
 									onclick={() => handleEditPartRec(item)}
@@ -81,7 +77,7 @@
 								>
 								<EditDeleteBtns id={item.id} actionRoute={'?/deletePart'} />
 							</div>
-						</Table.Cell>
+						</Table.Cell> -->
 					</Table.Row>
 				{/each}
 			</Table.Body>

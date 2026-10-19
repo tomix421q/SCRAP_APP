@@ -2,6 +2,15 @@ import { auth } from '@/auth/auth';
 import prismaClient from '@/server/prisma';
 import type { LoggerActionType, LoggerEntityType } from './types';
 
+export const toFuzzyPattern = (str: string) => {
+	const item = str
+		.trim()
+		.split(/\s+/)
+		.filter((item) => Boolean(item))
+		.join('%');
+	return item;
+};
+
 export async function getUserServer({ request }: { request: Request }) {
 	const session = await auth.api.getSession({
 		headers: request.headers

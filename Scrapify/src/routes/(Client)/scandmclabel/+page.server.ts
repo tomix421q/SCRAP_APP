@@ -3,7 +3,6 @@ import { fail, type Action, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { matchDmcWithMask } from '@/utils/serverHelp';
 import { saveScrapSchema } from '@/utils/zod';
-import { success } from 'zod';
 
 export const load = (async () => {
 	return {};

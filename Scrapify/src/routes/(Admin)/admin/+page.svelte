@@ -35,25 +35,17 @@
 
 			<CardContent class="grid grid-cols-2 gap-4 text-3xl">
 				<div class="flex flex-col gap-4">
-					<Button variant="destructive" href="/admin/newscrapcode" size="lg">Scrap code</Button>
-					<Button href="/admin/newpart" variant="destructive" size="lg">Part</Button>
+					<Button href="/admin/newpart" variant="destructive" size="lg">Part view</Button>
 
-					<Button
-						href="/admin/partgroups"
-						variant="default"
-						size="lg"
-						class="">Parts group</Button
-					>
-					<Button
-						href="/admin/label-part"
-						variant="default"
-						size="lg"
-						class="">Label multi part</Button
+					<Button variant="default" href="/admin/newscrapcode" size="lg">Scrap code</Button>
+					<Button href="/admin/partgroups" variant="default" size="lg" class="">Parts group</Button>
+					<Button href="/admin/label-part" variant="default" size="lg" class=""
+						>Label multi part</Button
 					>
 
-					<Button href="/admin/newprocess" variant="secondary" size="lg">Process</Button>
+					<!-- <Button href="/admin/newprocess" variant="secondary" size="lg">Process</Button>
 					<Button href="/admin/newproject" variant="secondary" size="lg">Project</Button>
-					<Button href="/admin/newhall" variant="secondary" size="lg">Hall</Button>
+					<Button href="/admin/newhall" variant="secondary" size="lg">Hall</Button> -->
 				</div>
 				<div class="mx-auto space-y-4">
 					<section class="mx-auto flex items-center">
