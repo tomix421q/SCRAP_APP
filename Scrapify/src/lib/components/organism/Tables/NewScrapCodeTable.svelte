@@ -56,11 +56,11 @@
 
 						<Table.Cell class="">{item.code}</Table.Cell>
 						<Table.Cell class="">{@render description(item.name!)}</Table.Cell>
-						<Table.Cell class="">{item.vProject}</Table.Cell>
-
 						<Table.Cell class="" title={item.description}
 							>{@render description(item.description!)}</Table.Cell
 						>
+						<Table.Cell class="">{item.vProject}</Table.Cell>
+
 						<Table.Cell class="">{item.active}</Table.Cell>
 
 						<!-- ACTIONS BTNS -->
