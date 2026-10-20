@@ -1,4 +1,4 @@
-import { House, NewspaperIcon, Scan, ScanBarcode, Search, User } from '@lucide/svelte';
+import { House, ScanBarcode } from '@lucide/svelte';
 
 export const navUrls = [
 	{

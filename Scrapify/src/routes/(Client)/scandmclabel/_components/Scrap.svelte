@@ -1,23 +1,14 @@
 <script lang="ts">
 	import Button from '@/components/ui/button/button.svelte';
-	import type { ActionData } from '../$types';
 	import Combobox from '@/components/atoms/Combobox.svelte';
-	import Label from '@/components/ui/label/label.svelte';
 	import type { ScrapManager } from './ScrapManager.svelte';
-	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
 	import { ArrowRight, X } from '@lucide/svelte';
-
-	type ScanSuccess = Extract<ActionData, { data: any }>;
-	type MatchData = NonNullable<ScanSuccess['data']>['match'];
 
 	let {
 		scrapManager
 	}: {
 		scrapManager: ScrapManager;
 	} = $props();
-
-	$inspect(scrapManager.scrapPayload);
-	// $inspect(scrapManager.mode);
 </script>
 
 <div class="flex flex-col gap-4">
@@ -25,9 +16,9 @@
 		{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
 		<div
 			class="border p-4 rounded-lg flex flex-col gap-3 transition-colors {row.selectedScrapCode
-				? 'ring-destructive ring-2'
-				: ''} {row.isOtherVariant && row.replacementPartId === 'empty'
-				? 'ring-warning ring-2'
+				? 'bg-destructive/60'
+				: ''} {row.isOtherVariant && row.replacementPartMaterial === 'empty'
+				? ' bg-warning/60'
 				: ''}"
 		>
 			<!-- TOP -->
@@ -54,8 +45,8 @@
 							size="icon"
 							variant="ghost"
 							class={row.selectedScrapId
-								? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
-								: 'hidden'}
+								? 'flex text-destructive bg-gray-800 hover:bg-gray-900'
+								: 'invisible'}
 							onclick={() => scrapManager.clearScrapRow(row.groupId)}
 						>
 							<X />
@@ -65,9 +56,12 @@
 							<section class="flex items-center">
 								<ArrowRight class="size-8 stroke-3 stroke-primary animate-pulse" />
 								<Combobox
-									dataBox={groupDef?.parts ?? []}
-									nameLabel="partnumSideColor"
-									value={row.replacementPartId === 'empty' ? '' : row.replacementPartId}
+									dataBox={groupDef?.materials.map((material) => ({
+										id: material.material,
+										name: `${material.material}`
+									})) ?? []}
+									nameLabel="name"
+									value={row.replacementPartMaterial === 'empty' ? '' : row.replacementPartMaterial}
 									onchange={(val) => scrapManager.setReplacementPart(row.groupId, val)}
 									firstText="Vyberte správny diel"
 								/>

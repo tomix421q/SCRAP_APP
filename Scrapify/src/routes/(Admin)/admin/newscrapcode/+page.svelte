@@ -12,7 +12,6 @@
 	import { currentConfirmDeleteId, editScrapData } from '@/stores/stores';
 	import { onMount } from 'svelte';
 	import Filter from '@/components/organism/Filter.svelte';
-	import { page } from '$app/state';
 
 	let { data, form }: PageProps = $props();
 	let { scrapCodes = [], scrapCodeCount = 0, totalPages = 1 } = $derived(data.data);
@@ -96,7 +95,7 @@
 			}}
 		>
 			<h1 class="mx-auto mb-6 text-2xl">
-				{idEditScrapCode ? 'Edit scrap code' : 'Create screp code'}
+				{idEditScrapCode ? 'Edit scrap code' : 'Create scrap code'}
 			</h1>
 			<div>
 				<ResultInfo data={form} />
@@ -181,9 +180,7 @@
 	<section class="">
 		<NewScrapCodeTable
 			{scrapCodes}
-			{totalPages}
 			{scrapCodeCount}
-			{vProjects}
 			headerText="Codes list"
 		/>
 	</section>

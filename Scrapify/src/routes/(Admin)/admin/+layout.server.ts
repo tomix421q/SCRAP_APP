@@ -7,7 +7,7 @@ import type { Role } from '@/utils/types';
 
 
 export const load: LayoutServerLoad = async (event) => {
-	const { user, session } = await getUserServer({ request: event.request });
+	const { user } = await getUserServer({ request: event.request });
 
 	if (!user) {
 		throw redirect(302, `/login`);

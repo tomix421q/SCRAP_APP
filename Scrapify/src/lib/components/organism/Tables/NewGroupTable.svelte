@@ -5,18 +5,15 @@
 	import { Info, SquarePenIcon } from '@lucide/svelte';
 	import * as HoverCard from '$lib/components/ui/hover-card/index.js';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
-	import type { PartGroup } from '@prisma/client';
 	import { editPartGroupData } from '@/stores/stores';
 
 	let {
 		groups,
 		headerText,
-		totalPages,
 		groupsCount
 	}: {
 		groups: PartGroupWithRelations[];
 		headerText?: string;
-		totalPages?: number;
 		groupsCount?: number;
 	} = $props();
 

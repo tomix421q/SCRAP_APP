@@ -175,7 +175,7 @@ model ScrapRecord {
   createdBy         String
   createdAt         DateTime   @default(now())
   QADExported       Boolean?   @default(false)
-  partGroup         PartGroup  @relation(fields: [partGroupId], references: [id], onUpdate: NoAction)
+  partGroup         PartGroup  @relation(fields: [partGroupId], references: [id], onUpdate: NoAction,onDelete: Cascade)
   scrapCode         ScrapCode? @relation(fields: [scrapCodeId], references: [id], onDelete: Cascade)
 
   @@index([dmc])

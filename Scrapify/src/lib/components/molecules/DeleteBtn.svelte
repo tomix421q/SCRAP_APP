@@ -8,14 +8,11 @@
 	let { id, actionRoute }: { id: number | string; actionRoute: string } = $props();
 
 	let isSubmitting = $state(false);
-	let isConfirmState = $state(false);
 
 	const handleShowConfirm = (confirmId: number | string) => {
-		isConfirmState = true;
 		currentConfirmDeleteId.set(confirmId);
 	};
 	const handleCancelConfirm = () => {
-		isConfirmState = false;
 		currentConfirmDeleteId.set(undefined);
 	};
 

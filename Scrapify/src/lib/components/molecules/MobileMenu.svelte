@@ -4,7 +4,6 @@
 	import { navUrls } from '@/utils/navConst';
 	import { page } from '$app/state';
 	import { afterNavigate } from '$app/navigation';
-	import { onMount } from 'svelte';
 
 	let isOpen = $state(false);
 

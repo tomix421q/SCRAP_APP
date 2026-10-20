@@ -17,7 +17,6 @@
 	import { QAD_COMPONENTS_TYPES } from '@/utils/qadComponentsTypes';
 	import { currentConfirmDeleteId, editPartGroupData } from '@/stores/stores';
 	import Separator from '@/components/ui/separator/separator.svelte';
-	import { crossfade, fade, slide } from 'svelte/transition';
 
 	let { data, form }: PageProps = $props();
 	let { groups, groupsCount, parts, scrapCodes, totalPages } = $derived(data.data);
@@ -25,12 +24,10 @@
 
 	// vars
 	let idEditGroup = $state<number>();
-	let isSettingEdit = false;
+	let isSettingEdit = $state(false);
 	let isSubmitting = $state(false);
 
 	let resetProjectCombo = $state(false);
-	let resetGroupCombo = $state(false);
-	let resetScrapCodesCombo = $state(false);
 	let partSlots = $state<string[]>(['']);
 	let scrapSlots = $state<string[]>(['']);
 
@@ -43,6 +40,7 @@
 	let qadSelectedItemType = $state('');
 
 	let isLoadingParts = $derived(Boolean(navigating.to?.url.searchParams.has('vProject')));
+
 	let projectItems = $derived(
 		vProjects.map((p: string) => ({
 			id: p,
@@ -81,8 +79,6 @@
 		idEditGroup = undefined;
 		partGroupName = '';
 		interfaceName = '';
-		resetGroupCombo = true;
-		resetScrapCodesCombo = true;
 		isRebuild = false;
 		qadSelectedItemType = '';
 		partSlots = [''];
@@ -92,11 +88,15 @@
 
 	// efect
 	$effect(() => {
+		if (isSettingEdit) return;
+
 		const currentUrlParam = page.url.searchParams.get('vProject') ?? '';
 		if (selectedVproject !== currentUrlParam) {
 			if (!idEditGroup) {
 				partSlots = [''];
+				selectedPartIds = [];
 				scrapSlots = [''];
+				selectedScrapCodesIds = [];
 			}
 
 			selectedPartIds = [];
@@ -128,14 +128,20 @@
 
 				// Parts / Materials
 				if (editData.materials && editData.materials.length > 0) {
+					const ids = editData.materials.map((p) => p.material);
+					selectedPartIds = ids;
 					partSlots = editData.materials.map((p) => p.material);
 				} else {
+					selectedPartIds = [];
 					partSlots = [''];
 				}
 				// Scrap codes
 				if (editData.scrapCodes && editData.scrapCodes.length > 0) {
-					scrapSlots = editData.scrapCodes.map((sc: any) => String(sc.id));
+					const ids = editData.scrapCodes.map((sc: any) => String(sc.id));
+					selectedScrapCodesIds = ids;
+					scrapSlots = ids;
 				} else {
+					selectedScrapCodesIds = [];
 					scrapSlots = [''];
 				}
 				// Group name
@@ -157,7 +163,7 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	$inspect(selectedPartIds);
+	// $inspect(selectedPartIds);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -167,7 +173,7 @@
 		<form
 			method="POST"
 			action={idEditGroup ? '?/editGroup' : '?/createPartGroup'}
-			use:enhance={({ formData, cancel }) => {
+			use:enhance={({ formData }) => {
 				formData.set('vProject', selectedVproject);
 				formData.set('partNumbers', JSON.stringify(selectedPartIds));
 				formData.set('scrapCodesIds', JSON.stringify(selectedScrapCodesIds));
@@ -202,9 +208,11 @@
 			<!-- Project -->
 			<div class="md:flex gap-2 items-center mb-6">
 				<article class="flex flex-col w-full lg:w-fit lg:flex-row gap-2">
-					<Label for="projectId" class="text-sm md:text-lg">vProject <span class="text-sm text-chart-info capitalize tracking-widest"
-										>[filter]</span
-									></Label>
+					<Label for="projectId" class="text-sm md:text-lg"
+						>vProject <span class="text-sm text-chart-info capitalize tracking-widest"
+							>[filter]</span
+						></Label
+					>
 					<Combobox
 						dataBox={projectItems}
 						bind:value={selectedVproject}
@@ -235,8 +243,7 @@
 					<ul
 						class="flex flex-col gap-2 space-y-1 max-h-[520px] overscroll-y-auto overflow-auto w-full overflow-x-hidden"
 					>
-						{#each partSlots as _, index (index)}
-							{@const currentPartId = partSlots[index]}
+						{#each partSlots as currentPartId, index (index)}
 							{@const availableParts = parts.filter(
 								(part: any) =>
 									!selectedPartIds.includes(String(part.id)) || String(part.id) === currentPartId
@@ -296,8 +303,7 @@
 					<ul
 						class="flex flex-col gap-2 space-y-1 max-h-[520px] overscroll-y-auto overflow-auto w-full overflow-x-hidden"
 					>
-						{#each scrapSlots as _, index (index)}
-							{@const currentScrapId = scrapSlots[index]}
+						{#each scrapSlots as currentScrapId, index (index)}
 							{@const availableScrapCodes = scrapCodes.filter(
 								(sc: any) =>
 									!selectedScrapCodesIds.includes(sc.id.toString()) ||
@@ -436,23 +442,25 @@
 				</section>
 			</article>
 
-			<Button type="submit" class="mt-10" disabled={isSubmitting}>
-				{#if isSubmitting}
-					<span>Submitting...</span>
-				{:else}
-					{idEditGroup ? 'Edit group' : 'Create group'}
+			<section class="flex *:flex-1 gap-6 mt-12">
+				{#if idEditGroup}
+					<Button
+						variant="destructive"
+						onclick={() => {
+							clearEditForm();
+							selectedVproject = '';
+							// console.log(selectedVproject);
+						}}>Close Edit</Button
+					>
 				{/if}
-			</Button>
-			{#if idEditGroup}
-				<Button
-					variant="destructive"
-					onclick={() => {
-						clearEditForm();
-						selectedVproject = '';
-						console.log(selectedVproject);
-					}}>Close Edit</Button
-				>
-			{/if}
+				<Button type="submit" disabled={isSubmitting}>
+					{#if isSubmitting}
+						<span>Submitting...</span>
+					{:else}
+						{idEditGroup ? 'Edit group' : 'Create group'}
+					{/if}
+				</Button>
+			</section>
 		</form>
 	</section>
 

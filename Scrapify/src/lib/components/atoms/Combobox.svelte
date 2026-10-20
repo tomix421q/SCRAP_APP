@@ -5,7 +5,6 @@
 	import { CheckIcon, ChevronsUpDownIcon } from '@lucide/svelte';
 	import { cn } from '@/components/ui/utils';
 	import { tick } from 'svelte';
-	import { isEditing } from '@/stores/stores';
 
 	type NameLabel = 'name' | 'codeName' | 'partnumSideColor' | 'nameAndHall';
 

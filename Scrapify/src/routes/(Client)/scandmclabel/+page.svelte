@@ -2,14 +2,14 @@
 	import Input from '@/components/ui/input/input.svelte';
 	import type { PageProps } from './$types';
 	import { onMount, tick } from 'svelte';
-	import { DrillIcon, RefreshCw, RotateCcw, Wrench, WrenchIcon, X } from '@lucide/svelte';
+	import { DrillIcon, RefreshCw, RotateCcw, WrenchIcon } from '@lucide/svelte';
 	import { enhance } from '$app/forms';
 	import Button from '@/components/ui/button/button.svelte';
 	import { playBeep } from '@/utils/frontHelp';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import { slide } from 'svelte/transition';
 	import Rebuild from './_components/Rebuild.svelte';
-	import { ScrapManager } from './_components/ScrapManager.svelte';
+	import { ScrapManager, type ScanInitPayload } from './_components/ScrapManager.svelte';
 	import OperatorLogin from '@/components/molecules/OperatorLogin.svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { operatorCardId } from '@/stores/stores';
@@ -21,12 +21,33 @@
 	const scrapManager = new ScrapManager();
 	let isMounted = $state(false);
 	let isSubmitting = $state(false);
-	let barcodeValue = $state('SK54333j444');
+	let barcodeValue = $state('');
 	let isScanning = $state(false);
 	let inputEl = $state<HTMLInputElement | null>(null);
 	let status = $state<'idle' | 'success' | 'error'>('idle');
 
 	// func
+	function isScanSuccessData(value: unknown): value is { data: ScanInitPayload } {
+		if (typeof value !== 'object' || value === null || !('data' in value)) return false;
+		const payload = value.data;
+		if (
+			typeof payload !== 'object' ||
+			payload === null ||
+			!('label' in payload) ||
+			!('match' in payload)
+		) {
+			return false;
+		}
+		const match = payload.match;
+		return (
+			typeof payload.label === 'string' &&
+			typeof match === 'object' &&
+			match !== null &&
+			'groups' in match &&
+			Array.isArray(match.groups)
+		);
+	}
+
 	async function refocus() {
 		await tick();
 		inputEl?.focus();
@@ -69,11 +90,11 @@
 					status = 'idle';
 					return async ({ result, update }) => {
 						isScanning = false;
-						if (result.type === 'success' && result.data) {
+						if (result.type === 'success' && isScanSuccessData(result.data)) {
 							status = 'success';
-							scrapManager.init(result.data, barcodeValue);
+							scrapManager.init(result.data.data, barcodeValue);
 							playBeep('ok');
-						} else if (result.type === 'failure') {
+						} else {
 							status = 'error';
 							playBeep('error');
 							inputEl?.select();
@@ -103,7 +124,7 @@
 							name="barcode"
 							bind:value={barcodeValue}
 							disabled={isScanning}
-							placeholder={'Naskenuj diel'}
+							placeholder="Naskenuj diel"
 							autocomplete="off"
 							autocorrect="off"
 							autocapitalize="off"
@@ -115,7 +136,7 @@
 						<div class="flex justify-center gap-4 *:text-lg *:font-bold">
 							<Button
 								size="lg"
-								class=" {scrapManager.mode === 'rebuild' ? 'ring-2 ring-warning' : ''}"
+								class={scrapManager.mode === 'rebuild' ? 'ring-2 ring-warning' : ''}
 								onclick={() => {
 									scrapManager.setMode('rebuild');
 								}}
@@ -124,7 +145,7 @@
 							>
 							<Button
 								size="lg"
-								class=" {scrapManager.mode === 'scrap' ? 'ring-2 ring-warning' : ''}"
+								class={scrapManager.mode === 'scrap' ? 'ring-2 ring-warning' : ''}
 								onclick={() => {
 									scrapManager.setMode('scrap');
 								}}
@@ -155,7 +176,7 @@
 			transition:slide={{ axis: 'x', duration: 350, easing: cubicOut }}
 			method="POST"
 			action="?/saveScrap"
-			use:enhance={({ formData, cancel }) => {
+			use:enhance={({ formData }) => {
 				formData.set('dmc', scrapManager.barcode);
 				formData.set('isRebuild', JSON.stringify(scrapManager.mode === 'rebuild' ? true : false));
 				formData.set('operator', $operatorCardId);
@@ -186,7 +207,5 @@
 				{/if}
 			</Button>
 		</form>
-	{:else if status === 'error'}
-		<p>Status error pre formular...</p>
 	{/if}
 </main>

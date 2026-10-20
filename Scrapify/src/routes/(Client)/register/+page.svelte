@@ -25,7 +25,7 @@
 		loading = true;
 		let tmpCardId = cardId ? cardId : 0;
 
-		const { data, error } = await authClient.signUp.email(
+		await authClient.signUp.email(
 			{
 				email,
 				name,
@@ -33,7 +33,7 @@
 				cardId: tmpCardId
 			},
 			{
-				onSuccess: (ctx: any) => {
+				onSuccess: () => {
 					goto('/login', { invalidateAll: true });
 				},
 				onError: (ctx: any) => {
@@ -45,18 +45,7 @@
 				}
 			}
 		);
-		// if (error) {
-		// 	if (error.message) {
-		// 		errorMsg = error.message;
-		// 	}
-		// }
 		loading = false;
-	}
-
-	async function socialLogin(event: { preventDefault: () => void }) {
-		await authClient.signIn.social({
-			provider: 'google'
-		});
 	}
 </script>
 

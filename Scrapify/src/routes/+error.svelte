@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
-	let { data }: any = $props();
 	// $inspect(page);
 </script>
 

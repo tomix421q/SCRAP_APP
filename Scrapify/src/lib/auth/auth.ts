@@ -1,4 +1,3 @@
-import { writeToLogger } from '@/utils/serverHelp';
 import prismaClient from './../server/prisma';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';

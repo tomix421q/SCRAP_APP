@@ -6,9 +6,7 @@ import type { Prisma } from '@prisma/client';
 import { writeToLogger } from '@/utils/serverHelp';
 
 export const load = (async (event) => {
-	const page = Number(event.url.searchParams.get('page') ?? '1');
 	const limit = 100;
-	const skip = (page - 1) * limit;
 
 	const filters = {
 		vProject: event.url.searchParams.get('vProject')
@@ -211,6 +209,7 @@ export const actions = {
 		const formData = await event.request.formData();
 		const id = formData.get('deleteId');
 		const numId = Number(id);
+		console.log(id)
 		if (!id || Number.isNaN(numId)) {
 			return fail(400, { success: false, message: 'Validation', error: 'Id not found.' });
 		}

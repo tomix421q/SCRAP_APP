@@ -1,26 +1,17 @@
 <script lang="ts">
 	import * as Table from '@/components/ui/table';
 	import * as HoverCard from '@/components/ui/hover-card/index';
-	import { authClient } from '@/auth/auth-client';
-	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
-	import Button from '@/components/ui/button/button.svelte';
-	import { SquarePenIcon } from '@lucide/svelte';
 	import type { vParts } from '@prisma/client';
 
 	let {
 		parts,
 		headerText,
-		totalPages,
 		partsCount
 	}: {
 		parts: vParts[];
-		totalPages?: number;
 		partsCount?: number;
 		headerText?: string;
 	} = $props();
-
-	const session = authClient.useSession();
-	const userId = $derived($session.data?.user.id);
 
 	// $inspect(parts);
 </script>
@@ -84,14 +75,3 @@
 		</Table.Root>
 	</div>
 </main>
-
-{#snippet description(desc: string)}
-	{#if desc.length === 0}
-		<p class="text-muted-foreground">X</p>
-	{:else}
-		<HoverCard.Root>
-			<HoverCard.Trigger>{desc.length > 15 ? desc?.slice(0, 15) + '...' : desc}</HoverCard.Trigger>
-			<HoverCard.Content>{desc}</HoverCard.Content>
-		</HoverCard.Root>
-	{/if}
-{/snippet}

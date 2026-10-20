@@ -10,8 +10,6 @@
 	let password = $state('');
 	let errorMsg = $state<string[]>([]);
 	let loading = $state(false);
-	let openResendEmail = $state(false);
-	let emailToVerify = $state('');
 	let showPassword = $state(false);
 
 	async function handleSubmit(event: { preventDefault: () => void }) {
@@ -26,13 +24,13 @@
 			return;
 		}
 
-		const { data, error } = await authClient.signIn.email(
+		await authClient.signIn.email(
 			{
 				email,
 				password
 			},
 			{
-				onSuccess: (ctx: any) => {
+				onSuccess: () => {
 					// goto('/', { invalidateAll: true });
 					window.location.href = '/';
 				},
@@ -47,31 +45,6 @@
 		);
 
 		loading = false;
-	}
-	async function socialLogin(event: { preventDefault: () => void }) {
-		event.preventDefault();
-		await authClient.signIn.social({
-			provider: 'google'
-		});
-	}
-	async function sendVerificationEmail(event: { preventDefault: () => void }) {
-		event.preventDefault();
-		await authClient.sendVerificationEmail(
-			{
-				email: emailToVerify,
-				callbackURL: '/login'
-			},
-			{
-				onSuccess: (ctx: any) => {
-					openResendEmail = false;
-					emailToVerify = '';
-					errorMsg = ['Verification email sent check email'];
-				},
-				onError: (ctx: any) => {
-					errorMsg = [ctx.error.message];
-				}
-			}
-		);
 	}
 </script>
 

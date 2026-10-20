@@ -1,7 +1,6 @@
 <script lang="ts">
 	import * as Table from '@/components/ui/table';
 	import * as HoverCard from '@/components/ui/hover-card/index';
-	import { authClient } from '@/auth/auth-client';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
 	import { editScrapData } from '@/stores/stores';
 	import Button from '@/components/ui/button/button.svelte';
@@ -11,18 +10,12 @@
 	let {
 		scrapCodes,
 		headerText,
-		scrapCodeCount,
-		vProjects
+		scrapCodeCount
 	}: {
 		scrapCodes: ScrapCode[];
-		totalPages?: number;
 		scrapCodeCount?: number;
 		headerText?: string;
-		vProjects: string[];
 	} = $props();
-
-	const session = authClient.useSession();
-	const userId = $derived($session.data?.user.id);
 
 	function handleEditScrapRec(item: ScrapCode) {
 		editScrapData.set(item);

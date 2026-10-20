@@ -3,7 +3,6 @@
 	import { Button } from '@/components/ui/button';
 	import { Input } from '@/components/ui/input';
 	import ResultInfo, { type ResultInfoData } from './ResultInfo.svelte';
-	import Separator from '../ui/separator/separator.svelte';
 	import Label from '../ui/label/label.svelte';
 	import { operatorCardId } from '@/stores/stores';
 	import { toast } from 'svelte-sonner';

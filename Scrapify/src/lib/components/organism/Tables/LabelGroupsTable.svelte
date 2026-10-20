@@ -2,21 +2,25 @@
 	import * as Table from '@/components/ui/table';
 	import type { LabelGroupsWithRelations } from '@/utils/types';
 	import * as HoverCard from '$lib/components/ui/hover-card/index.js';
-	import { Info } from '@lucide/svelte';
+	import { Info, SquarePenIcon } from '@lucide/svelte';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
+	import Button from '@/components/ui/button/button.svelte';
+	import { editLabelGroupsData } from '@/stores/stores';
 
 	let {
 		labelGroups,
 		headerText,
-		totalPages,
 		labelGroupsCount
 	}: {
 		labelGroups: LabelGroupsWithRelations[];
 		headerText?: string;
-		totalPages?: number;
 		labelGroupsCount?: number;
 	} = $props();
 
+	function handleEditLabelGroup(item: LabelGroupsWithRelations) {
+		editLabelGroupsData.set(item);
+		window.scrollTo({ top: 0, behavior: 'instant' });
+	}
 	// $inspect(labelGroups);
 </script>
 
@@ -34,9 +38,9 @@
 			<Table.Header class="">
 				<Table.Row class="bg-chart-4/40 *:text-chart-1 *:border">
 					<Table.Head class="w-20">ID</Table.Head>
-					<Table.Head class="min-w-20 max-w-60">DMC</Table.Head>
-					<Table.Head class="min-w-20 max-w-50">Groups</Table.Head>
-					<Table.Head class="min-w-20 max-w-50">Project</Table.Head>
+					<Table.Head class="min-w-20 max-w-30">DMC</Table.Head>
+					<Table.Head class="min-w-20 max-w-30">Groups</Table.Head>
+					<Table.Head class="min-w-20 max-w-30">Project</Table.Head>
 					<Table.Head class="text-end">Actions</Table.Head>
 				</Table.Row>
 			</Table.Header>
@@ -89,14 +93,14 @@
 
 						<Table.Cell class="">
 							<div class="flex justify-end gap-2">
-								<!-- <Button
-									onclick={() => handleEditPartGroupRec(item)}
+								<Button
+									onclick={() => handleEditLabelGroup(item)}
 									variant="ghost"
 									size="icon"
 									title="Edit"
 									class="text-chart-warning hover:text-chart-warning"
 									><SquarePenIcon class="size-5!" /></Button
-								> -->
+								>
 								<EditDeleteBtns id={item.id} actionRoute={'?/deleteLabel'} />
 							</div>
 						</Table.Cell>

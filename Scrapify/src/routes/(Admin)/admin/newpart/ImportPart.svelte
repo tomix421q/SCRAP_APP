@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import Button from '@/components/ui/button/button.svelte';
-	import type { ActionData, PageProps } from './$types';
+	import type { ActionData } from './$types';
 	import Input from '@/components/ui/input/input.svelte';
-	import { ToggleLeft, X } from '@lucide/svelte';
+	import { X } from '@lucide/svelte';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 
 	let { form }: { form: ActionData } = $props();

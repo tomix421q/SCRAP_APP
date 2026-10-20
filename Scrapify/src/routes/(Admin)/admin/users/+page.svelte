@@ -17,8 +17,7 @@
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 
 	let { form, data }: PageProps = $props();
-	let { allUsers, user: loggedUser } = $derived(data);
-	let isSubmitting = $state(false);
+	let { allUsers } = $derived(data);
 	let modalOpen = $state(false);
 
 	const ALL_ROLES = ROLES.filter((role) => role !== ROLES[3]) // Exclude ADMIN from the list
@@ -47,7 +46,6 @@
 		if (!modalOpen) form = null;
 	});
 
-	// $inspect(loggedUser);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -113,13 +111,11 @@
 				method="POST"
 				class="formNormalize"
 				use:enhance={() => {
-					isSubmitting = true;
 					return async ({ update, result }) => {
 						if (result?.type === 'success') {
 							resetCombobox = true;
 						}
 						await update();
-						isSubmitting = false;
 						resetCombobox = false;
 					};
 				}}

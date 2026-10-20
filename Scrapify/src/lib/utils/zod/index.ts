@@ -43,7 +43,7 @@ export const partGroupSchema = z.object({
 		.transform((val, ctx) => {
 			try {
 				return JSON.parse(val);
-			} catch (error) {
+			} catch {
 				ctx.addIssue({ code: 'custom', message: 'Bad format for scrap codes select' });
 				return z.NEVER;
 			}
@@ -53,7 +53,10 @@ export const partGroupSchema = z.object({
 export type PartGroupInput = z.infer<typeof partGroupSchema>;
 
 export const labelGroupsSchema = z.object({
-	id: z.coerce.number().int().positive().optional(),
+	id: z.preprocess(
+		(val) => (val === '' || val === null || val === undefined ? undefined : val),
+		z.coerce.number().int().positive().optional()
+	),
 	vProject: z.string().trim().min(2).max(20),
 	labelNumber: z.string().max(64).min(3),
 	groups: z
@@ -80,7 +83,7 @@ export const scrapRowSchema = z.object({
 	selectedScrapCode: z.string().default(''),
 	selectedScrapName: z.string().default(''),
 	isOtherVariant: z.boolean().default(false),
-	replacementPartId: z.string().optional().nullable(),
+	replacementPartMaterial: z.string().optional().nullable(),
 	isOtherComponent: z.boolean().default(false)
 });
 
@@ -118,9 +121,7 @@ export const saveScrapSchema = z.object({
 				!rows.some(
 					(r) =>
 						r.isOtherVariant &&
-						(!r.replacementPartId ||
-							r.replacementPartId === 'empty' ||
-							r.replacementPartId.trim() === '')
+						(!r.replacementPartMaterial || r.replacementPartMaterial.trim() === '')
 				),
 			{ message: 'Pri volbe "Iny variant" musite vybrat konrektny variant PN' }
 		)

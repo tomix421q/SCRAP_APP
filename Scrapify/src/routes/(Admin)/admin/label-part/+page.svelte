@@ -8,51 +8,50 @@
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import { Plus, X } from '@lucide/svelte';
-	import { onMount, untrack } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import LabelGroupsTable from '@/components/organism/Tables/LabelGroupsTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
+	import { currentConfirmDeleteId, editLabelGroupsData } from '@/stores/stores';
 
 	let { data, form }: PageProps = $props();
 	let { groups, labelGroups, labelGroupsCount, totalPages } = $derived(data.data);
 	let { vProjects } = $derived(data);
 
 	// vars
-	let isMounted = false;
 	let idEditLabel = $state<number>();
+	let isSettingEdit = $state(false);
 	let isSubmitting = $state(false);
-	let comboGroups = $state<Record<string, string>>(
-		Object.fromEntries(Array.from({ length: 100 }, (_, i) => [`slot${i + 1}`, '']))
-	);
-	let showSlot: Record<string, boolean> = $state({});
-	let resetGroupCombo = $state(false);
-	let resetProcessCombo = $state(false);
-	let label = $state('');
-	let selectedGroupsIds = $derived(
-		Object.values(comboGroups).filter((val) => val && val.trim() !== '')
-	);
-	let filterOptions = $state({
-		vProject: page.url.searchParams.get('vProject') ?? ''
-	});
-	let prevProj = $state(filterOptions.vProject);
 
+	let resetGroupCombo = $state(false);
+	let groupSlots = $state<string[]>(['']);
+
+	let label = $state('');
+	let selectedVproject = $derived(page.url.searchParams.get('vProject') ?? '');
+	let selectedGroupsIds = $derived(groupSlots.filter((val) => val && val.trim() !== ''));
+
+	//
 	// func
-	async function clearEditForm() {
-		idEditLabel = undefined;
-		filterOptions.vProject = '';
-		label = '';
-		resetGroupCombo = true;
+	function addGroupSlot() {
+		groupSlots.push('');
 	}
-	function addComboboxSlot() {
-		for (let i = 1; i <= 100; i++) {
-			const slotKey = `slot${i}`;
-			if (!showSlot[slotKey]) {
-				showSlot[slotKey] = true;
-				break;
-			}
+	function removeGroupSlot(index: number) {
+		if (groupSlots.length === 1) {
+			groupSlots[0] = '';
+		} else {
+			groupSlots.splice(index, 1);
 		}
 	}
+	async function clearEditForm() {
+		label = '';
+		selectedVproject = '';
+		groupSlots = [''];
+		resetGroupCombo = true;
+		idEditLabel = undefined;
+		$editLabelGroupsData = undefined;
+	}
+
 	let projectItems = $derived(
 		vProjects.map((p: string) => ({
 			id: p,
@@ -60,48 +59,60 @@
 		}))
 	);
 
-	function applyFilter() {
-		const params = new URLSearchParams(page.url.searchParams);
-		if (filterOptions.vProject) {
-			params.set('vProject', filterOptions.vProject.toString());
-		} else {
-			params.delete('vProject');
-		}
-		const query = params.toString();
-		goto(query ? `?${query}` : page.url.pathname, {
-			keepFocus: true,
-			noScroll: true,
-			replaceState: true
-		});
-	}
-
+	//
 	// efect
 	$effect(() => {
-		const currentProj = filterOptions.vProject;
+		if (isSettingEdit) return;
 
-		if (!isMounted) {
-			isMounted = true;
-			return;
-		}
-
-		if (currentProj !== prevProj) {
-			prevProj = currentProj;
-			prevProj = currentProj;
-			for (const key in comboGroups) {
-				comboGroups[key] = '';
+		const currentUrlParam = page.url.searchParams.get('vProject') ?? '';
+		if (selectedVproject !== currentUrlParam) {
+			if (!idEditLabel) {
+				groupSlots = [''];
+				selectedGroupsIds = [];
 			}
-			resetGroupCombo = true;
+			const url = new URL(page.url);
+			if (selectedVproject) {
+				url.searchParams.set('vProject', selectedVproject);
+			} else {
+				url.searchParams.delete('vProject');
+			}
+
+			goto(url.toString(), { keepFocus: true, noScroll: true, invalidateAll: true });
+		}
+	});
+
+	//edit
+	$effect(() => {
+		const editData = $editLabelGroupsData;
+		if (editData && editData.id !== idEditLabel) {
+			isSettingEdit = true;
 			untrack(() => {
-				applyFilter();
+				form = null;
+				idEditLabel = editData.id;
+				label = editData.code;
+				selectedVproject = editData.vProject ? editData.vProject : '';
+				// groups
+				if (editData.groups && editData.groups.length > 0) {
+					const ids = editData.groups.map((g) => g.id.toString());
+					groupSlots = ids;
+					selectedGroupsIds = ids;
+				} else {
+					selectedGroupsIds = [];
+					groupSlots = [''];
+				}
+			});
+			tick().then(() => {
+				isSettingEdit = false;
 			});
 		}
 	});
 
 	onMount(() => {
-		showSlot = { slot1: true };
+		clearEditForm();
+		$currentConfirmDeleteId = undefined;
 	});
 
-	// $inspect(groups);
+	// $inspect(selectedGroupsIds);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -111,33 +122,32 @@
 		<form
 			method="POST"
 			action={idEditLabel ? '?/editLabel' : '?/createLabel'}
-			use:enhance={({ formData, cancel }) => {
+			use:enhance={({ formData }) => {
 				formData.set('labelNumber', label);
-				formData.set('vProject', filterOptions.vProject);
+				formData.set('vProject', selectedVproject);
 				formData.set('groups', JSON.stringify(selectedGroupsIds));
 				isSubmitting = true;
 				return async ({ update, result }) => {
 					if (result?.type === 'success') {
-						for (const key in comboGroups) {
-							comboGroups[key] = '';
-						}
+						window.scrollTo({ top: 0, behavior: 'smooth' });
 						resetGroupCombo = true;
+						clearEditForm();
 					}
 
-					await update();
+					await update({ reset: false });
 					isSubmitting = false;
 				};
 			}}
 			class="formNormalize md:w-[840px]"
 		>
-			<h1 class="mx-auto mb-6 text-2xl">
-				{idEditLabel ? 'Edit group' : 'Create label multy group'}
+			<h1 class="mx-auto lg:mb-5 font-semibold text-2xl">
+				{idEditLabel ? 'Edit group' : 'Create new label group'}
 			</h1>
 			<div>
 				<ResultInfo data={form} />
 			</div>
 			<!-- if edit  -->
-			<input type="text" hidden name="partId" bind:value={idEditLabel} />
+			<input type="text" hidden name="id" bind:value={idEditLabel} />
 
 			<!-- Label input -->
 			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
@@ -148,7 +158,7 @@
 					id="labelNumber"
 					bind:value={label}
 					placeholder="Insert label"
-					class="inputNormalize lg:w-[350px] text-xl! text-warning font-semibold"
+					class="inputNormalize lg:w-[360px] mr-12 text-xl! text-warning tracking-widest"
 					autocomplete={'off'}
 					required
 				/>
@@ -156,85 +166,98 @@
 
 			<!--  -->
 			<!-- vProject dynamic combo -->
-			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
-				<Label for="projectId" class="text-sm md:text-lg">Project</Label>
-				<Combobox
-					dataBox={projectItems}
-					bind:value={filterOptions.vProject}
-					bind:reset={resetProcessCombo}
-					id="projectId"
-				/>
+			<article class="flex flex-col w-full lg:w-full justify-between gap-2 lg:flex-row">
+				<Label for="projectId" class="text-sm md:text-lg"
+					>Project <span class="text-sm text-chart-info capitalize tracking-widest">[filter]</span
+					></Label
+				>
+				<div class="w-full justify-end flex gap-2">
+					<Combobox
+						dataBox={projectItems}
+						bind:value={selectedVproject}
+						bind:reset={resetGroupCombo}
+						id="projectId"
+					/>
+					<Button
+						type="button"
+						title="Remove item"
+						size="icon"
+						variant="ghost"
+						class={selectedVproject
+							? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
+							: 'invisible'}
+						onclick={() => (selectedVproject = '')}
+					>
+						<X />
+					</Button>
+				</div>
 			</article>
 
 			<!--  -->
 			<!-- Groups dynamic combo -->
-			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
+			<article class="flex flex-col gap-2 w-full lg:w-full">
 				<ul
-					class="flex flex-col gap-2 space-y-1 w-full max-h-[400px] overscroll-y-auto overflow-auto"
+					class="flex flex-col gap-2 space-y-1 w-full max-h-[520px] overscroll-y-auto overflow-auto overflow-x-hidden"
 				>
-					{#each Object.entries(comboGroups) as [slotKey, slotValue]}
-						{#if showSlot[slotKey]}
-							{@const currentSlotGroupId = comboGroups[slotKey]}
-							{@const availableGroups = groups.filter(
-								(group: any) =>
-									!selectedGroupsIds.includes(group.id.toString()) ||
-									group.id.toString() === currentSlotGroupId
-							)}
-							<li class="flex flex-col md:flex-row justify-between">
-								<Label for={`part-${slotKey}`} class="text-sm md:text-lg"
-									>Add group <span
-										class="text-sm text-chart-info capitalize tracking-widest my-auto"
-										>[{slotKey}]</span
-									></Label
+					{#each groupSlots as currentGroupId, index (index)}
+						{@const availableGroups = groups.filter(
+							(group: any) =>
+								!selectedGroupsIds.includes(String(group.id)) || String(group.id) === currentGroupId
+						)}
+						<li class="flex flex-col lg:flex-row gap-1 justify-between">
+							<Label for={`group-slot-${index}`} class="text-sm md:text-lg"
+								>Group <span class="text-sm text-chart-info capitalize tracking-widest my-auto"
+									>[{index + 1}]</span
+								></Label
+							>
+							<div class="flex gap-2">
+								<Combobox
+									dataBox={availableGroups}
+									bind:value={groupSlots[index]}
+									id={`group-slot-${index}`}
+									nameLabel={'name'}
+								/>
+								<Button
+									type="button"
+									title="Remove item"
+									size="icon"
+									variant="ghost"
+									class={(index === 0 && currentGroupId) || index > 0
+										? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
+										: 'invisible'}
+									onclick={() => removeGroupSlot(index)}><X /></Button
 								>
-								<div class="flex gap-2">
-									<Button
-										title="Remove item"
-										size="icon"
-										variant="ghost"
-										class={(slotKey === 'slot1' && slotValue) || slotKey !== 'slot1'
-											? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
-											: 'hidden'}
-										onclick={() => {
-											comboGroups[slotKey] = '';
-											if (slotKey === 'slot1') return;
-											showSlot[slotKey] = false;
-										}}><X /></Button
-									>
-
-									<Combobox
-										dataBox={availableGroups}
-										bind:value={comboGroups[slotKey]}
-										bind:reset={resetGroupCombo}
-										id={`group-${slotKey}`}
-										nameLabel={'name'}
-									/>
-								</div>
-							</li>
-						{/if}
+							</div>
+						</li>
 					{/each}
 				</ul>
-			</article>
-			{#if Object.values(showSlot).filter((s) => s).length <= 100}
 				<Button
+					type="button"
 					size="sm"
 					variant="outline"
-					onclick={addComboboxSlot}
-					class="w-full lg:w-[370px] ml-auto text-chart-1 bg-chart-1/10"
-					><Plus /> Add more groups</Button
+					onclick={addGroupSlot}
+					class=" mx-auto lg:mr-36 text-chart-1 bg-chart-1/10"><Plus /> Add more groups</Button
 				>
-			{/if}
+			</article>
 
-			<Button type="submit" class="mt-10" disabled={isSubmitting}>
-				{#if isSubmitting}
-					<span>Submitting...</span>
-				{:else}
-					{idEditLabel ? 'Edit label' : 'Create label group'}
+			<section class="flex *:flex-1 gap-6 mt-12">
+				{#if idEditLabel}
+					<Button
+						disabled={isSubmitting}
+						variant="destructive"
+						onclick={() => {
+							clearEditForm();
+						}}>Close Edit</Button
+					>
 				{/if}
-			</Button>
-			{#if idEditLabel}
-				<Button variant="destructive" onclick={() => clearEditForm()}>Close Edit</Button>
-			{/if}
+				<Button type="submit" disabled={isSubmitting}>
+					{#if isSubmitting}
+						<span>Submitting...</span>
+					{:else}
+						{idEditLabel ? 'Edit label' : 'Create label group'}
+					{/if}
+				</Button>
+			</section>
 		</form>
 	</section>
 

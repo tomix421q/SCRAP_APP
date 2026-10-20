@@ -72,9 +72,54 @@ export const actions = {
 			});
 			return {
 				success: true,
-				message: `Label group with code: "${newLabel.code}" was successfull created.`
+				message: `Label group with mas code: "${newLabel.code}" was successfull created.`
 			};
 		} catch (err: any) {
+			if (err.code === 'P2002') {
+				return fail(400, {
+					success: false,
+					message: `This label group with this project already exist`
+				});
+			}
+			return fail(500, {
+				success: false,
+				message: 'Internal server error',
+				error: err.message
+			});
+		}
+	},
+	editLabel: async (event) => {
+		const data = Object.fromEntries(await event.request.formData());
+		const result = labelGroupsSchema.safeParse(data);
+		if (!result.success) {
+			return fail(400, {
+				success: false,
+				message: 'Validation failed',
+				error: result.error.flatten((issue) => issue.message).fieldErrors,
+				values: data
+			});
+		}
+		const { id, vProject, labelNumber, groups } = result.data;
+		console.log(groups);
+		try {
+			const newLabel = await prismaClient.labelGroup.update({
+				where: {
+					id
+				},
+				data: {
+					code: labelNumber,
+					vProject,
+					groups: {
+						set: groups.map((id) => ({ id }))
+					}
+				}
+			});
+			return {
+				success: true,
+				message: `Label group with mask code: "${newLabel.code}" was successfull updated.`
+			};
+		} catch (err: any) {
+			console.log(err);
 			if (err.code === 'P2002') {
 				return fail(400, {
 					success: false,

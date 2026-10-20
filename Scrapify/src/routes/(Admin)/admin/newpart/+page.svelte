@@ -1,21 +1,19 @@
 <script lang="ts">
-	import { PART_SIDES, type PartSide } from '@/utils/types';
 	import ToNavigateBtn from '@/components/atoms/ToNavigateBtn.svelte';
 	import { enhance } from '$app/forms';
 	import { Label } from '@/components/ui/label';
-	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import type { PageProps } from './$types';
 	import { Input } from '@/components/ui/input';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import NewPartTable from '@/components/organism/Tables/NewPartTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
-	import { currentConfirmDeleteId, isEditing } from '@/stores/stores';
-	import { onMount, untrack } from 'svelte';
+	import { currentConfirmDeleteId } from '@/stores/stores';
+	import { onMount } from 'svelte';
 	import Filter from '@/components/organism/Filter.svelte';
 
 	let { data, form }: PageProps = $props();
-	let { parts, processes, totalPages, partsCount } = $derived(data.data);
+	let { parts, totalPages, partsCount } = $derived(data.data);
 	let isSubmitting = $state(false);
 
 	// id
@@ -23,18 +21,11 @@
 	let idEditPart = $state<number>();
 	let descriptionInput = $state<string | null>('');
 	let partProdNumberId = $state('');
-	let partSide = $state('') as PartSide;
-	let groupId = $state('');
-
-	//reset
-	let resetProcessCombo = $state(false);
-	let resetPartSideCombo = $state(false);
 
 	async function clearEditForm() {
 		idEditPart = undefined;
 		descriptionInput = '';
 		partProdNumberId = '';
-		// partSide = '' as PartSide;
 	}
 
 	$effect(() => {
@@ -43,8 +34,6 @@
 		}
 	});
 	$effect(() => {
-		const curDesc = descriptionInput;
-
 		if (isImport) {
 			form = undefined!;
 		}
@@ -167,7 +156,7 @@
 	<!--  -->
 	<!-- PARTS LIST -->
 	<section class="">
-		<NewPartTable {parts} {totalPages} {partsCount} headerText="Parts list" />
+		<NewPartTable {parts} {partsCount} headerText="Parts list" />
 	</section>
 
 	<section class="z-50">

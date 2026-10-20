@@ -55,9 +55,9 @@ export const actions = {
 	createScrap: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const formData = await event.request.formData();
 		const vProject = formData.get('vProject') as string;
-		const scrapcodeNum = formData.get('scrapcodeNum') as string;
-		const scrapcodeName = formData.get('scrapcodeName') as string;
-		const scrapDescription = formData.get('scrapDescription') as string;
+		const scrapcodeNum = (formData.get('scrapcodeNum') ?? '') as string;
+		const scrapcodeName = (formData.get('scrapcodeName') ?? '') as string;
+		const scrapDescription = (formData.get('scrapDescription') ?? '') as string;
 
 		if (!scrapcodeNum || !scrapcodeName) {
 			return fail(400, {
@@ -126,11 +126,11 @@ export const actions = {
 		const formData = await event.request.formData();
 		const scrapCodeId = formData.get('scrapCodeId') as String;
 		const vProject = formData.get('vProject') as string;
-		const scrapcodeCode = formData.get('scrapcodeCode') as string;
-		const scrapcodeName = formData.get('scrapcodeName') as string;
-		const scrapDescription = formData.get('scrapDescription') as string;
+		const scrapcodeNum = (formData.get('scrapcodeNum') ?? '') as string;
+		const scrapcodeName = (formData.get('scrapcodeName') ?? '') as string;
+		const scrapDescription = (formData.get('scrapDescription') ?? '') as string;
 
-		if (!scrapcodeCode || !scrapcodeName) {
+		if (!scrapcodeNum || !scrapcodeName) {
 			return fail(400, {
 				success: false,
 				error: 'Scrap code number and scrap name are required.Please complete it.',
@@ -144,7 +144,7 @@ export const actions = {
 				message: 'Validation error'
 			});
 		}
-		if (scrapcodeCode.length > 100 || scrapcodeName.length > 100 || scrapDescription.length > 100) {
+		if (scrapcodeNum.length > 100 || scrapcodeName.length > 100 || scrapDescription.length > 100) {
 			return fail(400, {
 				success: false,
 				error:
@@ -170,7 +170,7 @@ export const actions = {
 						id: Number(findScrapcode.id)
 					},
 					data: {
-						code: scrapcodeCode,
+						code: scrapcodeNum,
 						vProject: vProject,
 						name: scrapcodeName,
 						description: scrapDescription

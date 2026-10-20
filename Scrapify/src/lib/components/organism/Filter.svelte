@@ -34,7 +34,6 @@
 		dateTo: ''
 	});
 	let resetProcessCombo = $state(false);
-	let resetProjectCombo = $state(false);
 
 	function applyFilter() {
 		const params = new URLSearchParams();
@@ -96,10 +95,8 @@
 		filterOptions.dateFrom = '';
 		filterOptions.dateTo = '';
 		resetProcessCombo = true;
-		resetProjectCombo = true;
 		await tick();
 		resetProcessCombo = false;
-		resetProjectCombo = true;
 
 		goto(page.url.pathname, { keepFocus: true, noScroll: true, replaceState: true });
 	}

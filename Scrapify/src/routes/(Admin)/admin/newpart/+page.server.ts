@@ -1,10 +1,8 @@
 import prismaClient from '@/server/prisma';
 import type { Actions, PageServerLoad } from './$types';
-import { error, fail, type ActionFailure } from '@sveltejs/kit';
-import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
-import { toFuzzyPattern, writeToLogger } from '@/utils/serverHelp';
+import { error } from '@sveltejs/kit';
+import { toFuzzyPattern } from '@/utils/serverHelp';
 import type { Prisma } from '@prisma/client';
-import * as XLSX from 'xlsx';
 
 // Pomocná funkcia: rozdelí reťazec (napr. "j o j") na tokeny a spojí ich cez '%'
 // Ak hľadáte "j o j", vygeneruje "j%o%j", čo v Prisma `contains` vytvorí LIKE '%j%o%j%'
