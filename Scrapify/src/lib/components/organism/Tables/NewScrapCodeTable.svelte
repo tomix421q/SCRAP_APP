@@ -35,16 +35,16 @@
 			</p>
 			<h2 class="lg:text-lg tracking-widest font-bold">{headerText}</h2>
 		</div>
-		<Table.Root class="table-fixed w-full ">
+		<Table.Root class="lg:table-fixed w-full ">
 			<Table.Header>
 				<Table.Row class="bg-chart-4/40 *:text-chart-1 *:border">
 					<Table.Head class="w-20">ID</Table.Head>
 
 					<Table.Head class="w-60">Code</Table.Head>
 					<Table.Head class="w-60">Name</Table.Head>
+					<Table.Head class="w-120">Description</Table.Head>
 					<Table.Head class="w-30">Project</Table.Head>
 					<Table.Head class="w-30">Active?</Table.Head>
-					<Table.Head class="w-120">Description</Table.Head>
 
 					<Table.Head colspan={1} class="text-end">Actions</Table.Head>
 				</Table.Row>
