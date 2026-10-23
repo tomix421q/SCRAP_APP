@@ -1,28 +1,16 @@
 <script lang="ts">
 	import * as Table from '@/components/ui/table';
-	import * as HoverCard from '@/components/ui/hover-card/index';
-	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
-	import { editScrapData } from '@/stores/stores';
-	import Button from '@/components/ui/button/button.svelte';
-	import { SquarePenIcon } from '@lucide/svelte';
-	import type { ScrapCode } from '@prisma/client';
+	import type { vScrapCodes } from '@prisma/client';
 
 	let {
 		scrapCodes,
 		headerText,
 		scrapCodeCount
 	}: {
-		scrapCodes: ScrapCode[];
+		scrapCodes: vScrapCodes[];
 		scrapCodeCount?: number;
 		headerText?: string;
 	} = $props();
-
-	function handleEditScrapRec(item: ScrapCode) {
-		editScrapData.set(item);
-		window.scrollTo({ top: 0, behavior: 'smooth' });
-	}
-
-	// $inspect(scrapCodes);
 </script>
 
 <main>
@@ -38,59 +26,27 @@
 		<Table.Root class="lg:table-fixed w-full ">
 			<Table.Header>
 				<Table.Row class="bg-chart-4/40 *:text-chart-1 *:border">
-					<Table.Head class="w-20">ID</Table.Head>
-
-					<Table.Head class="w-60">Code</Table.Head>
-					<Table.Head class="w-60">Name</Table.Head>
-					<Table.Head class="w-120">Description</Table.Head>
+					<Table.Head class="w-15">Code</Table.Head>
+					<Table.Head class="w-15">Process ident.</Table.Head>
+					<Table.Head class="w-30">Description</Table.Head>
 					<Table.Head class="w-30">Project</Table.Head>
-					<Table.Head class="w-30">Active?</Table.Head>
-
-					<Table.Head colspan={1} class="text-end">Actions</Table.Head>
+					<Table.Head class="w-30">Process</Table.Head>
 				</Table.Row>
 			</Table.Header>
 			<Table.Body class="">
-				{#each scrapCodes as item (item)}
+				{#each scrapCodes as item, index (index)}
 					<Table.Row class="*:border *:truncate">
-						<Table.Cell class="">{item.id}</Table.Cell>
-
-						<Table.Cell class="">{item.code}</Table.Cell>
-						<Table.Cell class="">{@render description(item.name!)}</Table.Cell>
-						<Table.Cell class="" title={item.description}
-							>{@render description(item.description!)}</Table.Cell
+						<Table.Cell class="">{item.Reason_Code}</Table.Cell>
+						<Table.Cell class="">{item.Reason_Code_ProcessIdent}</Table.Cell>
+						<Table.Cell class="" title={item.Reason_Description}
+							>{item.Reason_Description}</Table.Cell
 						>
-						<Table.Cell class="">{item.vProject}</Table.Cell>
+						<Table.Cell title={item.Reason_Project}>{item.Reason_Project}</Table.Cell>
 
-						<Table.Cell class="">{item.active}</Table.Cell>
-
-						<!-- ACTIONS BTNS -->
-						<Table.Cell class="">
-							<div class="flex justify-end gap-2">
-								<Button
-									onclick={() => handleEditScrapRec(item)}
-									variant="ghost"
-									size="icon"
-									title="Edit"
-									class="text-chart-warning hover:text-chart-warning"
-									><SquarePenIcon class="size-5!" /></Button
-								>
-								<EditDeleteBtns id={item.id} actionRoute={'?/deleteScrapCode'} />
-							</div>
-						</Table.Cell>
+						<Table.Cell title={item.Reason_Process_EN}>{item.Reason_Process_EN}</Table.Cell>
 					</Table.Row>
 				{/each}
 			</Table.Body>
 		</Table.Root>
 	</div>
 </main>
-
-{#snippet description(desc: string)}
-	{#if desc.length === 0}
-		<p class="text-muted-foreground"></p>
-	{:else}
-		<HoverCard.Root>
-			<HoverCard.Trigger>{desc.length > 15 ? desc?.slice(0, 15) + '...' : desc}</HoverCard.Trigger>
-			<HoverCard.Content>{desc}</HoverCard.Content>
-		</HoverCard.Root>
-	{/if}
-{/snippet}

@@ -7,6 +7,9 @@ import { writeToLogger } from '@/utils/serverHelp';
 
 export const load = (async (event) => {
 	const limit = 100;
+	const requestedPage = Number(event.url.searchParams.get('page') ?? '1');
+	const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+	const skip = (page - 1) * limit;
 
 	const filters = {
 		vProject: event.url.searchParams.get('vProject')
@@ -25,6 +28,8 @@ export const load = (async (event) => {
 			// groups
 			prismaClient.partGroup.findMany({
 				where: whereGroup,
+				skip,
+				take: limit,
 				orderBy: { updatedAt: 'desc' },
 				include: { scrapCodes: true, materials: true }
 			}),
@@ -38,10 +43,10 @@ export const load = (async (event) => {
 
 			// scrap
 			filters.vProject
-				? prismaClient.scrapCode.findMany({
-						where: { ...(filters.vProject ? { vProject: filters.vProject } : {}) }
+				? prismaClient.vScrapCodes.findMany({
+						where: { ...(filters.vProject ? { Reason_Project: filters.vProject } : {}) }
 					})
-				: prismaClient.scrapCode.findMany({ take: 0 }),
+				: prismaClient.vScrapCodes.findMany({ take: 0, orderBy: { Reason_Code: 'asc' } }),
 			// group count
 			prismaClient.partGroup.count({ where: whereGroup })
 		]);
@@ -85,16 +90,10 @@ export const actions = {
 				values: data
 			});
 		}
-		const {
-			groupName,
-			vProject,
-			partNumbers,
-			scrapCodesIds,
-			isRebuild,
-			interfaceName,
-			qadIdentity
-		} = result.data;
+		const { groupName, vProject, partNumbers, scrapCodes, isRebuild, interfaceName, qadIdentity } =
+			result.data;
 		try {
+			const scrapCodeRecords = await getScrapCodeRecords(vProject, scrapCodes ?? []);
 			const newGroup = await prismaClient.partGroup.create({
 				data: {
 					name: groupName,
@@ -108,7 +107,7 @@ export const actions = {
 					interfaceName,
 					qadIdentity,
 					scrapCodes: {
-						connect: scrapCodesIds.map((id) => ({ id }))
+						create: scrapCodeRecords
 					}
 				},
 				select: {
@@ -154,12 +153,13 @@ export const actions = {
 			groupName,
 			vProject,
 			partNumbers,
-			scrapCodesIds,
+			scrapCodes,
 			isRebuild,
 			interfaceName,
 			qadIdentity
 		} = result.data;
 		try {
+			const scrapCodeRecords = await getScrapCodeRecords(vProject, scrapCodes ?? []);
 			const newGroup = await prismaClient.partGroup.update({
 				where: {
 					id
@@ -177,7 +177,8 @@ export const actions = {
 					interfaceName,
 					qadIdentity,
 					scrapCodes: {
-						set: scrapCodesIds.map((id) => ({ id }))
+						deleteMany: {},
+						create: scrapCodeRecords
 					}
 				},
 				select: {
@@ -209,7 +210,7 @@ export const actions = {
 		const formData = await event.request.formData();
 		const id = formData.get('deleteId');
 		const numId = Number(id);
-		console.log(id)
+		console.log(id);
 		if (!id || Number.isNaN(numId)) {
 			return fail(400, { success: false, message: 'Validation', error: 'Id not found.' });
 		}
@@ -243,3 +244,26 @@ export const actions = {
 		}
 	}
 } satisfies Actions;
+
+async function getScrapCodeRecords(vProject: string, codes: string[]) {
+	if (codes.length === 0) return [];
+
+	const scrapCodes = await prismaClient.vScrapCodes.findMany({
+		where: {
+			Reason_Project: vProject,
+			Reason_Code: { in: codes }
+		},
+		select: {
+			Reason_Code: true,
+			Reason_Description: true
+		}
+	});
+	const descriptions = new Map(
+		scrapCodes.map((scrapCode) => [scrapCode.Reason_Code, scrapCode.Reason_Description])
+	);
+
+	return codes.map((code) => ({
+		code,
+		description: descriptions.get(code) ?? null
+	}));
+}

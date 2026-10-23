@@ -109,13 +109,11 @@
 													<ul>
 														<li class="flex gap-4 hover:bg-background p-2 rounded-lg">
 															<p>
-																<span class="text-muted-foreground">ID:</span>{scrapC.id}
-															</p>
-															<p>
-																<span class="text-muted-foreground">NAME:</span>{scrapC.name}
-															</p>
-															<p>
 																<span class="text-muted-foreground">CODE:</span>{scrapC.code}
+															</p>
+															<p>
+																<span class="text-muted-foreground">DESCRIPTION:</span
+																>{scrapC.description}
 															</p>
 														</li>
 													</ul>

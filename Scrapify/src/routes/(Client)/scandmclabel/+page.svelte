@@ -21,7 +21,7 @@
 	const scrapManager = new ScrapManager();
 	let isMounted = $state(false);
 	let isSubmitting = $state(false);
-	let barcodeValue = $state('');
+	let barcodeValue = $state('SK711FL');
 	let isScanning = $state(false);
 	let inputEl = $state<HTMLInputElement | null>(null);
 	let status = $state<'idle' | 'success' | 'error'>('idle');

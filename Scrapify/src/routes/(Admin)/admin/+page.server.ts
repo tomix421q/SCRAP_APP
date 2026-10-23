@@ -10,7 +10,7 @@ export const load = (async (event) => {
 	try {
 		const [totalUsers, totalScrapCode, totalParts, totalOperators, totalLogs] = await Promise.all([
 			prismaClient.user.count(),
-			prismaClient.scrapCode.count(),
+			prismaClient.vScrapCodes.count(),
 			prismaClient.vParts.count(),
 			prismaClient.operator.count(),
 			prismaClient.activityLogs.count()

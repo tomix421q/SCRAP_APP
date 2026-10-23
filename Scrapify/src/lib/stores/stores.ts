@@ -4,18 +4,17 @@ import {
 	type PartGroupWithRelations,
 	type ScrapRecordWithRelations
 } from '@/utils/types';
-import type { ScrapCode } from '@prisma/client';
+import type { vScrapCodes } from '@prisma/client';
 import { derived, writable, type Readable } from 'svelte/store';
 
 export const currentConfirmDeleteId = writable<number | string | undefined>(undefined);
 
-export const editScrapData = writable<ScrapCode | undefined>(undefined);
 export const editSearchData = writable<ScrapRecordWithRelations | undefined>(undefined);
 export const editPartGroupData = writable<PartGroupWithRelations | undefined>(undefined);
 export const editLabelGroupsData = writable<LabelGroupsWithRelations | undefined>(undefined);
 
 export const isEditing: Readable<boolean> = derived(
-	[editScrapData, editSearchData, editPartGroupData,editLabelGroupsData],
+	[editSearchData, editPartGroupData, editLabelGroupsData],
 	([$editScrapData, $editSearchData, $editPartGroupData]: any) => {
 		return (
 			$editScrapData !== undefined ||

@@ -67,22 +67,6 @@ model Verification {
 
   @@map("verification")
 }
-
-
-
-
-model ScrapSummary {
-  id          Int       @id @default(autoincrement())
-  material      Int
-  scrapCodeId Int
-  date        DateTime
-  totalQty    Int
-  scrapCode   ScrapCode @relation(fields: [scrapCodeId], references: [id], onDelete: Cascade)
-
-  @@unique([material, scrapCodeId, date])
-  @@index([date])
-}
-
 model Operator {
   id           Int            @id @default(autoincrement())
   createdBy    String
@@ -103,34 +87,21 @@ model ActivityLogs {
   operator   Operator? @relation(fields: [operatorId], references: [id], onDelete: Cascade)
   user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-model ScrapCode {
-  id           Int            @id @default(autoincrement())
-  vProject     String? @db.VarChar(20)
-  code         String
-  name         String
-  description  String?
-  active       Boolean        @default(true)
-  scrapRecords ScrapRecord[]
-  scrapSummary ScrapSummary[]
-  groups       PartGroup[]    @relation("PartGroupToScrapCode")
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
 
-  @@unique([vProject,code])
-}
+
 model PartGroup {
-  id            Int           @id @default(autoincrement())
-  name          String        @db.NVarChar(64)
-  vProject      String? @db.VarChar(20)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  isRebuild     Boolean       @default(false)
+  id            Int                 @id @default(autoincrement())
+  name          String              @db.NVarChar(64)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  isRebuild     Boolean             @default(false)
   interfaceName String
   qadIdentity   String?
-  scrapRecords  ScrapRecord[]
-  labelGroups   LabelGroup[]  @relation("LabelGroupToPartGroup")
-  scrapCodes    ScrapCode[]   @relation("PartGroupToScrapCode")
+  vProject      String?             @db.VarChar(20)
   materials     PartGroupMaterial[]
+  scrapCodes    PartGroupScrapCodes[]
+  scrapRecords  ScrapRecord[]
+  labelGroups   LabelGroup[]        @relation("LabelGroupToPartGroup")
 
   @@unique([name, vProject])
   @@index([vProject])
@@ -138,54 +109,61 @@ model PartGroup {
 }
 
 model PartGroupMaterial {
-  id    Int @id @default(autoincrement())
-  partGroupId   Int
-  material    String @db.NVarChar(50)
-  side        String? @db.VarChar(20)
-  description String? @db.VarChar(60)
-  partGroup PartGroup @relation(fields: [partGroupId],references: [id],onDelete: Cascade)
+  id          Int       @id @default(autoincrement())
+  partGroupId Int
+  material    String    @db.NVarChar(50)
+  description String?   @db.VarChar(60)
+  side        String?   @db.VarChar(20)
+  partGroup   PartGroup @relation(fields: [partGroupId], references: [id], onDelete: Cascade)
 
-  @@unique([partGroupId,material])
+  @@unique([partGroupId, material])
   @@index([material])
 }
+model PartGroupScrapCodes {
+  id          Int       @id @default(autoincrement())
+  partGroupId Int
+  code        String  @db.VarChar(20)
+  description String? @db.VarChar(50)
+  partGroup   PartGroup @relation(fields: [partGroupId], references: [id], onDelete: Cascade)
+}
+
 
 model LabelGroup {
   id        Int         @id @default(autoincrement())
   code      String      @db.NVarChar(64)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  vProject  String? @db.VarChar(20)
+  vProject  String?     @db.VarChar(20)
   groups    PartGroup[] @relation("LabelGroupToPartGroup")
 
   @@unique([code, vProject])
   @@index([vProject])
 }
 
-
 model ScrapRecord {
-  id                Int        @id @default(autoincrement())
-  dmc               String     @db.NVarChar(128)
-  partGroupId       Int
-  scrapCodeId       Int?
-  isRebuild         Boolean    @default(false)
-  replacementPartMaterial String? @db.NVarChar(50)
-  isOtherComponent  Boolean    @default(false)
-  quantity          Float      @default(1)
-  description       String?
-  createdBy         String
-  createdAt         DateTime   @default(now())
-  QADExported       Boolean?   @default(false)
-  partGroup         PartGroup  @relation(fields: [partGroupId], references: [id], onUpdate: NoAction,onDelete: Cascade)
-  scrapCode         ScrapCode? @relation(fields: [scrapCodeId], references: [id], onDelete: Cascade)
+  id                      Int        @id @default(autoincrement())
+  dmc                     String     @db.NVarChar(128)
+  partGroupId             Int
+  scrapCode               String?
+  scrapCodeDescription    String?
+  isRebuild               Boolean    @default(false)
+  isOtherComponent        Boolean    @default(false)
+  quantity                Float      @default(1)
+  description             String?
+  createdBy               String
+  createdAt               DateTime   @default(now())
+  QADExported             Boolean?   @default(false)
+  replacementPartMaterial String?    @db.NVarChar(50)
+  partGroup               PartGroup  @relation(fields: [partGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([dmc])
   @@index([createdAt])
   @@index([partGroupId])
-  @@index([scrapCodeId])
+  @@index([scrapCode])
 }
 
 view vParts {
-  Material    String @unique @db.NVarChar(50)
+  Material    String  @unique @db.NVarChar(50)
   Description String? @db.VarChar(60)
   P_L         String? @db.VarChar(10)
   PartGroup   String? @db.NVarChar(50)
@@ -195,3 +173,10 @@ view vParts {
   Project     String? @db.VarChar(20)
 }
 
+view vScrapCodes {
+  Reason_Code              String  @db.VarChar(20)
+  Reason_Description       String? @db.VarChar(50)
+  Reason_Code_ProcessIdent String? @db.VarChar(10)
+  Reason_Project           String? @db.VarChar(50)
+  Reason_Process_EN        String? @db.VarChar(50)
+}

@@ -26,13 +26,11 @@ export const PART_SIDES: { id: PartSide; name: string }[] = [
 export interface FilterType {
 	partNumber: string;
 	vProject: string;
-	vHall: string;
-	partId: string;
+	vProcess: string;
 	scrapCode: string;
-	scrapName: string;
+	description: string;
 	dateFrom: string;
 	dateTo: string;
-	description: string;
 }
 
 export interface DataAndResultData<T> extends ResultInfoData {

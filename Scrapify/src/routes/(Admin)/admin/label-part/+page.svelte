@@ -7,7 +7,7 @@
 	import Input from '@/components/ui/input/input.svelte';
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Button from '@/components/ui/button/button.svelte';
-	import { Plus, X } from '@lucide/svelte';
+	import { Plus, QrCode, X } from '@lucide/svelte';
 	import { onMount, tick, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
@@ -112,7 +112,7 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	// $inspect(selectedGroupsIds);
+	$inspect(selectedGroupsIds);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -140,8 +140,8 @@
 			}}
 			class="formNormalize md:w-[840px]"
 		>
-			<h1 class="mx-auto lg:mb-5 font-semibold text-2xl">
-				{idEditLabel ? 'Edit group' : 'Create new label group'}
+			<h1 class="mx-auto lg:mb-5 font-semibold text-2xl flex items-center gap-2">
+				<QrCode class="size-8 stroke-info" />{idEditLabel ? 'Edit group' : 'Create new label group'}
 			</h1>
 			<div>
 				<ResultInfo data={form} />

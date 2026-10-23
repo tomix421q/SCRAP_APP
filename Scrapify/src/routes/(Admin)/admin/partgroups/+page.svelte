@@ -10,7 +10,7 @@
 	import { navigating, page } from '$app/state';
 	import { onMount, tick, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { DatabaseArrowDownIcon, Plus, X } from '@lucide/svelte';
+	import { DatabaseArrowDownIcon, Group, Plus, X } from '@lucide/svelte';
 	import NewGroupTable from '@/components/organism/Tables/NewGroupTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
@@ -33,7 +33,7 @@
 
 	let selectedVproject = $state(page.url.searchParams.get('vProject') ?? '');
 	let selectedPartIds = $derived(partSlots.filter((val) => val && val.trim() !== ''));
-	let selectedScrapCodesIds = $derived(scrapSlots.filter((val) => val && val.trim() !== ''));
+	let selectedScrapCodes = $derived(scrapSlots.filter((val) => val && val.trim() !== ''));
 	let partGroupName = $state('');
 	let interfaceName = $state('');
 	let isRebuild = $state(false);
@@ -96,7 +96,7 @@
 				partSlots = [''];
 				selectedPartIds = [];
 				scrapSlots = [''];
-				selectedScrapCodesIds = [];
+				selectedScrapCodes = [];
 			}
 
 			selectedPartIds = [];
@@ -137,11 +137,11 @@
 				}
 				// Scrap codes
 				if (editData.scrapCodes && editData.scrapCodes.length > 0) {
-					const ids = editData.scrapCodes.map((sc: any) => String(sc.id));
-					selectedScrapCodesIds = ids;
+					const ids = editData.scrapCodes.map((sc) => sc.code);
+					selectedScrapCodes = ids;
 					scrapSlots = ids;
 				} else {
-					selectedScrapCodesIds = [];
+					selectedScrapCodes = [];
 					scrapSlots = [''];
 				}
 				// Group name
@@ -163,7 +163,7 @@
 		$currentConfirmDeleteId = undefined;
 	});
 
-	// $inspect(selectedPartIds);
+	$inspect(selectedScrapCodes);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -176,7 +176,7 @@
 			use:enhance={({ formData }) => {
 				formData.set('vProject', selectedVproject);
 				formData.set('partNumbers', JSON.stringify(selectedPartIds));
-				formData.set('scrapCodesIds', JSON.stringify(selectedScrapCodesIds));
+				formData.set('scrapCodes', JSON.stringify(selectedScrapCodes));
 				formData.set('groupName', partGroupName);
 				formData.set('interfaceName', interfaceName);
 				formData.set('qadIdentity', qadSelectedItemType);
@@ -192,10 +192,12 @@
 					isSubmitting = false;
 				};
 			}}
-			class="formNormalize md:w-[840px]"
+			class="formNormalize"
 		>
-			<h1 class="mx-auto md:mb-6 text-2xl font-semibold tracking-wider">
-				{idEditGroup ? 'Edit component group' : 'Create new component group'}
+			<h1 class="mx-auto md:mb-6 text-2xl font-semibold tracking-wider flex items-center gap-2">
+				<Group class="size-8 stroke-info" />{idEditGroup
+					? 'Edit component group'
+					: 'Create new component group'}
 			</h1>
 			<div>
 				<ResultInfo data={form} />
@@ -206,40 +208,45 @@
 
 			<!--  -->
 			<!-- Project -->
-			<div class="md:flex gap-2 items-center mb-6">
-				<article class="flex flex-col w-full lg:w-fit lg:flex-row gap-2">
-					<Label for="projectId" class="text-sm md:text-lg"
+			<div class="md:flex gap-2 items-center mb-4">
+				<article class="flex flex-col justify-between w-full lg:flex-row">
+					<Label for="vProject" class="text-sm md:text-lg"
 						>vProject <span class="text-sm text-chart-info capitalize tracking-widest"
 							>[filter]</span
 						></Label
 					>
-					<Combobox
-						dataBox={projectItems}
-						bind:value={selectedVproject}
-						bind:reset={resetProjectCombo}
-						id="project"
-					/>
-					<Button
-						type="button"
-						title="Remove item"
-						size="icon"
-						variant="ghost"
-						class={selectedVproject
-							? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
-							: 'hidden'}
-						onclick={() => (selectedVproject = '')}
-					>
-						<X />
-					</Button>
+					<div class="flex items-center text-right gap-1">
+						<div class="font-bold text-chart-1 flex flex-col text-xs">
+							<span>{parts.length} Part nums</span>
+							<span>{scrapCodes.length} Scrap codes</span>
+						</div>
+						<Combobox
+							dataBox={projectItems}
+							bind:value={selectedVproject}
+							bind:reset={resetProjectCombo}
+							id="vProject"
+						/>
+						<Button
+							type="button"
+							title="Remove item"
+							size="icon"
+							variant="ghost"
+							class={selectedVproject
+								? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
+								: 'hidden'}
+							onclick={() => (selectedVproject = '')}
+						>
+							<X />
+						</Button>
+					</div>
 				</article>
-				<p class="font-bold text-chart-1">{parts.length} parts</p>
 			</div>
 
 			<!--  -->
 			<!-- Parts && Scrap codes -->
-			<div class="flex flex-col gap-12">
+			<div class="flex flex-col gap-8 mb-4">
 				<!-- parts  -->
-				<article class="flex flex-col gap-2 w-full lg:w-max">
+				<article class="flex flex-col gap-2 w-full">
 					<ul
 						class="flex flex-col gap-2 space-y-1 max-h-[520px] overscroll-y-auto overflow-auto w-full overflow-x-hidden"
 					>
@@ -248,12 +255,13 @@
 								(part: any) =>
 									!selectedPartIds.includes(String(part.id)) || String(part.id) === currentPartId
 							)}
-							<li class="flex flex-col lg:flex-row gap-1 justify-start">
-								<Label for={`part-slot-${index}`} class="text-sm md:text-lg ">
+							<li class="flex flex-col lg:flex-row justify-between">
+								<Label
+									for={`part-slot-${index}`}
+									class="text-sm md:text-lg flex flex-1 justify-between"
+								>
 									<span class="">vPart</span>
-									<span class="text-sm text-chart-info capitalize tracking-widest"
-										>[{index + 1}]</span
-									>
+									<span class="text-sm text-chart-info capitalize">[{index + 1}]</span>
 								</Label>
 								<div class="flex gap-1 relative">
 									{#if isLoadingParts}
@@ -280,7 +288,7 @@
 										variant="ghost"
 										class={(index === 0 && currentPartId) || index > 0
 											? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
-											: 'hidden'}
+											: 'invisible'}
 										onclick={() => removePartSlot(index)}
 									>
 										<X />
@@ -299,30 +307,36 @@
 				</article>
 
 				<!-- scrap -->
-				<article class="flex flex-col gap-2 w-full lg:w-max">
+				<article class="flex flex-col gap-2 w-full">
 					<ul
 						class="flex flex-col gap-2 space-y-1 max-h-[520px] overscroll-y-auto overflow-auto w-full overflow-x-hidden"
 					>
-						{#each scrapSlots as currentScrapId, index (index)}
-							{@const availableScrapCodes = scrapCodes.filter(
-								(sc: any) =>
-									!selectedScrapCodesIds.includes(sc.id.toString()) ||
-									sc.id.toString() === currentScrapId
-							)}
-							<li class="flex flex-col lg:flex-row gap-1 justify-start">
-								<Label for={`scrap-slot-${index}`} class="text-sm md:text-lg">
-									<span>Scrap</span>
-									<span class="text-sm text-chart-info capitalize tracking-widest"
-										>[{index + 1}]</span
-									>
+						{#each scrapSlots as currentScrapCode, index (index)}
+							{@const availableScrapCodes = scrapCodes
+								.filter(
+									(sc: any) =>
+										!selectedScrapCodes.includes(sc.Reason_Code) ||
+										sc.Reason_Code === currentScrapCode
+								)
+								.map((sc: any) => ({ ...sc, id: String(sc.Reason_Code ?? sc.id) }))}
+							<li class="flex flex-col lg:flex-row justify-between">
+								<Label
+									for={`scrap-slot-${index}`}
+									class="text-sm md:text-lg flex flex-1 justify-between"
+								>
+									<span>vScrap</span>
+									<span class="text-sm text-chart-info capitalize">[{index + 1}]</span>
 								</Label>
 								<div class="flex gap-1">
 									<Combobox
-										dataBox={availableScrapCodes}
+										dataBox={availableScrapCodes.map((scrapCodes: any) => ({
+											id: scrapCodes.Reason_Code,
+											name: `[${scrapCodes.Reason_Code}] - ${scrapCodes.Reason_Description} - ${scrapCodes.Reason_Process_EN}`
+										}))}
 										bind:value={scrapSlots[index]}
 										id={`scrap-slot-${index}`}
 										width="xl"
-										nameLabel={'codeName'}
+										nameLabel={'name'}
 										firstText={selectedVproject ? 'Select scrap' : 'Select project first'}
 									/>
 									<Button
@@ -330,9 +344,9 @@
 										title="Remove item"
 										size="icon"
 										variant="ghost"
-										class={(index === 0 && currentScrapId) || index > 0
+										class={(index === 0 && currentScrapCode) || index > 0
 											? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
-											: 'hidden'}
+											: 'invisible'}
 										onclick={() => removeScrapSlot(index)}
 									>
 										<X />
@@ -355,35 +369,31 @@
 			<Separator />
 			<!--  -->
 			<!-- Group name && Interface name -->
-			<div class="flex flex-col gap-12">
+			<div class="flex flex-col gap-8 mt-2">
 				<!-- group name !!! -->
-				<article
-					class="flex flex-col w-full lg:flex-row lg:w-lg justify-between items-center gap-2 max-sm:mb-2"
-				>
-					<Label for="groupName" class="text-sm md:text-lg">Group name</Label>
+				<article class="flex flex-col w-full lg:flex-row items-center max-sm:mb-2 gap-2">
+					<Label for="groupName" class="text-sm md:text-lg lg:w-[200px]">Group name</Label>
 					<Input
 						type="text"
 						name="groupName"
-						id="partGroup"
+						id="groupName"
 						bind:value={partGroupName}
-						placeholder="Insert group name"
-						class="inputNormalize lg:w-[350px]"
+						placeholder="Detailed name for group"
+						class="inputNormalize  text-lg! text-warning"
 						required
 						autocomplete={'off'}
 					/>
 				</article>
 				<!-- interface name !!! -->
-				<article
-					class="flex flex-col w-full lg:flex-row lg:w-lg justify-between items-center gap-2"
-				>
-					<Label for="interfaceName" class="text-sm md:text-lg">Interface name</Label>
+				<article class="flex flex-col w-full lg:flex-row items-center gap-2">
+					<Label for="interfaceName" class="text-sm md:text-lg lg:w-[200px]">Interface name</Label>
 					<Input
 						type="text"
 						name="interfaceName"
 						id="interfaceName"
 						bind:value={interfaceName}
-						placeholder="Name for operator"
-						class="inputNormalize lg:w-[350px]"
+						placeholder="Simple group name for operator"
+						class="inputNormalize text-lg! text-warning"
 						required
 						autocomplete={'off'}
 					/>
@@ -391,33 +401,38 @@
 			</div>
 
 			<!-- Is rebuild??? -->
-			<article class="flex flex-col mt-8 justify-between w-fit lg:items-center gap-4 lg:flex-row">
-				<Label for="isrebuild" class="text-sm md:text-lg">Rebuild group</Label>
-				<div class="w-[350px]">
-					<Checkbox
-						id="isrebuild"
-						class="size-5! ring-2 ring-primary **:size-5"
-						checked={isRebuild}
-						onCheckedChange={(val: any) => {
-							if (val) {
-								isRebuild = true;
-							} else {
-								isRebuild = false;
-							}
-						}}
-					/>
-				</div>
+			<article class="flex flex-col mt-3 justify-between w-fit lg:items-center gap-2 lg:flex-row">
+				<Label for="isrebuild" class="text-sm md:text-lg lg:w-[200px]">Rebuild group</Label>
+
+				<Checkbox
+					id="isrebuild"
+					class="size-5! ring-2 ring-primary **:size-5"
+					checked={isRebuild}
+					onCheckedChange={(val: any) => {
+						if (val) {
+							isRebuild = true;
+						} else {
+							isRebuild = false;
+						}
+					}}
+				/>
 			</article>
 
 			<!--  -->
 			<!-- Qad component type-->
-			<article class="ring p-2 ring-muted/30 rounded-lg max-w-2xl">
-				<h4 class="text-xl text-muted-foreground flex items-center mb-6">Qad component identity</h4>
+			<article class="border-t-2 pt-10 mt-4 border-green-500">
+				<section class="flex flex-col w-full lg:items-center gap-1 lg:flex-row">
+					<Label for="qad-item-type" class="text-sm md:text-lg lg:w-[200px]">Qad identity</Label>
 
-				<section class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
-					<Label for="qad-item-type" class="text-sm md:text-lg">Identity</Label>
-
-					<div class=" lg:flex gap-2 items-center justify-center">
+					<div class=" lg:flex gap-1 items-center justify-center">
+						<Combobox
+							dataBox={filteredQadItems}
+							bind:value={qadSelectedItemType}
+							reset={resetProjectCombo}
+							width="sm"
+							firstText="Select qad identity"
+							id="qad-item-type"
+						/>
 						<Button
 							type="button"
 							title="Remove item"
@@ -425,19 +440,11 @@
 							variant="ghost"
 							class={qadSelectedItemType.length > 0
 								? 'flex text-destructive bg-destructive/10 hover:bg-destructive/50'
-								: 'hidden'}
+								: 'invisible'}
 							onclick={() => (qadSelectedItemType = '')}
 						>
 							<X />
 						</Button>
-						<Combobox
-							dataBox={filteredQadItems}
-							bind:value={qadSelectedItemType}
-							reset={resetProjectCombo}
-							width="lg"
-							firstText="Select qad identity"
-							id="qad-item-type"
-						/>
 					</div>
 				</section>
 			</article>

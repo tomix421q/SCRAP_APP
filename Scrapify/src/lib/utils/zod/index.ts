@@ -38,7 +38,7 @@ export const partGroupSchema = z.object({
 			}
 		})
 		.pipe(z.array(z.string())),
-	scrapCodesIds: z
+	scrapCodes: z
 		.string()
 		.transform((val, ctx) => {
 			try {
@@ -48,7 +48,7 @@ export const partGroupSchema = z.object({
 				return z.NEVER;
 			}
 		})
-		.pipe(z.array(z.coerce.number().int().positive()))
+		.pipe(z.array(z.string()))
 });
 export type PartGroupInput = z.infer<typeof partGroupSchema>;
 
@@ -79,51 +79,73 @@ export const scrapRowSchema = z.object({
 	groupName: z.string().min(1),
 	qadIdentifySymbol: z.string().default(''),
 	isRebuildGroup: z.boolean().default(false),
-	selectedScrapId: z.coerce.number().int().positive().optional().nullable(),
-	selectedScrapCode: z.string().default(''),
-	selectedScrapName: z.string().default(''),
+	selectedScrapCode: z.string().default('').nullable(),
+	selectedScrapDescription: z.string().default('').nullable(),
 	isOtherVariant: z.boolean().default(false),
 	replacementPartMaterial: z.string().optional().nullable(),
 	isOtherComponent: z.boolean().default(false)
 });
 
-export const saveScrapSchema = z.object({
-	dmc: z.string().min(1, 'DMC kód je povinný'),
-	isRebuild: z.preprocess((val) => {
-		if (typeof val === 'string') {
-			return val.toLocaleLowerCase() === 'true' || val === 'on' || val === '1';
-		}
-		return Boolean(val);
-	}, z.boolean()),
-	operator: z.string(),
-	scrapPayload: z
-		.string()
-		.min(1, 'Data scrapu su povinne')
-		.transform((str, ctx) => {
-			try {
-				const parsed = JSON.parse(str);
-				if (!Array.isArray(parsed)) {
-					ctx.addIssue({ code: 'custom', message: 'Data scrapu musia byt pole' });
+export const saveScrapSchema = z
+	.object({
+		dmc: z.string().min(1, 'DMC kód je povinný'),
+		isRebuild: z.preprocess((val) => {
+			if (typeof val === 'string') {
+				return val.toLocaleLowerCase() === 'true' || val === 'on' || val === '1';
+			}
+			return Boolean(val);
+		}, z.boolean()),
+		operator: z.string(),
+		scrapPayload: z
+			.string()
+			.min(1, 'Data scrapu su povinne')
+			.transform((str, ctx) => {
+				try {
+					const parsed = JSON.parse(str);
+					if (!Array.isArray(parsed)) {
+						ctx.addIssue({ code: 'custom', message: 'Data scrapu musia byt pole' });
+						return z.NEVER;
+					}
+					return parsed;
+				} catch {
+					ctx.addIssue({ code: 'custom', message: 'Neplatny JSON format dat scrapu' });
 					return z.NEVER;
 				}
-				return parsed;
-			} catch {
-				ctx.addIssue({ code: 'custom', message: 'Neplatny JSON format dat scrapu' });
-				return z.NEVER;
-			}
-		})
-		.pipe(z.array(scrapRowSchema))
-		.refine((rows) => rows.some((r) => Boolean(r.selectedScrapId)), {
-			message: 'Musi byt vyrany aspon jeden dovod scrapu'
-		})
-		.refine(
-			(rows) =>
-				!rows.some(
-					(r) =>
-						r.isOtherVariant &&
-						(!r.replacementPartMaterial || r.replacementPartMaterial.trim() === '')
-				),
-			{ message: 'Pri volbe "Iny variant" musite vybrat konrektny variant PN' }
-		)
-});
+			})
+			.pipe(z.array(scrapRowSchema))
+			.refine((rows) => rows.some((r) => Boolean(r.selectedScrapCode) || r.isOtherVariant), {
+				message: 'Musi byt vybrany aspon jeden dovod scrapu alebo iny variant'
+			})
+			.refine(
+				(rows) =>
+					!rows.some(
+						(r) =>
+							r.isOtherVariant &&
+							(!r.replacementPartMaterial ||
+								r.replacementPartMaterial.trim() === '' ||
+								r.replacementPartMaterial === 'empty')
+					),
+				{ message: 'Pri volbe "Iny variant" musite vybrat konkretny variant PN' }
+			)
+	})
+	.superRefine((data, ctx) => {
+		if (
+			!data.isRebuild &&
+			data.scrapPayload.some(
+				(row) =>
+					row.isOtherComponent &&
+					!data.scrapPayload.some(
+						(other) =>
+							other.groupId !== row.groupId &&
+							(Boolean(other.selectedScrapCode) || other.isOtherVariant)
+					)
+			)
+		) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['scrapPayload'],
+				message: 'Pri voľbe iný komponent musí mať iná skupina vybraný dôvod scrapu.'
+			});
+		}
+	});
 export type SaveScrapInput = z.infer<typeof saveScrapSchema>;

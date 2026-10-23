@@ -4,19 +4,10 @@ import type { PageServerLoad } from './$types';
 import { matchDmcWithMask } from '@/utils/serverHelp';
 import { saveScrapSchema } from '@/utils/zod';
 
-const scanInclude = {
-	groups: {
-		include: {
-			materials: true,
-			scrapCodes: {
-				where: { active: true }
-			}
-		}
-	}
-} satisfies import('@prisma/client').Prisma.LabelGroupInclude;
-
 async function findMatchingLabels(barcode: string) {
-	const labelGroups = await prismaClient.labelGroup.findMany({ include: scanInclude });
+	const labelGroups = await prismaClient.labelGroup.findMany({
+		include: { groups: { include: { materials: true, scrapCodes: true } } }
+	});
 	return labelGroups.filter((labelGroup) => matchDmcWithMask(barcode, labelGroup.code).isMatch);
 }
 
@@ -119,20 +110,19 @@ export const actions = {
 							: `Kód "${dmc}" zodpovedá viacerým projektom. Kontaktujte správcu.`
 				});
 			}
-
 			const groupsById = new Map(matchedLabels[0].groups.map((group) => [group.id, group]));
-			if (
-				isRebuild &&
-				scrapPayload.filter(
-					(row) => row.selectedScrapId != null && groupsById.get(row.groupId)?.isRebuild
-				).length > 1
-			) {
-				return fail(400, {
-					success: false,
-					message: 'Neplatná voľba rebuild skupín.',
-					error: 'V režime rebuild môže mať dôvod scrapu zvolená iba jedna rebuild skupina.'
-				});
-			}
+			// if (
+			// 	isRebuild &&
+			// 	scrapPayload.filter(
+			// 		(row) => row.selectedScrapCode != null && groupsById.get(row.groupId)?.isRebuild
+			// 	).length > 1
+			// ) {
+			// 	return fail(400, {
+			// 		success: false,
+			// 		message: 'Neplatná voľba rebuild skupín.',
+			// 		error: 'V režime rebuild môže mať dôvod scrapu zvolená iba jedna rebuild skupina.'
+			// 	});
+			// }
 
 			for (const row of scrapPayload) {
 				const group = groupsById.get(row.groupId);
@@ -144,47 +134,27 @@ export const actions = {
 					});
 				}
 
-				if (row.selectedScrapId == null && !row.isOtherComponent) {
+				const hasSelectedScrapCode = Boolean(row.selectedScrapCode);
+				if (!hasSelectedScrapCode && !row.isOtherComponent && !row.isOtherVariant) {
 					return fail(400, {
 						success: false,
 						message: 'Chýba dôvod scrapu.',
 						error:
-							'Každá uložená skupina musí mať vybraný dôvod alebo byť označená ako iný komponent.'
+							'Každá uložená skupina musí mať vybraný dôvod, byť označená ako iný komponent alebo mať zvolený iný variant.'
 					});
 				}
 
-				const selectedScrapCode =
-					row.selectedScrapId == null
-						? undefined
-						: group.scrapCodes.find((scrapCode) => scrapCode.id === row.selectedScrapId);
-				if (row.selectedScrapId != null && !selectedScrapCode) {
+				const selectedScrapCode = hasSelectedScrapCode
+					? group.scrapCodes.find((scrapCode) => scrapCode.code === row.selectedScrapCode)
+					: undefined;
+
+				if (hasSelectedScrapCode && !selectedScrapCode) {
 					return fail(400, {
 						success: false,
 						message: 'Neplatný dôvod scrapu.',
 						error: 'Vybraný dôvod nie je aktívny ani priradený k tejto skupine.'
 					});
 				}
-
-				if (row.isOtherComponent && (!isRebuild || !group.isRebuild)) {
-					return fail(400, {
-						success: false,
-						message: 'Neplatná voľba komponentu.',
-						error: 'Iný komponent je dostupný iba pre rebuild skupinu.'
-					});
-				}
-
-				const isOtherVariantCode =
-					selectedScrapCode !== undefined &&
-					(selectedScrapCode.name.toLowerCase().includes('iný variant') ||
-						selectedScrapCode.name.toLowerCase().includes('iny variant'));
-				if (row.isOtherVariant !== isOtherVariantCode) {
-					return fail(400, {
-						success: false,
-						message: 'Neplatná voľba variantu.',
-						error: 'Znova vyber dôvod scrapu pre tento diel.'
-					});
-				}
-
 				if (
 					row.isOtherVariant &&
 					!group.materials.some((material) => material.material === row.replacementPartMaterial)
@@ -200,10 +170,11 @@ export const actions = {
 			const recordsToInsert = scrapPayload.map((row) => ({
 				dmc,
 				partGroupId: row.groupId,
-				scrapCodeId: row.selectedScrapId ?? null,
+				scrapCode: row.selectedScrapCode || null,
+				scrapCodeDescription: row.selectedScrapDescription || null,
 				isRebuild,
-				replacementPartMaterial: row.isOtherVariant ? row.replacementPartMaterial : null,
 				isOtherComponent: row.isOtherComponent,
+				replacementPartMaterial: row.isOtherVariant ? row.replacementPartMaterial : null,
 				quantity: 1,
 				description: '',
 				createdBy: operator
@@ -214,7 +185,7 @@ export const actions = {
 			await prismaClient.scrapRecord.createMany({
 				data: recordsToInsert
 			});
-
+			console.log(recordsToInsert);
 			return {
 				success: true,
 				message: `👍 Scrap pre Label:${dmc} bol úspešne zaevidovaný `

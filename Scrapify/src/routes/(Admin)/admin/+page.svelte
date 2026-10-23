@@ -39,7 +39,7 @@
 						>Label multi part</Button
 					>
 					<Button href="/admin/partgroups" variant="default" size="lg" class="">Parts group</Button>
-					<Button variant="default" href="/admin/newscrapcode" size="lg">Scrap code</Button>
+					<Button href="/admin/newscrapcode" variant="secondary" size="lg">Scrap code</Button>
 
 					<Button href="/admin/newpart" variant="secondary" size="lg">Part view</Button>
 				</div>

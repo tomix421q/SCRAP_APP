@@ -23,11 +23,10 @@ export interface ScrapRowState {
 	groupName: string;
 	qadIdentifySymbol: string;
 	isRebuildGroup: boolean;
-	selectedScrapId: number | undefined;
-	selectedScrapCode: string;
-	selectedScrapName: string;
+	selectedScrapCode: string | null;
+	selectedScrapDescription: string | null;
 	isOtherVariant: boolean;
-	replacementPartMaterial?: string;
+	replacementPartMaterial: string | null;
 	isOtherComponent: boolean;
 }
 
@@ -49,9 +48,8 @@ export class ScrapManager {
 				groupName: g.name,
 				qadIdentifySymbol: g.qadIdentity ?? '',
 				isRebuildGroup: g.isRebuild,
-				selectedScrapId: undefined,
-				selectedScrapCode: '',
-				selectedScrapName: '',
+				selectedScrapCode: null,
+				selectedScrapDescription: null,
 				isOtherVariant: false,
 				isOtherComponent: false,
 				replacementPartMaterial: ''
@@ -61,16 +59,15 @@ export class ScrapManager {
 		}
 	}
 
-	selectScrap(groupId: number, scrapId: number) {
+	selectScrap(groupId: number, scrapCode: string) {
 		const scrapRow = this.scrapPayload?.find((s) => s.groupId === groupId);
 		const groupDef = this.scanData?.groups.find((g) => g.id === groupId);
 		if (!scrapRow || !groupDef) return;
 
-		const scrapDef = groupDef.scrapCodes.find((s) => s.id === scrapId);
+		const scrapDef = groupDef.scrapCodes.find((s) => s.code === scrapCode);
 		if (!scrapDef) {
 			scrapRow.selectedScrapCode = '';
-			scrapRow.selectedScrapId = undefined;
-			scrapRow.selectedScrapName = '';
+			scrapRow.selectedScrapDescription = '';
 			scrapRow.isOtherVariant = false;
 			scrapRow.replacementPartMaterial = '';
 
@@ -78,19 +75,15 @@ export class ScrapManager {
 			return;
 		}
 
-		scrapRow.selectedScrapId = scrapDef.id;
 		scrapRow.selectedScrapCode = scrapDef.code;
-		scrapRow.selectedScrapName = scrapDef.name;
-
-		// other variant scrap select
-		const sName = scrapDef.name.toLowerCase();
-		scrapRow.isOtherVariant = sName.includes('iny variant') || sName.includes('iný variant');
-		scrapRow.replacementPartMaterial = scrapRow.isOtherVariant ? 'empty' : '';
+		scrapRow.selectedScrapDescription = scrapDef.description ?? '';
+		scrapRow.isOtherVariant = false;
+		scrapRow.replacementPartMaterial = '';
 
 		if (this.mode === 'rebuild' && scrapRow.isRebuildGroup) {
 			for (const other of this.scrapPayload) {
 				if (other.isRebuildGroup && other.groupId !== groupId) {
-					other.selectedScrapId = undefined;
+					other.selectedScrapCode = null;
 				}
 			}
 		}
@@ -101,11 +94,10 @@ export class ScrapManager {
 	setMode(newMode: ScrapMode) {
 		this.mode = newMode;
 		for (const s of this.scrapPayload!) {
-			s.selectedScrapId = undefined;
-			s.selectedScrapCode = '';
-			s.selectedScrapName = '';
+			s.selectedScrapCode = null;
+			s.selectedScrapDescription = null;
 			s.isOtherVariant = false;
-			s.replacementPartMaterial = '';
+			s.replacementPartMaterial = null;
 			s.isOtherComponent = false;
 		}
 	}
@@ -118,6 +110,22 @@ export class ScrapManager {
 		}
 	}
 
+	setOtherVariant(groupId: number, value: boolean) {
+		const row = this.scrapPayload.find((s) => s.groupId === groupId);
+		if (!row) return;
+
+		row.isOtherVariant = value;
+		row.replacementPartMaterial = value ? 'empty' : '';
+
+		if (value) {
+			row.selectedScrapCode = null;
+			row.selectedScrapDescription = null;
+			row.isOtherComponent = false;
+		}
+
+		this.syncRebuildBigComponents();
+	}
+
 	// Checkbox other component
 	setOtherComponent(groupId: number, value: boolean) {
 		const row = this.scrapPayload.find((s) => s.groupId === groupId);
@@ -126,11 +134,10 @@ export class ScrapManager {
 		row.isOtherComponent = value;
 
 		if (value) {
-			row.selectedScrapId = undefined;
-			row.selectedScrapCode = '';
-			row.selectedScrapName = '';
+			row.selectedScrapCode = null;
+			row.selectedScrapDescription = null;
 			row.isOtherVariant = false;
-			row.replacementPartMaterial = '';
+			row.replacementPartMaterial = null;
 		}
 	}
 
@@ -140,21 +147,20 @@ export class ScrapManager {
 
 		// is rebuild && selected scrap
 		const activeBigGroup = this.scrapPayload.find(
-			(g) => g.isRebuildGroup && g.selectedScrapId !== undefined
+			(g) => g.isRebuildGroup && (Boolean(g.selectedScrapCode) || g.isOtherVariant)
 		);
 
 		//  not rebuild && selected scrap
 		const hasSelectedSmall = this.scrapPayload.some(
-			(g) => !g.isRebuildGroup && g.selectedScrapId !== undefined
+			(g) => !g.isRebuildGroup && (Boolean(g.selectedScrapCode) || g.isOtherVariant)
 		);
 
 		if (activeBigGroup) {
 			activeBigGroup.isOtherComponent = false;
 			for (const row of this.scrapPayload) {
 				if (row.isRebuildGroup && row.groupId !== activeBigGroup.groupId) {
-					row.selectedScrapId = undefined;
 					row.selectedScrapCode = '';
-					row.selectedScrapName = '';
+					row.selectedScrapDescription = '';
 					row.isOtherVariant = false;
 					row.replacementPartMaterial = '';
 					row.isOtherComponent = true;
@@ -163,11 +169,10 @@ export class ScrapManager {
 		} else if (hasSelectedSmall) {
 			for (const row of this.scrapPayload) {
 				if (row.isRebuildGroup) {
-					row.selectedScrapId = undefined;
-					row.selectedScrapCode = '';
-					row.selectedScrapName = '';
+					row.selectedScrapCode = null;
+					row.selectedScrapDescription = null;
 					row.isOtherVariant = false;
-					row.replacementPartMaterial = '';
+					row.replacementPartMaterial = null;
 					row.isOtherComponent = true;
 				}
 			}
@@ -183,32 +188,52 @@ export class ScrapManager {
 	// Future payload only selected scraps
 	relevantPayload = $derived.by(() => {
 		return this.scrapPayload.filter((row) => {
-			if (row.selectedScrapId) {
+			if (row.selectedScrapCode) {
 				return true;
 			}
-			if (row.isRebuildGroup && row.isOtherComponent) {
+			if (row.isOtherComponent) {
 				return true;
 			}
-
+			if (row.isOtherVariant) {
+				return true;
+			}
 			return false;
 		});
 	});
 
 	// Is any selected?
-	hasAnySelection = $derived(this.scrapPayload?.some((s) => s.selectedScrapId));
+	hasAnySelection = $derived(
+		this.scrapPayload?.some((s) => Boolean(s.selectedScrapCode) || s.isOtherVariant)
+	);
 	// Is selected other variant ?
 	isMissingOtherVariantPN = $derived(
 		this.scrapPayload?.some(
 			(o) =>
-				o.isOtherVariant && (!o.replacementPartMaterial || o.replacementPartMaterial === 'empty')
+				o.isOtherVariant &&
+				(!o.replacementPartMaterial ||
+					o.replacementPartMaterial.trim() === '' ||
+					o.replacementPartMaterial === 'empty')
 		)
+	);
+	isMissingOtherComponentScrap = $derived(
+		this.mode === 'scrap' &&
+			this.scrapPayload.some(
+				(row) =>
+					row.isOtherComponent &&
+					!this.scrapPayload.some(
+						(other) =>
+							other.groupId !== row.groupId &&
+							(Boolean(other.selectedScrapCode) || other.isOtherVariant)
+					)
+			)
 	);
 	// Can submit?
 	canSubmit = $derived(
 		this.mode !== null &&
 			this.hasAnySelection &&
 			this.relevantPayload.length > 0 &&
-			!this.isMissingOtherVariantPN
+			!this.isMissingOtherVariantPN &&
+			!this.isMissingOtherComponentScrap
 	);
 
 	// Clear row
@@ -216,11 +241,10 @@ export class ScrapManager {
 		const row = this.scrapPayload.find((s) => s.groupId === groupId);
 		if (!row) return;
 
-		row.selectedScrapId = undefined;
-		row.selectedScrapCode = '';
-		row.selectedScrapName = '';
+		row.selectedScrapCode = null;
+		row.selectedScrapDescription = null;
 		row.isOtherVariant = false;
-		row.replacementPartMaterial = '';
+		row.replacementPartMaterial = null;
 		row.isOtherComponent = false;
 		this.syncRebuildBigComponents();
 	}

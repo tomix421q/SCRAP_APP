@@ -50,6 +50,7 @@ export const actions = {
 		// console.log((await event.request.formData()).get('groups'));
 		const data = Object.fromEntries(await event.request.formData());
 		const result = labelGroupsSchema.safeParse(data);
+
 		if (!result.success) {
 			return fail(400, {
 				success: false,
@@ -91,6 +92,7 @@ export const actions = {
 	editLabel: async (event) => {
 		const data = Object.fromEntries(await event.request.formData());
 		const result = labelGroupsSchema.safeParse(data);
+
 		if (!result.success) {
 			return fail(400, {
 				success: false,

@@ -23,12 +23,8 @@
 	let filterOptions: FilterType = $state({
 		partNumber: '',
 		vProject: '',
-		vHall: '',
-		partId: '',
+		vProcess: '',
 		scrapCode: '',
-		scrapName: '',
-		processName: '',
-		projectName: '',
 		description: '',
 		dateFrom: '',
 		dateTo: ''
@@ -39,10 +35,8 @@
 		const params = new URLSearchParams();
 		if (filterOptions.partNumber) params.set('partNumber', filterOptions.partNumber);
 		if (filterOptions.vProject) params.set('vProject', filterOptions.vProject);
-		if (filterOptions.vHall) params.set('vHall', filterOptions.vHall);
-		if (filterOptions.partId) params.set('partId', filterOptions.partId);
+		if (filterOptions.vProcess) params.set('vProcess', filterOptions.vProcess);
 		if (filterOptions.scrapCode) params.set('scrapCode', filterOptions.scrapCode);
-		if (filterOptions.scrapName) params.set('scrapName', filterOptions.scrapName);
 		if (filterOptions.description) params.set('description', filterOptions.description);
 		if (filterOptions.dateFrom) params.set('dateFrom', filterOptions.dateFrom);
 		if (filterOptions.dateTo) params.set('dateTo', filterOptions.dateTo);
@@ -86,10 +80,8 @@
 
 	async function clearFilter() {
 		filterOptions.vProject = '';
-		filterOptions.vHall = '';
 		filterOptions.scrapCode = '';
-		filterOptions.scrapName = '';
-		filterOptions.partId = '';
+		filterOptions.vProcess = '';
 		filterOptions.description = '';
 		filterOptions.partNumber = '';
 		filterOptions.dateFrom = '';
@@ -151,25 +143,14 @@
 					/>
 				</article>
 				<!--  -->
-				<article
-					class="justify-between items-center gap-2 {whereUse === 'scrapCode'
-						? 'hidden'
-						: 'lg:flex'}"
-				>
-					<Label class="text-sm w-[200px]">vHall</Label>
-					<Input
-						class="inputNormalize max-w-[350px]"
-						placeholder="Search project"
-						bind:value={filterOptions.vHall}
-					/>
-				</article>
+
 				<!-- Scrap filter [code] -->
 				<article
 					class="justify-between items-center gap-2 {whereUse === 'part' ? 'hidden' : 'lg:flex'}"
 				>
 					<Label class="text-sm w-[200px]">Scrap Code</Label>
 					<Input
-						class="inputNormalize max-w-[350px]"
+						class="inputNormalize max-w-[360px]"
 						placeholder="Search scrap code"
 						bind:value={filterOptions.scrapCode}
 					/>
@@ -178,11 +159,11 @@
 				<article
 					class="justify-between items-center gap-2 {whereUse === 'part' ? 'hidden' : 'lg:flex'}"
 				>
-					<Label class="text-sm w-[200px]">Name</Label>
+					<Label class="text-sm w-[200px]">Process</Label>
 					<Input
-						class="inputNormalize max-w-[350px]"
-						placeholder="Scrap name..."
-						bind:value={filterOptions.scrapName}
+						class="inputNormalize max-w-[360px]"
+						placeholder="Process..."
+						bind:value={filterOptions.vProcess}
 					/>
 				</article>
 
@@ -190,7 +171,7 @@
 					<Label class="text-sm w-[100px]">Description</Label>
 
 					<Input
-						class="inputNormalize max-w-[350px]"
+						class="inputNormalize max-w-[360px]"
 						placeholder="Description info..."
 						bind:value={filterOptions.description}
 					/>
@@ -198,7 +179,7 @@
 				{#if allProjects}
 					<article class="lg:flex justify-between items-center gap-2">
 						<Label for="filterProcess" class="text-sm w-[100px]">Project</Label>
-						<div class="inputNormalize border-primary border-b">
+						<div class=" border-primary border-b">
 							<Combobox
 								id="filterProcess"
 								dataBox={allProjects}
