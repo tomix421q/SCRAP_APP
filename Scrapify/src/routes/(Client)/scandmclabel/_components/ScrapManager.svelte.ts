@@ -21,6 +21,7 @@ export interface ScrapRowState {
 	label: string;
 	groupId: number;
 	groupName: string;
+	interfaceName: string;
 	qadIdentifySymbol: string;
 	isRebuildGroup: boolean;
 	selectedScrapCode: string | null;
@@ -46,6 +47,7 @@ export class ScrapManager {
 				label: scanDataPayload.label,
 				groupId: g.id,
 				groupName: g.name,
+				interfaceName: g.interfaceName,
 				qadIdentifySymbol: g.qadIdentity ?? '',
 				isRebuildGroup: g.isRebuild,
 				selectedScrapCode: null,

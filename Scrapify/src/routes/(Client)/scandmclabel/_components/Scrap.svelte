@@ -13,11 +13,11 @@
 	} = $props();
 </script>
 
-<div class="flex flex-col gap-4">
+<div class="grid grid-cols-2 gap-4">
 	{#each scrapManager.scrapPayload as row (row.groupId)}
 		{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
 		<div
-			class="border p-4 rounded-lg flex flex-col gap-3 transition-colors {row.isOtherVariant &&
+			class="border backdrop-blur-2xl shadow-2xl p-2 rounded-lg flex flex-col gap-3 transition-colors {row.isOtherVariant &&
 			(!row.replacementPartMaterial ||
 				row.replacementPartMaterial === '' ||
 				row.replacementPartMaterial === 'empty')
@@ -29,12 +29,12 @@
 						: ''}"
 		>
 			<!-- TOP -->
-			<article class="flex justify-between items-center">
-				<p class="font-bold text-lg flex items-center gap-2">
-					{row.groupName}
+			<article class="flex gap-4 justify-between">
+				<p class="font-extrabold text-xl flex items-center gap-2">
+					<span class="truncate" title={row.interfaceName}>{row.interfaceName}</span>
 				</p>
 				<div class="flex flex-wrap items-center gap-4">
-					<section class="flex items-center gap-2">
+					<section class="flex items-center gap-2 bg-chart-5 rounded-lg p-1.5">
 						<Label
 							for={`other-variant-${row.groupId}`}
 							class="text-sm cursor-pointer font-semibold {row.isOtherVariant
@@ -48,10 +48,10 @@
 							checked={row.isOtherVariant}
 							onCheckedChange={(checked) =>
 								scrapManager.setOtherVariant(row.groupId, Boolean(checked))}
-							class="size-6! ring-2 ring-primary **:size-6"
+							class="size-5! ring-2 ring-primary **:size-5"
 						/>
 					</section>
-					<section class="flex items-center gap-2">
+					<section class="flex items-center gap-2 bg-chart-5 rounded-lg p-1.5">
 						<Label
 							for={`other-comp-${row.groupId}`}
 							class="text-sm cursor-pointer font-semibold {row.isOtherComponent
@@ -65,7 +65,7 @@
 							checked={row.isOtherComponent}
 							onCheckedChange={(checked) =>
 								scrapManager.setOtherComponent(row.groupId, Boolean(checked))}
-							class="size-6! ring-2 ring-primary **:size-6"
+							class="size-5! ring-2 ring-primary **:size-5"
 						/>
 					</section>
 				</div>
@@ -77,7 +77,7 @@
 					<div class="flex flex-wrap gap-2">
 						{#if row.isOtherVariant}
 							<div
-								class="max-sm:w-full w-[430px] rounded-md bg-chart-5 px-3 py-2 h-9 text-info font-semibold text-sm"
+								class="max-sm:w-full rounded-lg bg-chart-5 px-3 py-2 h-9 text-info font-semibold text-sm"
 							>
 								Iný variant
 							</div>
@@ -100,8 +100,8 @@
 							size="icon"
 							variant="ghost"
 							class={row.selectedScrapCode
-								? 'flex text-destructive bg-gray-800 hover:bg-gray-900'
-								: 'invisible'}
+								? 'flex text-destructive bg-chart-5 hover:bg-chart-5/90'
+								: 'hidden'}
 							onclick={() => scrapManager.clearScrapRow(row.groupId)}
 						>
 							<X />
@@ -109,7 +109,6 @@
 
 						{#if row.isOtherVariant}
 							<section class="flex items-center">
-								<ArrowRight class="size-8 stroke-3 stroke-chart-5 animate-pulse" />
 								<Combobox
 									dataBox={groupDef?.materials.map((material) => ({
 										id: material.material,
@@ -121,13 +120,14 @@
 										: (row.replacementPartMaterial ?? '')}
 									onchange={(val) => scrapManager.setReplacementPart(row.groupId, val)}
 									firstText="Vyberte správny diel"
+									width="sm"
 								/>
 							</section>
 						{/if}
 					</div>
 				{:else}
 					<p
-						class="max-sm:w-full w-[430px] rounded-md bg-chart-5 px-3 py-2 h-9 text-info font-semibold text-sm"
+						class="max-sm:w-full rounded-lg bg-chart-5 px-3 py-2 h-9 text-info font-semibold text-sm"
 					>
 						Dovod scrapu, iny komponent.
 					</p>

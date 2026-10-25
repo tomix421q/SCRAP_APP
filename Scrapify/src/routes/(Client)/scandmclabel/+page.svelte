@@ -14,14 +14,17 @@
 	import { cubicOut } from 'svelte/easing';
 	import { operatorCardId } from '@/stores/stores';
 	import Scrap from './_components/Scrap.svelte';
+	import { goto } from '$app/navigation';
 
 	let { form }: PageProps = $props();
 
+	// for testing
+	let randomNumber = $state(Math.floor(100 * Math.random()));
 	// vars
 	const scrapManager = new ScrapManager();
 	let isMounted = $state(false);
 	let isSubmitting = $state(false);
-	let barcodeValue = $state('SK711FL');
+	let barcodeValue = $state('X4' + randomNumber);
 	let isScanning = $state(false);
 	let inputEl = $state<HTMLInputElement | null>(null);
 	let status = $state<'idle' | 'success' | 'error'>('idle');
@@ -60,6 +63,15 @@
 		refocus();
 	}
 
+	$effect(() => {
+		if (scrapManager.mode) {
+			const target = document.getElementById('scrap');
+			if (target) {
+				target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+			}
+		}
+	});
+
 	onMount(() => {
 		isMounted = true;
 		if (status === 'idle' && !scrapManager.mode) {
@@ -70,13 +82,13 @@
 	// $inspect($operatorCardId);
 </script>
 
-<main class="flex flex-col lg:flex-row gap-3 justify-center">
-	<div class="flex gap-3 flex-col">
+<main class="flex flex-col gap-3 items-center">
+	<div id="scan" class="flex gap-3 flex-col">
 		<OperatorLogin />
 		<!--  -->
 		<!-- SCANNER CARD && OPERATOR-->
 		<article
-			class="formNormalize pb-8 animate-in slide-in-to-left-50 ease-in duration-500 transition-all h-min"
+			class="formNormalize pb-8 animate-in max-w-lg slide-in-to-left-50 ease-in duration-500 transition-all h-min"
 		>
 			<section class="flex items-center gap-3 mb-1 mt-4">
 				<h2 class="text-3xl mx-auto font-extrabold">Scan label</h2>
@@ -173,7 +185,6 @@
 	<!-- RESULT FORM -->
 	{#if scrapManager.mode && status === 'success'}
 		<form
-			transition:slide={{ axis: 'x', duration: 350, easing: cubicOut }}
 			method="POST"
 			action="?/saveScrap"
 			use:enhance={({ formData }) => {
@@ -191,7 +202,8 @@
 					}
 				};
 			}}
-			class="formNormalize sm:w-5xl"
+			class="formNormalize w-full"
+			id="scrap"
 		>
 			{#if scrapManager.mode === 'rebuild'}
 				<Rebuild {scrapManager} />

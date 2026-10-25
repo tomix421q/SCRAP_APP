@@ -6,7 +6,7 @@ import { saveScrapSchema } from '@/utils/zod';
 
 async function findMatchingLabels(barcode: string) {
 	const labelGroups = await prismaClient.labelGroup.findMany({
-		include: { groups: { include: { materials: true, scrapCodes: true } } }
+		include: { groups: { include: { materials: true, scrapCodes: true },orderBy: {isRebuild: 'desc'} } }
 	});
 	return labelGroups.filter((labelGroup) => matchDmcWithMask(barcode, labelGroup.code).isMatch);
 }
