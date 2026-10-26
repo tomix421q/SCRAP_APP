@@ -2,17 +2,31 @@ import prismaClient from '@/server/prisma';
 import { fail, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { matchDmcWithMask } from '@/utils/serverHelp';
-import { saveScrapSchema } from '@/utils/zod';
+import { saveQuantityScrapSchema, saveScrapSchema } from '@/utils/zod';
+import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
 
 async function findMatchingLabels(barcode: string) {
 	const labelGroups = await prismaClient.labelGroup.findMany({
-		include: { groups: { include: { materials: true, scrapCodes: true },orderBy: {isRebuild: 'desc'} } }
+		include: {
+			groups: { include: { materials: true, scrapCodes: true }, orderBy: { isRebuild: 'desc' } }
+		}
 	});
 	return labelGroups.filter((labelGroup) => matchDmcWithMask(barcode, labelGroup.code).isMatch);
 }
 
 export const load = (async () => {
-	return {};
+	const quantityScrapLabels = await prismaClient.labelGroup.findMany({
+		where: {
+			code: { startsWith: quantityScrapLabelPrefix },
+			groups: { some: {} }
+		},
+		include: {
+			groups: { include: { materials: true, scrapCodes: true }, orderBy: { isRebuild: 'desc' } }
+		},
+		orderBy: { code: 'asc' }
+	});
+
+	return { quantityScrapLabels };
 }) satisfies PageServerLoad;
 
 export const actions = {
@@ -195,6 +209,111 @@ export const actions = {
 			return fail(500, {
 				success: false,
 				message: 'Nepodarilo sa ulozit zaznam do databazy.',
+				error: 'Skús to znova alebo kontaktuj správcu.'
+			});
+		}
+	},
+	saveQuantityScrap: async (event) => {
+		const rawData = Object.fromEntries(await event.request.formData());
+		const result = saveQuantityScrapSchema.safeParse(rawData);
+		if (!result.success) {
+			return fail(400, {
+				success: false,
+				message: 'Validation failed',
+				error: result.error.flatten((issue) => issue.message).fieldErrors,
+				values: rawData
+			});
+		}
+
+		const { dmc, labelGroupId, operator, scrapPayload } = result.data;
+
+		try {
+			const operatorCardId = Number(operator);
+			if (!Number.isSafeInteger(operatorCardId) || operatorCardId <= 0) {
+				return fail(400, {
+					success: false,
+					message: 'Neplatné ID operátora.',
+					error: 'Prihlás sa znova platnou kartou operátora.'
+				});
+			}
+
+			const [quantityScrapLabel, registeredOperator] = await Promise.all([
+				prismaClient.labelGroup.findUnique({
+					where: { id: labelGroupId },
+					include: {
+						groups: {
+							include: { materials: true, scrapCodes: true },
+							orderBy: { isRebuild: 'desc' }
+						}
+					}
+				}),
+				prismaClient.operator.findUnique({
+					where: { cardId: operatorCardId },
+					select: { cardId: true }
+				})
+			]);
+
+			if (!registeredOperator) {
+				return fail(403, {
+					success: false,
+					message: 'Operátor nebol overený.',
+					error: 'Prihlás sa znova platnou kartou operátora.'
+				});
+			}
+
+			if (!quantityScrapLabel) {
+				return fail(404, {
+					success: false,
+					message: 'Quantity scrap label sa nenašiel.',
+					error: 'Vybraná linka už nie je nakonfigurovaná. Obnov stránku a skús to znova.'
+				});
+			}
+
+			if (
+				!quantityScrapLabel.code.startsWith(quantityScrapLabelPrefix) ||
+				quantityScrapLabel.code !== dmc ||
+				quantityScrapLabel.groups.length === 0
+			) {
+				return fail(400, {
+					success: false,
+					message: 'Neplatný quantity scrap label.',
+					error: 'Vybraná linka nie je správne nakonfigurovaná.'
+				});
+			}
+
+			const groupsById = new Set(quantityScrapLabel.groups.map((group) => group.id));
+			if (scrapPayload.some((row) => !groupsById.has(row.groupId))) {
+				return fail(400, {
+					success: false,
+					message: 'Neplatná skupina dielov.',
+					error: 'Odoslaná skupina nie je nakonfigurovaná pod vybraným quantity scrap labelom.'
+				});
+			}
+
+			await prismaClient.scrapRecord.createMany({
+				data: scrapPayload.map((row) => ({
+					dmc,
+					partGroupId: row.groupId,
+					scrapCode: null,
+					scrapCodeDescription: null,
+					isRebuild: false,
+					isOtherComponent: false,
+					replacementPartMaterial: null,
+					quantity: row.quantity,
+					description: '',
+					createdBy: operator
+				}))
+			});
+
+			return {
+				success: true,
+				message: `👍 Quantity scrap pre label ${dmc} bol úspešne zaevidovaný.`
+			};
+		} catch (err) {
+			console.error('Failed to save quantity scrap records:', err);
+			return fail(500, {
+				success: false,
+				message: 'Nepodarilo sa uložiť quantity scrap do databázy.',
 				error: 'Skús to znova alebo kontaktuj správcu.'
 			});
 		}

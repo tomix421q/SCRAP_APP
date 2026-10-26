@@ -169,7 +169,7 @@
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
 <main class="flex flex-col lg:flex-wrap gap-10">
 	<!-- Form create/edit -->
-	<section class="w-full flex max-md:flex-col gap-5 justify-between">
+	<section class="w-full flex max-md:flex-col gap-5 justify-between lg:justify-center">
 		<form
 			method="POST"
 			action={idEditGroup ? '?/editGroup' : '?/createPartGroup'}

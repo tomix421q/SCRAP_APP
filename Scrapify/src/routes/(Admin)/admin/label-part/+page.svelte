@@ -7,13 +7,14 @@
 	import Input from '@/components/ui/input/input.svelte';
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Button from '@/components/ui/button/button.svelte';
-	import { Plus, QrCode, X } from '@lucide/svelte';
+	import { CircleHelp, Plus, QrCode, X } from '@lucide/svelte';
 	import { onMount, tick, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import LabelGroupsTable from '@/components/organism/Tables/LabelGroupsTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import { currentConfirmDeleteId, editLabelGroupsData } from '@/stores/stores';
+	import * as Tooltip from '@/components/ui/tooltip';
 
 	let { data, form }: PageProps = $props();
 	let { groups, labelGroups, labelGroupsCount, totalPages } = $derived(data.data);
@@ -118,7 +119,7 @@
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
 <main class="flex flex-col lg:flex-wrap gap-10">
 	<!-- Form create/edit -->
-	<section class="w-full flex max-md:flex-col gap-5 justify-between">
+	<section class="w-full flex max-md:flex-col gap-5 justify-between lg:justify-center">
 		<form
 			method="POST"
 			action={idEditLabel ? '?/editLabel' : '?/createLabel'}
@@ -151,7 +152,53 @@
 
 			<!-- Label input -->
 			<article class="flex flex-col w-full justify-between lg:items-center gap-2 lg:flex-row">
-				<Label for="labelNumber" class="text-sm md:text-lg">Label code</Label>
+				<div class="flex items-center gap-2">
+					<Label for="labelNumber" class="text-sm md:text-lg">Label code</Label>
+					<Tooltip.Provider>
+						<Tooltip.Root>
+							<Tooltip.Trigger
+								type="button"
+								class="text-muted-foreground hover:text-foreground "
+								aria-label="Pomoc k labelom a maskám"
+							>
+								<CircleHelp class="size-5" />
+							</Tooltip.Trigger>
+							<Tooltip.Content class="max-w-sm text-left bg-background p-1">
+								<div class="space-y-3">
+									<div>
+										<p class="font-semibold text-info">Masky labelov / label picking</p>
+										<p>
+											Znak <code>*</code> zastupuje jeden alebo viac znakov — písmen alebo číslic. Celý
+											naskenovaný kód sa musí zhodovať s maskou; ostatné znaky sa berú doslovne. Pri porovnávaní
+											sa nerozlišujú veľké a malé písmená.
+										</p>
+										<p class="mt-1">
+											Napríklad maska <code>ABC-*</code> zodpovedá kódu
+											<code>ABC-12345</code>. Počet hviezdičiek neurčuje maximálny počet
+											zodpovedajúcich znakov.
+										</p>
+									</div>
+									<div>
+										<p class="font-semibold text-info">
+											Labely pre quantity scrap bez label pickingu
+										</p>
+										<p>
+											Kód začínajúci na <code>QNT-SCRAP-</code> vytvorí možnosť quantity scrapu, nie
+											bežný pick/DMC label. Za prefix doplň označenie linky alebo projektu,
+											napríklad <code>QNT-SCRAP-540</code> alebo
+											<code>QNT-SCRAP-PROJECT</code>.
+										</p>
+										<p class="mt-1">
+											Operátor si tento label vyberie po kliknutí na tlačidlo Quantity scrap. Priraď
+											k nemu skupiny dielov, ktorých množstvá sa majú evidovať. Zadané množstvá sa
+											uložia pre tieto skupiny pod týmto kódom labelu.
+										</p>
+									</div>
+								</div>
+							</Tooltip.Content>
+						</Tooltip.Root>
+					</Tooltip.Provider>
+				</div>
 				<Input
 					type="text"
 					name="labelNumber"

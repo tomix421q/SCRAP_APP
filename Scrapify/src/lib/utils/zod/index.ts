@@ -1,4 +1,5 @@
 import z from 'zod';
+import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
 
 export const scrapRecordSchema = z.object({
 	scrapRecordId: z.string().optional(),
@@ -148,4 +149,45 @@ export const saveScrapSchema = z
 			});
 		}
 	});
+export const saveQuantityScrapSchema = z.object({
+	dmc: z
+		.string()
+		.refine(
+			(value) =>
+				value.startsWith(quantityScrapLabelPrefix) &&
+				value.length > quantityScrapLabelPrefix.length,
+			'Vyber platný quantity scrap label.'
+		),
+	labelGroupId: z.coerce.number().int().positive(),
+	operator: z.string().min(1, 'Operátor je povinný'),
+	scrapPayload: z
+		.string()
+		.min(1, 'Data quantity scrapu su povinne')
+		.transform((str, ctx) => {
+			try {
+				const parsed: unknown = JSON.parse(str);
+				if (!Array.isArray(parsed)) {
+					ctx.addIssue({ code: 'custom', message: 'Data quantity scrapu musia byt pole' });
+					return z.NEVER;
+				}
+				return parsed;
+			} catch {
+				ctx.addIssue({ code: 'custom', message: 'Neplatny JSON format dat quantity scrapu' });
+				return z.NEVER;
+			}
+		})
+		.pipe(
+			z
+				.array(
+					z.object({
+						groupId: z.coerce.number().int().positive(),
+						quantity: z.coerce.number().int().positive()
+					})
+				)
+				.min(1, 'Zadaj kladne mnozstvo aspon pre jednu skupinu.')
+		)
+		.refine((rows) => new Set(rows.map((row) => row.groupId)).size === rows.length, {
+			message: 'Skupina dielov sa nesmie opakovat.'
+		})
+});
 export type SaveScrapInput = z.infer<typeof saveScrapSchema>;

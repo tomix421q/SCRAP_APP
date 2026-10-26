@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
 
-export type ScrapMode = 'rebuild' | 'scrap';
+export type ScrapMode = 'rebuild' | 'scrap' | 'qntScrap';
 type MatchData = Prisma.LabelGroupGetPayload<{
 	include: {
 		groups: {
@@ -26,6 +26,7 @@ export interface ScrapRowState {
 	isRebuildGroup: boolean;
 	selectedScrapCode: string | null;
 	selectedScrapDescription: string | null;
+	quantity?: number;
 	isOtherVariant: boolean;
 	replacementPartMaterial: string | null;
 	isOtherComponent: boolean;
@@ -52,6 +53,7 @@ export class ScrapManager {
 				isRebuildGroup: g.isRebuild,
 				selectedScrapCode: null,
 				selectedScrapDescription: null,
+				quantity: undefined,
 				isOtherVariant: false,
 				isOtherComponent: false,
 				replacementPartMaterial: ''
@@ -98,9 +100,11 @@ export class ScrapManager {
 		for (const s of this.scrapPayload!) {
 			s.selectedScrapCode = null;
 			s.selectedScrapDescription = null;
+			s.quantity = undefined;
 			s.isOtherVariant = false;
 			s.replacementPartMaterial = null;
 			s.isOtherComponent = false;
+			s.quantity = 0;
 		}
 	}
 
@@ -190,6 +194,11 @@ export class ScrapManager {
 	// Future payload only selected scraps
 	relevantPayload = $derived.by(() => {
 		return this.scrapPayload.filter((row) => {
+			if (this.mode === 'qntScrap') {
+				return (
+					typeof row.quantity === 'number' && Number.isInteger(row.quantity) && row.quantity > 0
+				);
+			}
 			if (row.selectedScrapCode) {
 				return true;
 			}
@@ -231,11 +240,13 @@ export class ScrapManager {
 	);
 	// Can submit?
 	canSubmit = $derived(
-		this.mode !== null &&
-			this.hasAnySelection &&
-			this.relevantPayload.length > 0 &&
-			!this.isMissingOtherVariantPN &&
-			!this.isMissingOtherComponentScrap
+		this.mode === 'qntScrap'
+			? this.relevantPayload.length > 0
+			: this.mode !== null &&
+					this.hasAnySelection &&
+					this.relevantPayload.length > 0 &&
+					!this.isMissingOtherVariantPN &&
+					!this.isMissingOtherComponentScrap
 	);
 
 	// Clear row

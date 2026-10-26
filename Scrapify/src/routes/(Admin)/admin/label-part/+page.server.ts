@@ -21,6 +21,7 @@ export const load = (async (event) => {
 			prismaClient.partGroup.findMany({ where: whereGroup }),
 			prismaClient.labelGroup.findMany({
 				skip,
+				where: {vProject : filters.projectId ? filters.projectId : {}},
 				take: limit,
 				orderBy: { id: 'desc' },
 				include: {

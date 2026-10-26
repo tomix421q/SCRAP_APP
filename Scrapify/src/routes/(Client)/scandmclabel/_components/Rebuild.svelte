@@ -12,7 +12,7 @@
 		scrapManager: ScrapManager;
 	} = $props();
 
-	// $inspect(scrapManager.relevantPayload);
+
 	// $inspect(scrapManager.mode);
 </script>
 
