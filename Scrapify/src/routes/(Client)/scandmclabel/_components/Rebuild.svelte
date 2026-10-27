@@ -12,11 +12,10 @@
 		scrapManager: ScrapManager;
 	} = $props();
 
-
 	// $inspect(scrapManager.mode);
 </script>
 
-<div class="grid grid-cols-2 gap-4">
+<div class=" grid grid-cols-2 gap-4">
 	{#each scrapManager.scrapPayload as row (row.groupId)}
 		{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
 		<div

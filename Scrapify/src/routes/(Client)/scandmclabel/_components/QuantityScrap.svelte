@@ -2,16 +2,7 @@
 	import Input from '@/components/ui/input/input.svelte';
 	import type { ScrapManager } from './ScrapManager.svelte';
 	import Label from '@/components/ui/label/label.svelte';
-	import {
-		ArrowLeft,
-		ArrowRight,
-		LucidePlusCircle,
-		Minus,
-		Plus,
-		PlusCircle,
-		PlusCircleIcon,
-		X
-	} from '@lucide/svelte';
+	import { Minus, Plus, X } from '@lucide/svelte';
 	import Button from '@/components/ui/button/button.svelte';
 
 	let {
@@ -25,7 +16,7 @@
 		row.quantity = Math.max(0, current + num);
 	};
 
-	$inspect(scrapManager.relevantPayload);
+	// $inspect(scrapManager.relevantPayload);
 </script>
 
 <div class="">

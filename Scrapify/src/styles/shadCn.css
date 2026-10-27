@@ -156,7 +156,7 @@
 		@apply overflow-auto p-2 lg:p-6 bg-gradient-to-b from-card/40 to-chart-4/30 border-dashed border-[1px] border-primary/20! shadow-2xl rounded-2xl backdrop-blur-lg;
 	}
 	.cardNormalize {
-		@apply overflow-auto bg-gradient-to-r from-primary/10 to-primary/5 backdrop-blur-lg! max-w-lg hover:ring-2 ring-primary/30 ease-in duration-200 shadow-2xl  rounded-2xl!;
+		@apply overflow-auto bg-gradient-to-r from-primary/10 to-primary/5 backdrop-blur-lg! hover:ring-2 ring-primary/30 ease-in duration-200 shadow-2xl  rounded-2xl!;
 	}
 	/* calendar icon  */
 	input[type='date']::-webkit-calendar-picker-indicator {
