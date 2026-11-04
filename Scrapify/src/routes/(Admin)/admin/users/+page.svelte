@@ -12,7 +12,7 @@
 	import { enhance } from '$app/forms';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import { ROLES, type Role } from '@/utils/types';
-	import { dateTimmeUTCformatter } from '@/index';
+	import { dateTimmeUTCformatter } from '@/utils/index';
 	import Separator from '@/components/ui/separator/separator.svelte';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 

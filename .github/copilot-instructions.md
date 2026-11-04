@@ -1,16 +1,31 @@
-## Kontext aplikácie a pravidlá pre Code Review
+## UI komponenty a dizajn systém
+- **Zákaz duplicity UI:** Nikdy nevytváraj nové inline tabuľky, karty, modaly ani selektory, ak už v projekte existuje riešenie.
+- **Dostupné zdieľané komponenty:**
+  - Výbery a selektory: VŽDY použi existujúci `$lib/components/atoms/Combobox.svelte`. Nevytváraj vlastné `<select>` ani nové comboboxy.
+  - Karty a layout: Používaj výhradne štandardný kontajner zhodný s `$lib/components/...`.
+- **Dizajnové pravidlá a Tailwind:**
+  - NIKDY nepoužívaj náhodné priame farby (napr. `bg-blue-500`, `text-gray-400`, `border-zinc-700`).
+  - VŽDY používaj sémantické tokeny z témy: `bg-card`, `bg-background`, `text-primary`, `text-muted-foreground`, `border-border`.
+  - Pre formuláre a karty dôsledne zachovávaj triedy projektu: `cardNormalize`, `inputNormalize`.
+- **Vytváranie nových univerzálnych komponentov:**
+  - Ak chýba univerzálny komponent (napr. `Card.svelte`, `Table.svelte`), NEVYTVÁRAJ ho autonómne. Najprv navrhni riešenie v chate.
+  - Univerzálne komponenty patria výhradne do `$lib/components/atoms/`. Pri návrhu zváž, či stačia čisté `$props()`, alebo je vhodnejšia kompozícia cez Svelte 5 snippets (`Snippet`, `{@render children()}`).
+- **Zdieľané pomocné funkcie (`$lib/utils`):**
+  - Pred písaním novej pomocnej logiky VŽDY najprv skontroluj `$lib/utils` (napr. `fuzzyPattern`, `convertTime`, `ErrorHandler`).
+  - Ak máš návrh na zlepšenie existujúcej funkcie, najprv sa opýtaj a vysvetli dôvod.
+  - Nové pomocné funkcie píš čisto, typovo bezpečne a genericky tak, aby boli prenositeľné do iných projektov.
 
+## Kontext aplikácie a pravidlá pre Code Review
 - **Typ projektu:** Ide o výhradne internú intranetovú/priemyselnú aplikáciu (beží v lokálnej firemnej sieti, žiadny verejný internet).
 - **Pri hodnotení kódu (`code-review`) VŽDY vynechaj:**
-  - Akékoľvek SEO odporúčania (meta tagy, sitemapy, SSR indexovanie, OpenGraph, sémantiku pre vyhľadávače).
-  - Prehnané verejné bezpečnostné poučky (prísny verejný CSRF, striktné HTTPS/HSTS hlavičky, rate-limiting na IP), pokiaľ priamo neohrozujú integritu internej databázy.
+  - Akékoľvek SEO odporúčania (meta tagy, sitemapy, SSR indexovanie, OpenGraph, robot sémantiku).
+  - Prehnané verejné bezpečnostné poučky (striktný verejný CSRF, striktné HTTPS/HSTS hlavičky, rate-limiting na verejné IP), pokiaľ priamo neohrozujú integritu internej databázy.
 - **Na čo sa pri hodnotení VÝHRADNE sústrediť:**
-  - Korektné používanie Svelte 5 rún (`$state`, `$derived`, `$effect`, `$props`).
-  - TypeScript typová bezpečnosť.
+  - Korektné používanie Svelte 5 rún (`$state`, `$derived`, `$derived.by`, `$effect`, `$props`). Uprednostňuj `$derived` pred manuálnou synchronizáciou v `$effect`.
+  - Striktná TypeScript typová bezpečnosť (odstraňovanie zbytočných `any`).
   - Správne ošetrenie asynchrónnych stavov a logické chyby pri zápise do databázy (Prisma).
-- **Dalsie drobnosti**
-  - Komunikuj v slovencine, ak je to možné.
-  - Kod pis po anglicky aj komentare.
-  - Pri novych konceptoch alebo pri `ako by sa dali robit veci/kod lepsie` vysvetluj a pytaj sa na nazor, ale nenavrhuj zmeny, ktore by mohli ohrozit funkcnost aplikacie.
-  - Vzdy pri zmene vysvetli preco je to zmena a co to riesi, alebo co to zlepsuje.
-  - V pripade otazok/zmenach sa vzdy pytaj na nazor a ako by to malo byt spravne.
+- **Pravidlá komunikácie a workflow:**
+  - Komunikuj výhradne v slovenčine (stručne, vecne, k veci).
+  - Samotný kód, názvy premenných, typov a komentáre píš výhradne po anglicky.
+  - Pri každej zmene stručne vysvetli, prečo sa robí a čo zlepšuje.
+  - Pri nových konceptoch alebo refaktoringu sa najprv opýtaj na názor a navrhni smer, ale neaplikuj plošné zmeny, ktoré by mohli rozbiť funkčnosť aplikácie.

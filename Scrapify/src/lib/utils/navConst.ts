@@ -1,4 +1,4 @@
-import { House, ScanBarcode } from '@lucide/svelte';
+import { ClipboardList, House, ScanBarcode } from '@lucide/svelte';
 
 export const navUrls = [
 	{
@@ -12,6 +12,12 @@ export const navUrls = [
 		title: 'Assembly scan scrap',
 		shortname: 'Sc-Sc',
 		url: '/scandmclabel'
+	},
+	{
+		icon: ClipboardList,
+		title: 'Scrap records',
+		shortname: 'Records',
+		url: '/scrapRecords'
 	}
 	// {
 	// 	icon: NewspaperIcon,

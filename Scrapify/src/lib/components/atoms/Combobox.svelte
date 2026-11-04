@@ -23,7 +23,7 @@
 		reset?: boolean;
 		id?: string;
 		nameLabel?: NameLabel;
-		width?: 'sm' | 'lg' | 'xl';
+		width?: 'xs' | 'sm' | 'lg' | 'xl';
 		firstText?: string;
 		onchange?: (val: string) => void;
 	} = $props();
@@ -101,12 +101,14 @@
 					variant="secondary"
 					role="combobox"
 					aria-expanded={open}
-					class="max-sm:w-full  text-md justify-between whitespace-break-spaces {changeCss &&
-						'lg:text-sm'} {width === 'sm'
-						? 'w-[370px]'
-						: width === 'lg'
-							? 'w-[430px]'
-							: 'w-[660px]'}"
+					class="max-sm:w-full text-md justify-between whitespace-break-spaces {changeCss &&
+						'lg:text-sm'} {width === 'xs'
+						? 'w-[300px]'
+						: width === 'sm'
+							? 'w-[370px]'
+							: width === 'lg'
+								? 'w-[430px]'
+								: 'w-[660px]'}"
 				>
 					{selectedLabel || firstText}
 					<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" />
@@ -115,11 +117,13 @@
 		</Popover.Trigger>
 
 		<Popover.Content
-			class="max-sm:w-full {width === 'sm'
-				? 'w-[370px]'
-				: width === 'lg'
-					? 'w-[430px]'
-					: 'w-[660px]'} p-0 border-primary"
+			class="max-sm:w-full {width === 'xs'
+				? 'w-[300px]'
+				: width === 'sm'
+					? 'w-[370px]'
+					: width === 'lg'
+						? 'w-[430px]'
+						: 'w-[660px]'} p-0 border-primary"
 		>
 			<Command.Root>
 				<Command.Input placeholder="Search ..." class="h-4! inputNormalize" />

@@ -6,7 +6,7 @@
 	import CardTitle from '@/components/ui/card/card-title.svelte';
 	import CardDescription from '@/components/ui/card/card-description.svelte';
 	import CardContent from '@/components/ui/card/card-content.svelte';
-	import { dateTimmeUTCformatter } from '@/index';
+	import { dateTimmeUTCformatter } from '@/utils/index';
 
 	let { data }: PageProps = $props();
 	let user = $derived(data.user);

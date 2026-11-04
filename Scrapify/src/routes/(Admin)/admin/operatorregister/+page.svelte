@@ -12,7 +12,7 @@
 	import CardContent from '@/components/ui/card/card-content.svelte';
 	import ToNavigateBtn from '@/components/atoms/ToNavigateBtn.svelte';
 	import Separator from '@/components/ui/separator/separator.svelte';
-	import { dateTimmeUTCformatter } from '@/index';
+	import { dateTimmeUTCformatter } from '@/utils/index';
 	import CardFooter from '@/components/ui/card/card-footer.svelte';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 

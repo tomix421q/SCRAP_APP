@@ -74,7 +74,7 @@ export type LabelGroupsWithRelations = Prisma.LabelGroupGetPayload<{
 }>;
 
 export type ScrapRecordWithRelations = Prisma.ScrapRecordGetPayload<{
-	include: { part: true; scrapCode: true };
+	include: { partGroup: true };
 }>;
 
 export interface createScrapNoteType {

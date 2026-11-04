@@ -12,12 +12,12 @@
 	let { form, data }: PageProps = $props();
 
 	// for testing
-	let randomNumber = $state(Math.floor(100 * Math.random()));
+	// let randomNumber = $state(Math.floor(100 * Math.random()));
 	//
 	// Vars
 	const scrapManager = new ScrapManager();
 	let isSubmitting = $state(false);
-	let barcodeValue = $state('X4' + randomNumber);
+	let barcodeValue = $state('');
 	let selectedQuantityScrapLabelId = $state<number | null>(null);
 	let status = $state<'idle' | 'success' | 'error'>('idle');
 

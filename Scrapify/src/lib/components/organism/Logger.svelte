@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as HoverCard from '@/components/ui/hover-card/index';
-	import { dateTimmeUTCformatter } from '@/index';
+	import { dateTimmeUTCformatter } from '@/utils/index';
 	import Pagination from '../molecules/Pagination.svelte';
 	import { Prisma } from '@prisma/client';
 

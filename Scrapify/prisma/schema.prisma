@@ -72,7 +72,7 @@ model Operator {
   createdBy    String
   fullName     String
   cardId       Int            @unique
-  createdAt    DateTime       @default(now())
+  createdAt    DateTime       @default(dbgenerated("GETDATE()"))
   operatorLogs ActivityLogs[]
 }
 
@@ -83,7 +83,7 @@ model ActivityLogs {
   action     String
   entityType String
   entityId   Int?
-  timestamp  DateTime  @default(now())
+  timestamp  DateTime  @default(dbgenerated("GETDATE()"))
   operator   Operator? @relation(fields: [operatorId], references: [id], onDelete: Cascade)
   user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -92,7 +92,7 @@ model ActivityLogs {
 model PartGroup {
   id            Int                 @id @default(autoincrement())
   name          String              @db.NVarChar(64)
-  createdAt     DateTime            @default(now())
+  createdAt     DateTime            @default(dbgenerated("GETDATE()"))
   updatedAt     DateTime            @updatedAt
   isRebuild     Boolean             @default(false)
   interfaceName String
@@ -131,7 +131,7 @@ model PartGroupScrapCodes {
 model LabelGroup {
   id        Int         @id @default(autoincrement())
   code      String      @db.NVarChar(64)
-  createdAt DateTime    @default(now())
+  createdAt DateTime    @default(dbgenerated("GETDATE()"))
   updatedAt DateTime    @updatedAt
   vProject  String?     @db.VarChar(20)
   groups    PartGroup[] @relation("LabelGroupToPartGroup")
@@ -151,7 +151,7 @@ model ScrapRecord {
   quantity                Float      @default(1)
   description             String?
   createdBy               String
-  createdAt               DateTime   @default(now())
+  createdAt               DateTime   @default(dbgenerated("GETDATE()"))
   QADExported             Boolean?   @default(false)
   replacementPartMaterial String?    @db.NVarChar(50)
   partGroup               PartGroup  @relation(fields: [partGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction)

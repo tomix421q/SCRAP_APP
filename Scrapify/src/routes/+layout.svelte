@@ -10,7 +10,7 @@
 	import type { LayoutData } from './$types';
 	import { Bug, Code } from '@lucide/svelte';
 	import Separator from '@/components/ui/separator/separator.svelte';
-	import { getUserIdCardFromLc } from '@/index';
+	import { getUserIdCardFromLc } from '@/utils/index';
 	import { afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import MobileMenu from '@/components/molecules/MobileMenu.svelte';
