@@ -15,29 +15,35 @@
 	// $inspect(scrapManager.mode);
 </script>
 
-<div class=" grid grid-cols-2 gap-4">
+<div class="grid grid-cols-2 gap-4">
 	{#each scrapManager.scrapPayload as row (row.groupId)}
 		{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
-		<div
-			class="border backdrop-blur-2xl shadow-2xl p-2 rounded-lg flex flex-col gap-3 transition-colors {row.isOtherComponent
-				? 'bg-muted/30 border-warning/50'
-				: ''} {row.isOtherVariant &&
+		{@const colorOtherComponent = row.isOtherComponent ? 'bg-red-500/50 border-warning/50' : ''}
+		{@const colorOtherVariant =
+			row.isOtherVariant &&
 			(!row.replacementPartMaterial ||
 				row.replacementPartMaterial === '' ||
 				row.replacementPartMaterial === 'empty')
 				? 'bg-warning'
-				: row.selectedScrapCode || row.isOtherVariant
-					? 'bg-destructive'
-					: ''}"
+				: row.selectedScrapCode
+					? 'bg-red-500'
+					: ''}
+
+		<div
+			class="border backdrop-blur-2xl shadow-2xl p-2 rounded-lg flex flex-col gap-3 transition-colors {colorOtherComponent} {colorOtherVariant} {row.isRebuildGroup
+				? 'ring-warning ring-2'
+				: ''}"
 		>
 			<!-- TOP -->
 			<article class="flex gap-4 justify-between">
 				<p class="font-extrabold text-xl items-center gap-1 flex">
 					<span class="truncate" title={row.interfaceName}>{row.interfaceName}</span>
 					{#if row.isRebuildGroup}
-						<span class="bg-black text-xs uppercase p-1 rounded-lg text-chart-3 mx-2">Rebuild</span>
+						<span class="bg-black text-sm uppercase p-0.5 rounded-lg text-chart-3 mx-1"
+							>Rebuild</span
+						>
 					{:else}
-						<span class="bg-black text-xs uppercase p-1 rounded-lg text-chart-2">Small</span>
+						<span class="bg-black text-sm uppercase p-0.5 rounded-lg text-chart-2 mx-1">Small</span>
 					{/if}
 				</p>
 
@@ -90,17 +96,20 @@
 								Iný variant
 							</div>
 						{:else}
-							<Combobox
-								dataBox={groupDef?.scrapCodes.map((sc) => ({
-									id: sc.code,
-									name: `${sc.code} ${sc.description ? '-' : ''} ${sc.description ?? ''}`
-								})) ?? []}
-								nameLabel="name"
-								width="lg"
-								value={row.selectedScrapCode?.toString() ?? ''}
-								onchange={(val) => scrapManager.selectScrap(row.groupId, val)}
-								firstText="Zvoľte dôvod scrapu"
-							/>
+							<!--  -->
+							{#if row.isRebuildGroup}
+								<Combobox
+									dataBox={groupDef?.scrapCodes.map((sc) => ({
+										id: sc.code,
+										name: `${sc.code} ${sc.description ? '-' : ''} ${sc.description ?? ''}`
+									})) ?? []}
+									nameLabel="name"
+									width="lg"
+									value={row.selectedScrapCode?.toString() ?? ''}
+									onchange={(val) => scrapManager.selectScrap(row.groupId, val)}
+									firstText="Zvoľte dôvod scrapu"
+								/>
+							{/if}
 						{/if}
 						<Button
 							type="button"

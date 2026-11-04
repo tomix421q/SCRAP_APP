@@ -114,20 +114,20 @@
 	});
 </script>
 
-<div id="scan" class="flex gap-3 flex-col">
-	<OperatorLogin />
+<div id="scan" class="flex gap-3 flex-wrap">
 	<!--  -->
 	<!-- SCANNER CARD && OPERATOR-->
 	<article
-		class="formNormalize pb-8 animate-in max-w-lg slide-in-to-left-50 ease-in duration-500 transition-all h-min"
+		class="formNormalize pb-8 animate-in max-w-3xl lg:min-w-3xl slide-in-to-left-50 ease-in duration-500 transition-all h-min"
 	>
-		<section class="flex items-center gap-3 mb-1 mt-4">
+		<!-- <section class="flex items-center gap-3 mb-1 mt-4">
 			<h2 class="text-3xl mx-auto font-extrabold">Scan label</h2>
-		</section>
+		</section> -->
 
 		<form
 			method="POST"
 			action="?/scanDmc"
+			class=""
 			use:enhance={() => {
 				isScanning = true;
 				status = 'idle';
@@ -156,7 +156,7 @@
 		>
 			<div class="flex flex-col gap-4">
 				<section class="relative flex flex-col gap-8">
-					<div class="min-h-[90px] relative">
+					<div class=" relative">
 						<ResultInfo data={form} />
 						{#if isScanning}
 							<RefreshCw class="mx-auto size-6 text-primary animate-spin" />
@@ -222,26 +222,30 @@
 								class="size-6 {!barcodeValue ? 'animate-move duration-500' : ''}"
 							/>Opakovat</Button
 						>
+
+						<!-- Quantity scrap second row -->
+						<Button
+							size="lg"
+							variant="secondary"
+							class="{scrapManager.mode === 'qntScrap'
+								? 'ring-2 ring-warning '
+								: ''} relative text-lg"
+							onclick={startQuantityScrap}
+							disabled={!$operatorCardId || isScanning}
+							><AlignVerticalJustifyEnd class="size-6 " />Quantity scrap
+							<span
+								class="absolute text-xs uppercase bg-background text-chart-1 p-0.5 rotate-45 -top-0 -right-5 rounded-lg"
+								>Trial</span
+							></Button
+						>
 					</div>
-					<!-- Quantity scrap second row -->
-					<Button
-						size="lg"
-						variant="secondary"
-						class="{scrapManager.mode === 'qntScrap'
-							? 'ring-2 ring-warning '
-							: ''} relative text-lg"
-						onclick={startQuantityScrap}
-						disabled={!$operatorCardId || isScanning}
-						><AlignVerticalJustifyEnd class="size-6 " />Quantity scrap
-						<span
-							class="absolute text-xs uppercase bg-background text-chart-1 p-0.5 rotate-45 -top-0 -right-5 rounded-lg"
-							>Trial</span
-						></Button
-					>
 				</section>
 			</div>
 		</form>
 	</article>
+
+	<!-- Login operator -->
+	<OperatorLogin />
 </div>
 
 <Dialog.Root bind:open={isQuantityLineDialogOpen}>

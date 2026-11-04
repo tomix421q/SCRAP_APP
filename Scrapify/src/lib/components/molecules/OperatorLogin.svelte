@@ -90,19 +90,19 @@
 
 <main class="w-fit mx-auto">
 	{#if verifiedOperator}
-		<div class="formNormalize">
-			<section class="flex justify-between">
+		<div class="formNormalize min-w-2xs! h-full!">
+			<section class="flex justify-between flex-col h-full">
 				<h3 class="text-2xl lg:text-4xl font-bold uppercase tracking-wider">Card ID</h3>
 
-				<div class="flex">
+				<div class="flex flex-col">
 					<p class="text-2xl lg:text-4xl font-bold text-primary">
 						{cardId}
 					</p>
 
 					<Button
 						variant="destructive"
-						class="ml-4"
-						size="lg"
+						class="mt-10 my-auto"
+						size="sm"
 						onclick={() => {
 							logoutOperator();
 						}}>Odhlasit</Button
@@ -111,16 +111,16 @@
 			</section>
 		</div>
 	{:else}
-		<form method="POST" onsubmit={handleLoginOperator} class="formNormalize">
+		<form method="POST" onsubmit={handleLoginOperator} class="formNormalize min-w-2xs! h-full!">
 			<div>
 				<ResultInfo data={infoResult} />
 			</div>
 
-			<section class="flex justify-between">
+			<section class="flex justify-between flex-col h-full">
 				<Label for="cardId" class="text-2xl lg:text-4xl font-bold uppercase tracking-wider"
 					>Card ID</Label
 				>
-				<div class="flex gap-4">
+				<div class="flex gap-4 flex-col">
 					<article class="text-2xl lg:text-4xl font-bold text-primary">
 						<!-- <Label for="cardId" class="text-xl">ID karty</Label> -->
 						<Input
@@ -135,7 +135,7 @@
 						/>
 					</article>
 
-					<Button type="submit" class="mt-10 my-auto" variant="default" size="lg">
+					<Button type="submit" class="mt-10 my-auto" variant="default" size="sm">
 						{#if isSubmitting}
 							<span>Submitting...</span>
 						{:else}
