@@ -81,8 +81,10 @@ export class ScrapManager {
 
 		scrapRow.selectedScrapCode = scrapDef.code;
 		scrapRow.selectedScrapDescription = scrapDef.description ?? '';
-		scrapRow.isOtherVariant = false;
-		scrapRow.replacementPartMaterial = '';
+		if (this.mode !== 'qntScrap') {
+			scrapRow.isOtherVariant = false;
+			scrapRow.replacementPartMaterial = '';
+		}
 
 		if (this.mode === 'rebuild' && scrapRow.isRebuildGroup) {
 			for (const other of this.scrapPayload) {

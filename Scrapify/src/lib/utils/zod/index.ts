@@ -84,7 +84,11 @@ export const scrapRowSchema = z.object({
 	selectedScrapDescription: z.string().default('').nullable(),
 	isOtherVariant: z.boolean().default(false),
 	replacementPartMaterial: z.string().optional().nullable(),
-	isOtherComponent: z.boolean().default(false)
+	isOtherComponent: z.boolean().default(false),
+	quantity: z.preprocess(
+		(value) => (value === 0 || value === '0' ? 1 : value),
+		z.coerce.number().int().positive().default(1).optional()
+	)
 });
 
 export const saveScrapSchema = z
@@ -176,16 +180,7 @@ export const saveQuantityScrapSchema = z.object({
 				return z.NEVER;
 			}
 		})
-		.pipe(
-			z
-				.array(
-					z.object({
-						groupId: z.coerce.number().int().positive(),
-						quantity: z.coerce.number().int().positive()
-					})
-				)
-				.min(1, 'Zadaj kladne mnozstvo aspon pre jednu skupinu.')
-		)
+		.pipe(z.array(scrapRowSchema).min(1, 'Zadaj kladne mnozstvo aspon pre jednu skupinu.'))
 		.refine((rows) => new Set(rows.map((row) => row.groupId)).size === rows.length, {
 			message: 'Skupina dielov sa nesmie opakovat.'
 		})

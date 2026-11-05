@@ -4,6 +4,7 @@
 	import Label from '@/components/ui/label/label.svelte';
 	import { Minus, Plus, X } from '@lucide/svelte';
 	import Button from '@/components/ui/button/button.svelte';
+	import Combobox from '@/components/atoms/Combobox.svelte';
 
 	let {
 		scrapManager
@@ -29,11 +30,77 @@
 	{:else}
 		<div class="grid grid-cols-1 gap-4">
 			{#each scrapManager.scrapPayload as row (row.groupId)}
-				<div class="flex items-center justify-between gap-4 rounded-lg border p-4">
-					<div class="min-w-0">
-						<p class="truncate font-semibold" title={row.interfaceName}>{row.interfaceName}</p>
-						<p class="text-sm text-muted-foreground">{row.groupName}</p>
-					</div>
+				{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
+				<div
+					class="flex items-center justify-between gap-4 rounded-lg border p-4 shadow-xl drop-shadow-lg bg-chart-3/10"
+				>
+					<section class="flex gap-5">
+						<div class="lg:min-w-xs text-wrap">
+							<p class="truncate font-semibold" title={row.interfaceName}>{row.interfaceName}</p>
+							<p class="text-sm text-muted-foreground">{row.groupName}</p>
+						</div>
+
+						<article class="gap-2 flex flex-col">
+							<!--  -->
+							<!-- Part number selection -->
+							<div class="flex gap-1">
+								<Combobox
+									dataBox={groupDef?.materials.map((material) => ({
+										id: material.material,
+										name: `${material.material} ${material.description ? '-' : ''} ${material.description ?? ''}`
+									})) ?? []}
+									nameLabel="name"
+									value={row.replacementPartMaterial === 'empty'
+										? ''
+										: (row.replacementPartMaterial ?? '')}
+									onchange={(val) => scrapManager.setReplacementPart(row.groupId, val)}
+									firstText="Vyberte správny diel"
+									width="lg"
+								/>
+								<Button
+									type="button"
+									title="Remove item"
+									size="icon"
+									variant="ghost"
+									class={row.replacementPartMaterial && row.replacementPartMaterial !== 'empty' //replacement is selected PN for this mode (qnt-scrap)
+										? 'flex text-destructive bg-chart-5 hover:bg-chart-5/90'
+										: 'hidden'}
+									onclick={() => scrapManager.setReplacementPart(row.groupId, 'empty')}
+								>
+									<X />
+								</Button>
+							</div>
+
+							<!--  -->
+							<!-- Scrap code selection -->
+							<div class="flex gap-1">
+								<Combobox
+									dataBox={groupDef?.scrapCodes.map((sc) => ({
+										id: sc.code,
+										name: `${sc.code} ${sc.description ? '-' : ''} ${sc.description ?? ''}`
+									})) ?? []}
+									nameLabel="name"
+									width="lg"
+									value={row.selectedScrapCode?.toString() ?? ''}
+									onchange={(val) => scrapManager.selectScrap(row.groupId, val)}
+									firstText="Zvoľte dôvod scrapu"
+								/>
+
+								<Button
+									type="button"
+									title="Remove item"
+									size="icon"
+									variant="ghost"
+									class={row.selectedScrapCode
+										? 'flex text-destructive bg-chart-5 hover:bg-chart-5/90'
+										: 'hidden'}
+									onclick={() => scrapManager.clearScrapRow(row.groupId)}
+								>
+									<X />
+								</Button>
+							</div>
+						</article>
+					</section>
 
 					<!-- Input -->
 					<article class="flex gap-2">

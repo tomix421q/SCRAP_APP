@@ -72,7 +72,9 @@
 			id="scrap"
 			class="formNormalize
 			{scrapManager.mode === 'rebuild' && 'bg-chart-1/5'} 
-			{scrapManager.mode === 'scrap' && 'bg-chart-2/5'} w-full"
+			{scrapManager.mode === 'scrap' && 'bg-chart-2/5'}
+			{scrapManager.mode === 'qntScrap' && 'bg-chart-3/5'}
+			 w-full"
 		>
 			{#if scrapManager.mode === 'rebuild'}
 				<Rebuild {scrapManager} />

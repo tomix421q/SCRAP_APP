@@ -294,11 +294,11 @@ export const actions = {
 				data: scrapPayload.map((row) => ({
 					dmc,
 					partGroupId: row.groupId,
-					scrapCode: null,
-					scrapCodeDescription: null,
+					scrapCode: row.selectedScrapCode,
+					scrapCodeDescription: row.selectedScrapDescription ?? null,
 					isRebuild: false,
 					isOtherComponent: false,
-					replacementPartMaterial: null,
+					replacementPartMaterial: row.replacementPartMaterial,
 					quantity: row.quantity,
 					description: '',
 					createdBy: operator
