@@ -10,7 +10,8 @@
 	import { navigating, page } from '$app/state';
 	import { onMount, tick, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { DatabaseArrowDownIcon, Group, Plus, X } from '@lucide/svelte';
+	import { CircleHelp, DatabaseArrowDownIcon, Group, Plus, X } from '@lucide/svelte';
+	import * as Tooltip from '@/components/ui/tooltip';
 	import NewGroupTable from '@/components/organism/Tables/NewGroupTable.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
@@ -468,7 +469,44 @@
 			<!--  -->
 			<!-- Photo (optional) -->
 			<article class="flex flex-col mt-3 gap-2 lg:flex-row lg:items-start">
-				<Label for="photo" class="text-sm md:text-lg lg:w-[200px]">Photo (optional)</Label>
+				<div class="flex items-center gap-2 lg:w-[200px]">
+					<Label for="photo" class="text-sm md:text-lg"
+						>Photo <span class="text-sm text-chart-info capitalize tracking-widest">[optional]</span
+						></Label
+					>
+					<Tooltip.Provider>
+						<Tooltip.Root>
+							<Tooltip.Trigger
+								type="button"
+								class="text-muted-foreground hover:text-foreground"
+								aria-label="Pravidlá pre fotku skupiny"
+							>
+								<CircleHelp class="size-5" />
+							</Tooltip.Trigger>
+							<Tooltip.Content class="max-w-sm text-left bg-background p-1">
+								<div class="space-y-2">
+									<p class="font-semibold text-info">Fotka skupiny (nepovinná)</p>
+									<ul class="list-disc pl-4 space-y-1">
+										<li>Povolené formáty: <code>JPG</code>, <code>PNG</code>, <code>WEBP</code>.</li>
+										<li>
+											Obrázok sa pri výbere automaticky zmenší na max. <code>800 px</code> a uloží ako
+											<code>WEBP</code>.
+										</li>
+										<li>Veľkosť po spracovaní nesmie presiahnuť <code>2 MB</code>.</li>
+										<li>
+											Fotka sa zobrazí operátorovi pri skupine na obrazovke skenovania, aby diel
+											rozpoznal aj podľa obrázka.
+										</li>
+										<li>
+											Pri úprave skupiny ju môžeš nahradiť novou alebo odstrániť tlačidlom
+											<span class="text-destructive">X</span>. Ak nič nezmeníš, fotka ostane.
+										</li>
+									</ul>
+								</div>
+							</Tooltip.Content>
+						</Tooltip.Root>
+					</Tooltip.Provider>
+				</div>
 				<div class="flex flex-col gap-2 w-full">
 					{#if shownPhotoUrl}
 						<img
