@@ -41,7 +41,8 @@
 	let qadSelectedItemType = $state('');
 
 	// photo
-	let photoInput = $state<HTMLInputElement>();
+	// `Input` has a `null` fallback for `ref`, so the bound variable must start as null (not undefined).
+	let photoInput = $state<HTMLInputElement | null>(null);
 	let photoFile = $state<File | null>(null);
 	let photoPreviewUrl = $state<string | null>(null);
 	let photoError = $state('');
