@@ -1,4 +1,5 @@
 <script lang="ts">
+	import GroupPhoto from './GroupPhoto.svelte';
 	import Input from '@/components/ui/input/input.svelte';
 	import type { ScrapManager } from './ScrapManager.svelte';
 	import Label from '@/components/ui/label/label.svelte';
@@ -35,6 +36,7 @@
 					class="flex items-center justify-between gap-4 rounded-lg border p-4 shadow-xl drop-shadow-lg bg-chart-3/10"
 				>
 					<section class="flex gap-5">
+						<GroupPhoto group={groupDef} />
 						<div class="lg:min-w-xs text-wrap">
 							<p class="truncate font-semibold" title={row.interfaceName}>{row.interfaceName}</p>
 							<p class="text-sm text-muted-foreground">{row.groupName}</p>

@@ -1,10 +1,11 @@
 <script lang="ts">
+	import GroupPhoto from './GroupPhoto.svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Label from '@/components/ui/label/label.svelte';
 	import type { ScrapManager } from './ScrapManager.svelte';
 	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
-	import { ArrowRight, X } from '@lucide/svelte';
+	import { X } from '@lucide/svelte';
 
 	let {
 		scrapManager
@@ -36,6 +37,7 @@
 		>
 			<!-- TOP -->
 			<article class="flex gap-4 justify-between">
+				<GroupPhoto group={groupDef} />
 				<p class="font-extrabold text-xl items-center gap-1 flex">
 					<span class="truncate" title={row.interfaceName}>{row.interfaceName}</span>
 					{#if row.isRebuildGroup}

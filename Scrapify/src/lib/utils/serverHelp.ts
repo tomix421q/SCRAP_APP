@@ -1,6 +1,6 @@
 import { auth } from '@/auth/auth';
 import prismaClient from '@/server/prisma';
-import type { LoggerActionType, LoggerEntityType } from './types';
+import type { LoggerActionType, LoggerEntityType, Role } from './types';
 
 export const toFuzzyPattern = (str: string) => {
 	const item = str
@@ -17,6 +17,20 @@ export async function getUserServer({ request }: { request: Request }) {
 	});
 
 	return { user: session?.user ?? null, session: session?.session ?? null };
+}
+
+/**
+ * True when the current session belongs to a user whose DB role is one of `roles`.
+ * Form actions are plain POST endpoints, so they cannot rely on a layout `load` guard.
+ */
+export async function hasRoleServer({ request }: { request: Request }, roles: readonly Role[]) {
+	const { user } = await getUserServer({ request });
+	if (!user) return false;
+	const dbUser = await prismaClient.user.findUnique({
+		where: { id: user.id },
+		select: { role: true }
+	});
+	return dbUser !== null && roles.includes(dbUser.role as Role);
 }
 
 export async function writeToLogger({

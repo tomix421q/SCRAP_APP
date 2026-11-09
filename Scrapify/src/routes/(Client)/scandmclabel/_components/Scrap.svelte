@@ -1,4 +1,5 @@
 <script lang="ts">
+	import GroupPhoto from './GroupPhoto.svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
@@ -30,6 +31,7 @@
 		>
 			<!-- TOP -->
 			<article class="flex gap-4 justify-between">
+				<GroupPhoto group={groupDef} />
 				<p class="font-extrabold text-xl flex items-center gap-2">
 					<span class="truncate" title={row.interfaceName}>{row.interfaceName}</span>
 				</p>

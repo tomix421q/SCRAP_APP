@@ -76,3 +76,30 @@ export function playBeep(type: 'ok' | 'error') {
 		// Ignorovať, ak prehliadač blokuje audio pred prvou interakciou
 	}
 }
+
+/**
+ * Scales an image down so its longer side is at most `maxSize` px and re-encodes it as webp.
+ * Re-encoding through a canvas also drops EXIF metadata. Browser only.
+ */
+export async function resizeImageToWebp(file: File, maxSize = 800, quality = 0.85): Promise<File> {
+	const bitmap = await createImageBitmap(file);
+	try {
+		const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
+		const canvas = document.createElement('canvas');
+		canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+		canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+		const context = canvas.getContext('2d');
+		if (!context) throw new Error('Canvas is not available in this browser.');
+		context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+		const blob = await new Promise<Blob | null>((resolve) =>
+			canvas.toBlob(resolve, 'image/webp', quality)
+		);
+		if (!blob || blob.type !== 'image/webp') {
+			throw new Error('This browser cannot encode webp images.');
+		}
+		return new File([blob], `${file.name.replace(/\.[^.]+$/, '')}.webp`, { type: 'image/webp' });
+	} finally {
+		bitmap.close();
+	}
+}

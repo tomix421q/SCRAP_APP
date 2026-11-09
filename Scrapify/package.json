@@ -9,6 +9,7 @@
 		"preview": "NODE_ENV=production vite preview",
 		"postinstall": "prisma generate",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"test": "vitest run",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
@@ -58,7 +59,8 @@
 		"tw-animate-css": "^1.3.6",
 		"typescript": "^5.0.0",
 		"typescript-eslint": "^8.20.0",
-		"vite": "^7.0.4"
+		"vite": "^7.0.4",
+		"vitest": "^5.1.0"
 	},
 	"dependencies": {
 		"@prisma/adapter-mssql": "^7.0.0",

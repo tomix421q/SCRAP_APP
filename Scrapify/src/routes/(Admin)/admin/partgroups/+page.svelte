@@ -17,6 +17,7 @@
 	import { QAD_COMPONENTS_TYPES } from '@/utils/qadComponentsTypes';
 	import { currentConfirmDeleteId, editPartGroupData } from '@/stores/stores';
 	import Separator from '@/components/ui/separator/separator.svelte';
+	import { resizeImageToWebp } from '@/utils/frontHelp';
 
 	let { data, form }: PageProps = $props();
 	let { groups, groupsCount, parts, scrapCodes, totalPages } = $derived(data.data);
@@ -38,6 +39,19 @@
 	let interfaceName = $state('');
 	let isRebuild = $state(false);
 	let qadSelectedItemType = $state('');
+
+	// photo
+	let photoInput = $state<HTMLInputElement>();
+	let photoFile = $state<File | null>(null);
+	let photoPreviewUrl = $state<string | null>(null);
+	let photoError = $state('');
+	let removePhoto = $state(false);
+	let existingPhotoUrl = $derived(
+		$editPartGroupData?.photoFile
+			? `/api/partgroup-photo/${$editPartGroupData.id}?v=${new Date($editPartGroupData.updatedAt).getTime()}`
+			: null
+	);
+	let shownPhotoUrl = $derived(photoPreviewUrl ?? (removePhoto ? null : existingPhotoUrl));
 
 	let isLoadingParts = $derived(Boolean(navigating.to?.url.searchParams.has('vProject')));
 
@@ -75,7 +89,35 @@
 		}
 	}
 
+	function resetPhoto() {
+		if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+		photoFile = null;
+		photoPreviewUrl = null;
+		photoError = '';
+		removePhoto = false;
+		if (photoInput) photoInput.value = '';
+	}
+
+	async function onPhotoSelected(event: Event) {
+		const file = (event.currentTarget as HTMLInputElement).files?.[0];
+		if (!file) return;
+		photoError = '';
+		try {
+			const resized = await resizeImageToWebp(file);
+			if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+			photoFile = resized;
+			photoPreviewUrl = URL.createObjectURL(resized);
+			removePhoto = false;
+		} catch (err) {
+			photoFile = null;
+			photoPreviewUrl = null;
+			photoError = err instanceof Error ? err.message : 'Image could not be processed.';
+			if (photoInput) photoInput.value = '';
+		}
+	}
+
 	async function clearEditForm() {
+		resetPhoto();
 		idEditGroup = undefined;
 		partGroupName = '';
 		interfaceName = '';
@@ -123,6 +165,7 @@
 
 			untrack(() => {
 				form = null;
+				resetPhoto();
 				idEditGroup = editData.id;
 				selectedVproject = editData.vProject ? editData.vProject : '';
 
@@ -173,6 +216,7 @@
 		<form
 			method="POST"
 			action={idEditGroup ? '?/editGroup' : '?/createPartGroup'}
+			enctype="multipart/form-data"
 			use:enhance={({ formData }) => {
 				formData.set('vProject', selectedVproject);
 				formData.set('partNumbers', JSON.stringify(selectedPartIds));
@@ -181,6 +225,8 @@
 				formData.set('interfaceName', interfaceName);
 				formData.set('qadIdentity', qadSelectedItemType);
 				formData.set('isRebuild', JSON.stringify(isRebuild));
+				if (photoFile) formData.set('photo', photoFile);
+				formData.set('removePhoto', JSON.stringify(removePhoto));
 				isSubmitting = true;
 				return async ({ update, result }) => {
 					if (result?.type === 'success') {
@@ -416,6 +462,50 @@
 						}
 					}}
 				/>
+			</article>
+
+			<!--  -->
+			<!-- Photo (optional) -->
+			<article class="flex flex-col mt-3 gap-2 lg:flex-row lg:items-start">
+				<Label for="photo" class="text-sm md:text-lg lg:w-[200px]">Photo (optional)</Label>
+				<div class="flex flex-col gap-2 w-full">
+					{#if shownPhotoUrl}
+						<img
+							src={shownPhotoUrl}
+							alt="Part group preview"
+							class="size-40 rounded-lg border border-border object-cover"
+						/>
+					{/if}
+					<div class="flex gap-1 items-center">
+						<Input
+							type="file"
+							id="photo"
+							accept="image/jpeg,image/png,image/webp"
+							class="inputNormalize"
+							bind:ref={photoInput}
+							onchange={onPhotoSelected}
+						/>
+						{#if photoFile || (idEditGroup && existingPhotoUrl && !removePhoto)}
+							<Button
+								type="button"
+								title="Remove photo"
+								size="icon"
+								variant="ghost"
+								class="flex text-destructive bg-destructive/10 hover:bg-destructive/50"
+								onclick={() => {
+									// Drop a freshly chosen file first; otherwise mark the saved photo for removal.
+									if (photoFile) resetPhoto();
+									else removePhoto = true;
+								}}
+							>
+								<X />
+							</Button>
+						{/if}
+					</div>
+					{#if photoError}
+						<p class="text-sm text-destructive">{photoError}</p>
+					{/if}
+				</div>
 			</article>
 
 			<!--  -->

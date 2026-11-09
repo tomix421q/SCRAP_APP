@@ -98,6 +98,7 @@ model PartGroup {
   interfaceName String
   qadIdentity   String?
   vProject      String?             @db.VarChar(20)
+  photoFile     String?             @db.VarChar(64)
   materials     PartGroupMaterial[]
   scrapCodes    PartGroupScrapCodes[]
   scrapRecords  ScrapRecord[]
