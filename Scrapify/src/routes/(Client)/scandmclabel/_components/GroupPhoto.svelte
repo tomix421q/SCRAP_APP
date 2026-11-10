@@ -20,7 +20,7 @@
 		{src}
 		alt=""
 		loading="lazy"
-		class="size-20 shrink-0 rounded-lg border border-border object-cover"
+		class="size-max h-full shrink-0 rounded-lg border border-border object-cover"
 		onerror={() => (failedSrc = src)}
 	/>
 {/if}

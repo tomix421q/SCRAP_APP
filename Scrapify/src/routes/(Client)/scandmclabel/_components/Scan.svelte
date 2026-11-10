@@ -212,17 +212,6 @@
 								!$operatorCardId ||
 								scrapManager.mode === 'qntScrap'}><WrenchIcon class="size-6 " /> Scrap</Button
 						>
-						<Button
-							size="lg"
-							variant="destructive"
-							class=""
-							onclick={resetAll}
-							disabled={!barcodeValue}
-							><RotateCcw
-								class="size-6 {!barcodeValue ? 'animate-move duration-500' : ''}"
-							/>Opakovat</Button
-						>
-
 						<!-- Quantity scrap second row -->
 						<Button
 							size="lg"
@@ -237,6 +226,16 @@
 								class="absolute text-xs uppercase bg-background text-chart-1 p-0.5 rotate-45 -top-0 -right-5 rounded-lg"
 								>Trial</span
 							></Button
+						>
+						<Button
+							size="lg"
+							variant="destructive"
+							class=""
+							onclick={resetAll}
+							disabled={!barcodeValue}
+							><RotateCcw
+								class="size-6 {!barcodeValue ? 'animate-move duration-500' : ''}"
+							/>Opakovat</Button
 						>
 					</div>
 				</section>

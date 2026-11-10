@@ -8,7 +8,7 @@
 	import User from '@/components/organism/User.svelte';
 	import bgDesktop from '@/../lib/assets/bg1.jpg';
 	import type { LayoutData } from './$types';
-	import { Bug, Code } from '@lucide/svelte';
+	import { Bug, Code, Dock } from '@lucide/svelte';
 	import Separator from '@/components/ui/separator/separator.svelte';
 	import { getUserIdCardFromLc } from '@/utils/index';
 	import { afterNavigate } from '$app/navigation';
@@ -77,18 +77,29 @@
 	<nav class="p-2 mb-6 flex items-center justify-between">
 		<!-- Logo -->
 		<section>
-			<a href="/" class="flex items-center group">
-				<!-- <img src={logo} alt="Scrapify icon" class="w-32 bg-white rounded-2xl p-1" /> -->
-				<span
-					class="uppercase font-bold tracking-widest ring-2 ring-primary px-1 text-lg hover:ring-chart-1 transition-all duration-300 py-2"
-					><span class="text-chart-1">S</span>crapify</span
-				>
+			<div class="flex items-center">
+				<a href="/" class="flex items-center group">
+					<!-- <img src={logo} alt="Scrapify icon" class="w-32 bg-white rounded-2xl p-1" /> -->
+					<span
+						class="uppercase font-bold tracking-widest ring-2 ring-primary px-1 text-lg hover:ring-chart-1 transition-all duration-300 py-2"
+						><span class="text-chart-1">S</span>crapify</span
+					>
+				</a>
 				<div class="flex flex-col gap-0.5 text-muted-foreground">
-					<span class="mb-auto leading-3 mx-2 text-xs">Version 4.2.0</span>
+					<p class="mb-auto leading-3 mx-2 text-xs">
+						Version 4.3.0 ·
+						<a
+							href="https://draw.zilka-tomas.com/test-room-lMV2FeG8cLDj7egkgO4lm?d=v166.84.2113.1453.xm698mn4hLAx2QhjfRfS0"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="bg-chart-4 px-2 rounded-sm py-0.5 font-semibold hover:text-primary text-chart-1"
+							>Tldraw docs</a
+						>
+					</p>
 					<span class="mb-auto leading-3 mx-2 text-xs">{user?.role}</span>
 					<span class="mb-auto leading-3 mx-2 text-xs">{userIdCardFromLc}</span>
 				</div>
-			</a>
+			</div>
 		</section>
 		<!-- Menu -->
 		<div class="flex gap-2">
