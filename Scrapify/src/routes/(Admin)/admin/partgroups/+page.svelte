@@ -18,7 +18,7 @@
 	import { QAD_COMPONENTS_TYPES } from '@/utils/qadComponentsTypes';
 	import { currentConfirmDeleteId, editPartGroupData } from '@/stores/stores';
 	import Separator from '@/components/ui/separator/separator.svelte';
-	import { resizeImageToWebp } from '@/utils/frontHelp';
+	import { resizeImageToJpeg } from '@/utils/frontHelp';
 
 	let { data, form }: PageProps = $props();
 	let { groups, groupsCount, parts, scrapCodes, totalPages } = $derived(data.data);
@@ -105,7 +105,7 @@
 		if (!file) return;
 		photoError = '';
 		try {
-			const resized = await resizeImageToWebp(file);
+			const resized = await resizeImageToJpeg(file);
 			if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
 			photoFile = resized;
 			photoPreviewUrl = URL.createObjectURL(resized);

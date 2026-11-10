@@ -78,10 +78,11 @@ export function playBeep(type: 'ok' | 'error') {
 }
 
 /**
- * Scales an image down so its longer side is at most `maxSize` px and re-encodes it as webp.
- * Re-encoding through a canvas also drops EXIF metadata. Browser only.
+ * Scales an image down so its longer side is at most `maxSize` px and re-encodes it as JPEG.
+ * Re-encoding through a canvas also drops EXIF metadata. JPEG is encodable in every browser
+ * (webp is not, e.g. mobile Safari). Browser only.
  */
-export async function resizeImageToWebp(file: File, maxSize = 800, quality = 0.85): Promise<File> {
+export async function resizeImageToJpeg(file: File, maxSize = 800, quality = 0.85): Promise<File> {
 	const bitmap = await createImageBitmap(file);
 	try {
 		const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
@@ -90,15 +91,18 @@ export async function resizeImageToWebp(file: File, maxSize = 800, quality = 0.8
 		canvas.height = Math.max(1, Math.round(bitmap.height * scale));
 		const context = canvas.getContext('2d');
 		if (!context) throw new Error('Canvas is not available in this browser.');
+		// JPEG has no alpha channel: paint a white background so transparent PNGs do not turn black.
+		context.fillStyle = '#fff';
+		context.fillRect(0, 0, canvas.width, canvas.height);
 		context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 
 		const blob = await new Promise<Blob | null>((resolve) =>
-			canvas.toBlob(resolve, 'image/webp', quality)
+			canvas.toBlob(resolve, 'image/jpeg', quality)
 		);
-		if (!blob || blob.type !== 'image/webp') {
-			throw new Error('This browser cannot encode webp images.');
+		if (!blob || blob.type !== 'image/jpeg') {
+			throw new Error('This browser cannot encode jpeg images.');
 		}
-		return new File([blob], `${file.name.replace(/\.[^.]+$/, '')}.webp`, { type: 'image/webp' });
+		return new File([blob], `${file.name.replace(/\.[^.]+$/, '')}.jpg`, { type: 'image/jpeg' });
 	} finally {
 		bitmap.close();
 	}

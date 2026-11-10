@@ -42,8 +42,16 @@ vi.mock('$env/dynamic/private', () => ({
 import { actions } from '../src/routes/(Admin)/admin/partgroups/+page.server';
 import { GET } from '../src/routes/api/partgroup-photo/[id]/+server';
 
-// Smallest buffer that carries a real WebP signature (RIFF....WEBP).
-const webpBytes = (extra = 16) =>
+// Smallest buffer that carries a real JPEG signature (SOI ... EOI).
+const jpegBytes = (extra = 16) =>
+	Buffer.concat([
+		Buffer.from([0xff, 0xd8, 0xff, 0xe0]),
+		Buffer.alloc(extra, 1),
+		Buffer.from([0xff, 0xd9])
+	]);
+
+// Legacy photos from before the switch to JPEG.
+const legacyWebpBytes = (extra = 16) =>
 	Buffer.concat([
 		Buffer.from('RIFF'),
 		Buffer.from([extra + 4, 0, 0, 0]),
@@ -60,10 +68,10 @@ const baseFields = {
 	scrapCodes: '[]'
 };
 
-function eventWith(fields: Record<string, string>, photo?: Buffer, type = 'image/webp') {
+function eventWith(fields: Record<string, string>, photo?: Buffer, type = 'image/jpeg') {
 	const formData = new FormData();
 	for (const [key, value] of Object.entries(fields)) formData.set(key, value);
-	if (photo) formData.set('photo', new File([new Uint8Array(photo)], 'photo.webp', { type }));
+	if (photo) formData.set('photo', new File([new Uint8Array(photo)], 'photo.jpg', { type }));
 	const request = new Request('http://localhost/admin/partgroups', {
 		method: 'POST',
 		body: formData
@@ -92,15 +100,15 @@ afterEach(async () => {
 });
 
 describe('createPartGroup photo', () => {
-	it('stores a valid webp photo under the new group id and records it on the group', async () => {
-		const photo = webpBytes();
+	it('stores a valid jpeg photo under the new group id and records it on the group', async () => {
+		const photo = jpegBytes();
 
 		const result = await actions.createPartGroup(eventWith(baseFields, photo));
 
 		expect(result).toMatchObject({ success: true });
-		expect(await readFile(join(state.photoDir, '7.webp'))).toEqual(photo);
+		expect(await readFile(join(state.photoDir, '7.jpg'))).toEqual(photo);
 		expect(prismaMock.partGroup.update).toHaveBeenCalledWith(
-			expect.objectContaining({ where: { id: 7 }, data: { photoFile: '7.webp' } })
+			expect.objectContaining({ where: { id: 7 }, data: { photoFile: '7.jpg' } })
 		);
 	});
 
@@ -109,21 +117,21 @@ describe('createPartGroup photo', () => {
 
 		expect(result).toMatchObject({ success: true });
 		expect(prismaMock.partGroup.update).not.toHaveBeenCalled();
-		expect(await exists(join(state.photoDir, '7.webp'))).toBe(false);
+		expect(await exists(join(state.photoDir, '7.jpg'))).toBe(false);
 	});
 
-	it('rejects a file that only claims to be webp and does not create the group', async () => {
+	it('rejects a file that only claims to be jpeg and does not create the group', async () => {
 		const pngBytes = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47]), Buffer.alloc(32, 1)]);
 
-		const result = await actions.createPartGroup(eventWith(baseFields, pngBytes, 'image/webp'));
+		const result = await actions.createPartGroup(eventWith(baseFields, pngBytes, 'image/jpeg'));
 
 		expect(result).toMatchObject({ status: 400, data: { success: false } });
 		expect(prismaMock.partGroup.create).not.toHaveBeenCalled();
-		expect(await exists(join(state.photoDir, '7.webp'))).toBe(false);
+		expect(await exists(join(state.photoDir, '7.jpg'))).toBe(false);
 	});
 
 	it('rejects a photo larger than 2 MB and does not create the group', async () => {
-		const tooBig = webpBytes(2 * 1024 * 1024);
+		const tooBig = jpegBytes(2 * 1024 * 1024);
 
 		const result = await actions.createPartGroup(eventWith(baseFields, tooBig));
 
@@ -134,10 +142,10 @@ describe('createPartGroup photo', () => {
 
 describe('editGroup photo', () => {
 	const editFields = { ...baseFields, id: '7' };
-	const oldPhoto = webpBytes(8);
+	const oldPhoto = jpegBytes(8);
 
 	beforeEach(async () => {
-		await writeFile(join(state.photoDir, '7.webp'), oldPhoto);
+		await writeFile(join(state.photoDir, '7.jpg'), oldPhoto);
 	});
 
 	it('keeps the existing photo and never writes photoFile when no photo change is sent', async () => {
@@ -146,19 +154,19 @@ describe('editGroup photo', () => {
 		expect(result).toMatchObject({ success: true });
 		const data = prismaMock.partGroup.update.mock.calls[0][0].data;
 		expect(data).not.toHaveProperty('photoFile');
-		expect(await readFile(join(state.photoDir, '7.webp'))).toEqual(oldPhoto);
+		expect(await readFile(join(state.photoDir, '7.jpg'))).toEqual(oldPhoto);
 	});
 
 	it('replaces the photo with a newly uploaded one', async () => {
-		const newPhoto = webpBytes(24);
+		const newPhoto = jpegBytes(24);
 
 		const result = await actions.editGroup(eventWith(editFields, newPhoto));
 
 		expect(result).toMatchObject({ success: true });
 		expect(prismaMock.partGroup.update).toHaveBeenCalledWith(
-			expect.objectContaining({ data: expect.objectContaining({ photoFile: '7.webp' }) })
+			expect.objectContaining({ data: expect.objectContaining({ photoFile: '7.jpg' }) })
 		);
-		expect(await readFile(join(state.photoDir, '7.webp'))).toEqual(newPhoto);
+		expect(await readFile(join(state.photoDir, '7.jpg'))).toEqual(newPhoto);
 	});
 
 	it('removes the photo when removePhoto is requested', async () => {
@@ -168,7 +176,7 @@ describe('editGroup photo', () => {
 		expect(prismaMock.partGroup.update).toHaveBeenCalledWith(
 			expect.objectContaining({ data: expect.objectContaining({ photoFile: null }) })
 		);
-		expect(await exists(join(state.photoDir, '7.webp'))).toBe(false);
+		expect(await exists(join(state.photoDir, '7.jpg'))).toBe(false);
 	});
 
 	it('keeps the old photo when the new one is invalid', async () => {
@@ -176,17 +184,17 @@ describe('editGroup photo', () => {
 
 		expect(result).toMatchObject({ status: 400, data: { success: false } });
 		expect(prismaMock.partGroup.update).not.toHaveBeenCalled();
-		expect(await readFile(join(state.photoDir, '7.webp'))).toEqual(oldPhoto);
+		expect(await readFile(join(state.photoDir, '7.jpg'))).toEqual(oldPhoto);
 	});
 
 	it('keeps the old photo intact when the database update fails', async () => {
 		prismaMock.partGroup.update.mockRejectedValueOnce(new Error('db down'));
 
-		const result = await actions.editGroup(eventWith(editFields, webpBytes(24)));
+		const result = await actions.editGroup(eventWith(editFields, jpegBytes(24)));
 
 		expect(result).toMatchObject({ status: 500, data: { success: false } });
-		expect(await readFile(join(state.photoDir, '7.webp'))).toEqual(oldPhoto);
-		expect(await readdir(state.photoDir)).toEqual(['7.webp']);
+		expect(await readFile(join(state.photoDir, '7.jpg'))).toEqual(oldPhoto);
+		expect(await readdir(state.photoDir)).toEqual(['7.jpg']);
 	});
 });
 
@@ -199,12 +207,12 @@ describe('deleteGroup photo', () => {
 	});
 
 	it('removes the photo file together with the group', async () => {
-		await writeFile(join(state.photoDir, '7.webp'), webpBytes());
+		await writeFile(join(state.photoDir, '7.jpg'), jpegBytes());
 
 		const result = await actions.deleteGroup(deleteEvent());
 
 		expect(result).toMatchObject({ success: true });
-		expect(await exists(join(state.photoDir, '7.webp'))).toBe(false);
+		expect(await exists(join(state.photoDir, '7.jpg'))).toBe(false);
 	});
 
 	it('still deletes the group when the photo file is already missing', async () => {
@@ -216,8 +224,8 @@ describe('deleteGroup photo', () => {
 
 describe('permissions', () => {
 	const attempts = {
-		createPartGroup: () => actions.createPartGroup(eventWith(baseFields, webpBytes())),
-		editGroup: () => actions.editGroup(eventWith({ ...baseFields, id: '7' }, webpBytes())),
+		createPartGroup: () => actions.createPartGroup(eventWith(baseFields, jpegBytes())),
+		editGroup: () => actions.editGroup(eventWith({ ...baseFields, id: '7' }, jpegBytes())),
 		deleteGroup: () => actions.deleteGroup(eventWith({ deleteId: '7' }))
 	};
 
@@ -244,7 +252,7 @@ describe('permissions', () => {
 	it('allows an admin to upload a photo', async () => {
 		state.role = 'ADMIN';
 
-		const result = await actions.createPartGroup(eventWith(baseFields, webpBytes()));
+		const result = await actions.createPartGroup(eventWith(baseFields, jpegBytes()));
 
 		expect(result).toMatchObject({ success: true });
 	});
@@ -253,14 +261,14 @@ describe('permissions', () => {
 describe('photo endpoint', () => {
 	const request = (id: string) => GET({ params: { id } } as never);
 
-	it('serves the stored photo as a long-lived cacheable webp', async () => {
-		const photo = webpBytes();
-		await writeFile(join(state.photoDir, '7.webp'), photo);
+	it('serves the stored photo as a long-lived cacheable jpeg', async () => {
+		const photo = jpegBytes();
+		await writeFile(join(state.photoDir, '7.jpg'), photo);
 
 		const response = (await request('7')) as Response;
 
 		expect(response.status).toBe(200);
-		expect(response.headers.get('content-type')).toBe('image/webp');
+		expect(response.headers.get('content-type')).toBe('image/jpeg');
 		expect(response.headers.get('cache-control')).toContain('max-age=');
 		expect(Buffer.from(await response.arrayBuffer())).toEqual(photo);
 	});
@@ -274,9 +282,40 @@ describe('photo endpoint', () => {
 	});
 });
 
+describe('legacy webp photos', () => {
+	it('still serves a photo stored as webp before the switch to JPEG', async () => {
+		const photo = legacyWebpBytes();
+		await writeFile(join(state.photoDir, '7.webp'), photo);
+
+		const response = (await GET({ params: { id: '7' } } as never)) as Response;
+
+		expect(response.headers.get('content-type')).toBe('image/webp');
+		expect(Buffer.from(await response.arrayBuffer())).toEqual(photo);
+	});
+
+	it('replaces a legacy webp with the newly uploaded JPEG', async () => {
+		await writeFile(join(state.photoDir, '7.webp'), legacyWebpBytes());
+
+		const result = await actions.editGroup(eventWith({ ...baseFields, id: '7' }, jpegBytes(24)));
+
+		expect(result).toMatchObject({ success: true });
+		expect(await readdir(state.photoDir)).toEqual(['7.jpg']);
+	});
+
+	it('removes a legacy webp together with the group', async () => {
+		prismaMock.partGroup.findUnique.mockResolvedValue({ id: 7 });
+		prismaMock.partGroup.delete.mockResolvedValue({ id: 7, name: 'Bumper' });
+		await writeFile(join(state.photoDir, '7.webp'), legacyWebpBytes());
+
+		await actions.deleteGroup(eventWith({ deleteId: '7' }));
+
+		expect(await readdir(state.photoDir)).toEqual([]);
+	});
+});
+
 describe('failure handling', () => {
-	it('rejects a truncated webp whose header promises more bytes than were sent', async () => {
-		const truncated = webpBytes(64).subarray(0, 40);
+	it('rejects a truncated jpeg whose header promises more bytes than were sent', async () => {
+		const truncated = jpegBytes(64).subarray(0, 40);
 
 		const result = await actions.createPartGroup(eventWith(baseFields, truncated));
 
@@ -287,7 +326,7 @@ describe('failure handling', () => {
 	it('rolls back the new group and leaves no file when saving the photo reference fails', async () => {
 		prismaMock.partGroup.update.mockRejectedValueOnce(new Error('db down'));
 
-		const result = await actions.createPartGroup(eventWith(baseFields, webpBytes()));
+		const result = await actions.createPartGroup(eventWith(baseFields, jpegBytes()));
 
 		expect(result).toMatchObject({ status: 500, data: { success: false } });
 		expect(prismaMock.partGroup.delete).toHaveBeenCalledWith(
@@ -301,9 +340,7 @@ describe('failure handling', () => {
 		await writeFile(join(original, 'blocker'), 'not a folder');
 		state.photoDir = join(original, 'blocker', 'photos');
 		try {
-			const result = await actions.editGroup(
-				eventWith({ ...baseFields, id: '7' }, webpBytes())
-			);
+			const result = await actions.editGroup(eventWith({ ...baseFields, id: '7' }, jpegBytes()));
 
 			expect(result).toMatchObject({ status: 500, data: { success: false } });
 			expect(prismaMock.partGroup.update).not.toHaveBeenCalled();
@@ -316,7 +353,7 @@ describe('failure handling', () => {
 describe('form errors', () => {
 	it('never echoes the uploaded file back to the form (files cannot be serialized)', async () => {
 		const result = (await actions.createPartGroup(
-			eventWith({ ...baseFields, groupName: '' }, webpBytes())
+			eventWith({ ...baseFields, groupName: '' }, jpegBytes())
 		)) as unknown as { status: number; data: { values: Record<string, unknown> } };
 
 		expect(result.status).toBe(400);
