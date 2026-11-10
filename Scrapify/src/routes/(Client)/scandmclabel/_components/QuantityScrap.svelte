@@ -2,6 +2,7 @@
 	import GroupPhoto from './GroupPhoto.svelte';
 	import Input from '@/components/ui/input/input.svelte';
 	import type { ScrapManager } from './ScrapManager.svelte';
+	import { GRID_COLS_CLASS, viewStore } from '@/stores/viewStore.svelte';
 	import Label from '@/components/ui/label/label.svelte';
 	import { Minus, Plus, X } from '@lucide/svelte';
 	import Button from '@/components/ui/button/button.svelte';
@@ -29,15 +30,15 @@
 			Pre label QNT-SCRAP nie sú nakonfigurované žiadne skupiny dielov.
 		</p>
 	{:else}
-		<div class="grid grid-cols-1 gap-4">
+		<div class="grid grid-cols-1 gap-4 {GRID_COLS_CLASS[viewStore.grid.qntScrap]}">
 			{#each scrapManager.scrapPayload as row (row.groupId)}
 				{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
 				<div
-					class="flex items-center justify-between gap-4 rounded-lg border p-4 shadow-xl drop-shadow-lg bg-chart-3/10"
+					class="flex flex-wrap items-center justify-between gap-4 rounded-lg border p-4 shadow-xl drop-shadow-lg bg-chart-3/10"
 				>
-					<section class="flex gap-5">
+					<section class="flex flex-wrap gap-5 min-w-0">
 						<GroupPhoto group={groupDef} />
-						<div class="lg:min-w-xs text-wrap">
+						<div class="lg:min-w-xs min-w-0 text-wrap">
 							<p class="truncate font-semibold" title={row.interfaceName}>{row.interfaceName}</p>
 							<p class="text-sm text-muted-foreground">{row.groupName}</p>
 						</div>
@@ -105,7 +106,7 @@
 					</section>
 
 					<!-- Input -->
-					<article class="flex gap-2">
+					<article class="flex flex-wrap items-center gap-2">
 						<Label class="flex shrink-0 items-center gap-2">
 							<span class="text-lg">Množstvo</span>
 						</Label>

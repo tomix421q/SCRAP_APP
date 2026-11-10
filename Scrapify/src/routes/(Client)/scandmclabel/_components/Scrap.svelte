@@ -5,6 +5,7 @@
 	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
 	import Label from '@/components/ui/label/label.svelte';
 	import type { ScrapManager } from './ScrapManager.svelte';
+	import { GRID_COLS_CLASS, viewStore } from '@/stores/viewStore.svelte';
 	import { ArrowRight, X } from '@lucide/svelte';
 
 	let {
@@ -14,7 +15,7 @@
 	} = $props();
 </script>
 
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-1 gap-4 {GRID_COLS_CLASS[viewStore.grid.scrap]}">
 	{#each scrapManager.scrapPayload as row (row.groupId)}
 		{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
 		<div
@@ -26,7 +27,7 @@
 				: row.selectedScrapCode || row.isOtherVariant
 					? 'bg-destructive'
 					: row.isOtherComponent
-						? 'bg-muted/30 border-warning/50'
+						? 'bg-red-500/50 border-warning/50'
 						: ''}"
 		>
 			<!-- TOP -->

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
 	import { enhance } from '$app/forms';
-	import Button from '@/components/ui/button/button.svelte';
+	import ActionPanel from './_components/ActionPanel.svelte';
 	import Rebuild from './_components/Rebuild.svelte';
 	import { ScrapManager } from './_components/ScrapManager.svelte';
 	import { operatorCardId } from '@/stores/stores';
@@ -33,7 +33,11 @@
 	// $inspect($operatorCardId);
 </script>
 
-<main class="flex flex-col gap-3 items-center relative">
+<main
+	class="flex flex-col gap-3 items-center relative {scrapManager.mode && status === 'success'
+		? 'pb-20'
+		: ''}"
+>
 	<!-- Scan -->
 	<Scan
 		{scrapManager}
@@ -70,11 +74,7 @@
 				};
 			}}
 			id="scrap"
-			class="formNormalize
-			{scrapManager.mode === 'rebuild' && 'bg-chart-1/5'} 
-			{scrapManager.mode === 'scrap' && 'bg-chart-2/5'}
-			{scrapManager.mode === 'qntScrap' && 'bg-chart-3/5'}
-			 w-full"
+			class="w-full"
 		>
 			{#if scrapManager.mode === 'rebuild'}
 				<Rebuild {scrapManager} />
@@ -83,16 +83,8 @@
 			{:else if scrapManager.mode === 'qntScrap'}
 				<QuantityScrap {scrapManager} />
 			{/if}
-
-			<Button type="submit" class="mt-10" disabled={isSubmitting || !scrapManager.canSubmit}>
-				{#if isSubmitting}
-					<span>Prebieha vytvorenie scrapu...</span>
-				{:else}
-					{scrapManager.mode === 'qntScrap'
-						? 'Uložiť quantity scrap'
-						: `Vytvoriť ${scrapManager.mode === 'rebuild' ? 're-build' : 'scrap'}`}
-				{/if}
-			</Button>
 		</form>
+
+		<ActionPanel {scrapManager} {isSubmitting} {resetAll} />
 	{/if}
 </main>
