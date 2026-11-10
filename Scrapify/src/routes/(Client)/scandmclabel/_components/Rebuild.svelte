@@ -36,11 +36,13 @@
 				? 'border-warning border-dashed border-2'
 				: ''}"
 		>
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2 min-w-0 flex-1">
 				<!-- TOP -->
 				<article class="flex flex-col gap-4 justify-between">
-					<p class="font-extrabold text-xl items-center gap-1 flex z-20">
-						<span class="truncate" title={row.interfaceName}>{row.interfaceName}</span>
+					<p class="font-extrabold text-xl items-center gap-1 flex-wrap flex z-20">
+						<span class="wrap-break-word min-w-0" title={row.interfaceName}
+							>{row.interfaceName}</span
+						>
 						{#if row.isRebuildGroup}
 							<span class="bg-black text-sm uppercase p-0.5 rounded-lg text-chart-3 mx-1"
 								>Rebuild</span
@@ -91,9 +93,9 @@
 				</article>
 
 				<!-- BOTTOM -->
-				<article class="flex">
+				<article class="flex w-full">
 					{#if !row.isOtherComponent}
-						<div class="flex flex-row gap-1">
+						<div class="flex flex-row gap-1 w-full">
 							{#if row.isOtherVariant}
 								<!-- <div
 									class="max-sm:w-full rounded-lg bg-chart-5 px-3 py-2 h-9 text-info font-semibold text-sm"
@@ -103,17 +105,19 @@
 							{:else}
 								<!--  -->
 								{#if row.isRebuildGroup}
-									<Combobox
-										dataBox={groupDef?.scrapCodes.map((sc) => ({
-											id: sc.code,
-											name: `${sc.code} ${sc.description ? '-' : ''} ${sc.description ?? ''}`
-										})) ?? []}
-										nameLabel="name"
-										width="sm"
-										value={row.selectedScrapCode?.toString() ?? ''}
-										onchange={(val) => scrapManager.selectScrap(row.groupId, val)}
-										firstText="Zvoľte dôvod scrapu"
-									/>
+									<div class="flex-1 min-w-0 [&_[role=combobox]]:w-full!">
+										<Combobox
+											dataBox={groupDef?.scrapCodes.map((sc) => ({
+												id: sc.code,
+												name: `${sc.code} ${sc.description ? '-' : ''} ${sc.description ?? ''}`
+											})) ?? []}
+											nameLabel="name"
+											width="sm"
+											value={row.selectedScrapCode?.toString() ?? ''}
+											onchange={(val) => scrapManager.selectScrap(row.groupId, val)}
+											firstText="Zvoľte dôvod scrapu"
+										/>
+									</div>
 								{/if}
 							{/if}
 							<Button
@@ -122,7 +126,7 @@
 								size="icon"
 								variant="ghost"
 								class={row.selectedScrapCode
-									? 'flex text-destructive bg-chart-5 hover:bg-chart-5/90'
+									? 'flex shrink-0 text-destructive bg-chart-5 hover:bg-chart-5/90'
 									: 'hidden'}
 								onclick={() => scrapManager.clearScrapRow(row.groupId)}
 							>
@@ -130,20 +134,22 @@
 							</Button>
 
 							{#if row.isOtherVariant}
-								<section class="flex items-center">
-									<Combobox
-										dataBox={groupDef?.materials.map((material) => ({
-											id: material.material,
-											name: `${material.material} ${material.description ? '-' : ''} ${material.description ?? ''}`
-										})) ?? []}
-										nameLabel="name"
-										value={row.replacementPartMaterial === 'empty'
-											? ''
-											: (row.replacementPartMaterial ?? '')}
-										onchange={(val) => scrapManager.setReplacementPart(row.groupId, val)}
-										firstText="Vyberte správny diel"
-										width="sm"
-									/>
+								<section class="flex items-center flex-1 min-w-0">
+									<div class="flex-1 min-w-0 [&_[role=combobox]]:w-full!">
+										<Combobox
+											dataBox={groupDef?.materials.map((material) => ({
+												id: material.material,
+												name: `${material.material} ${material.description ? '-' : ''} ${material.description ?? ''}`
+											})) ?? []}
+											nameLabel="name"
+											value={row.replacementPartMaterial === 'empty'
+												? ''
+												: (row.replacementPartMaterial ?? '')}
+											onchange={(val) => scrapManager.setReplacementPart(row.groupId, val)}
+											firstText="Vyberte správny diel"
+											width="sm"
+										/>
+									</div>
 								</section>
 							{/if}
 						</div>
@@ -158,7 +164,7 @@
 			</div>
 
 			<!-- Photo -->
-			<div class=" -z-30 h-auto size-44">
+			<div class=" -z-30 h-auto size-44 shrink-0">
 				<GroupPhoto group={groupDef} />
 			</div>
 		</div>

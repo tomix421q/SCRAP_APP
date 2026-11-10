@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { ImageOff } from '@lucide/svelte';
+
 	let {
 		group
 	}: {
@@ -23,4 +25,10 @@
 		class="size-max h-full shrink-0 rounded-lg border border-border object-cover"
 		onerror={() => (failedSrc = src)}
 	/>
+{:else}
+	<div
+		class="size-44 shrink-0 rounded-lg border border-dashed border-border/50 flex items-center justify-center text-muted-foreground/40"
+	>
+		<ImageOff class="size-8" />
+	</div>
 {/if}

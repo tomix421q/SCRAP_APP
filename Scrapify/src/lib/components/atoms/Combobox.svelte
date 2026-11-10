@@ -101,7 +101,7 @@
 					variant="secondary"
 					role="combobox"
 					aria-expanded={open}
-					class="max-sm:w-full text-md justify-between whitespace-break-spaces {changeCss &&
+					class="max-sm:w-full text-md justify-between whitespace-break-spaces h-auto min-h-9 py-1.5 {changeCss &&
 						'lg:text-sm'} {width === 'xs'
 						? 'w-[300px]'
 						: width === 'sm'
@@ -110,7 +110,7 @@
 								? 'w-[430px]'
 								: 'w-[660px]'}"
 				>
-					{selectedLabel || firstText}
+					<span class="min-w-0 flex-1 text-left">{selectedLabel || firstText}</span>
 					<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" />
 				</Button>
 			{/snippet}
