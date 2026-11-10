@@ -87,7 +87,7 @@
 				</a>
 				<div class="flex flex-col gap-0.5 text-muted-foreground">
 					<p class="mb-auto leading-3 mx-2 text-xs">
-						Version 4.3.5
+						Version {__APP_VERSION__}
 						<span class="max-sm:hidden">·</span>
 						<a
 							href="https://draw.zilka-tomas.com/test-room-lMV2FeG8cLDj7egkgO4lm?d=v166.84.2113.1453.xm698mn4hLAx2QhjfRfS0"

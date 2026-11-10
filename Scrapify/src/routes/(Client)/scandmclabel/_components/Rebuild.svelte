@@ -164,7 +164,7 @@
 			</div>
 
 			<!-- Photo -->
-			<div class=" -z-30 h-auto size-32 max-sm:size-20 shrink-0">
+			<div class=" -z-30 w-40 max-sm:w-28 aspect-4/3 shrink-0">
 				<GroupPhoto group={groupDef} />
 			</div>
 		</div>
