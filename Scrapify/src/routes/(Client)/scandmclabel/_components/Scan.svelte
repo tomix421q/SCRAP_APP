@@ -114,11 +114,11 @@
 	});
 </script>
 
-<div id="scan" class="flex gap-3 flex-wrap">
+<div id="scan" class="flex gap-3 flex-wrap justify-center max-w-full">
 	<!--  -->
 	<!-- SCANNER CARD && OPERATOR-->
 	<article
-		class="formNormalize pb-8 animate-in max-w-3xl lg:min-w-3xl slide-in-to-left-50 ease-in duration-500 transition-all h-min"
+		class="formNormalize pb-8 animate-in max-w-full md:max-w-3xl lg:min-w-3xl slide-in-to-left-50 ease-in duration-500 transition-all h-min"
 	>
 		<!-- <section class="flex items-center gap-3 mb-1 mt-4">
 			<h2 class="text-3xl mx-auto font-extrabold">Scan label</h2>
@@ -189,9 +189,9 @@
 					</div>
 				</section>
 				<!-- Btns -->
-				<section class="flex flex-col gap-3 items-start mx-auto w-fit">
+				<section class="flex flex-col gap-3 items-start mx-auto max-w-full">
 					<!-- Main btns first row -->
-					<div class="flex justify-center gap-4 *:text-lg *:font-bold">
+					<div class="flex flex-wrap justify-center gap-2 md:gap-4 *:text-lg *:font-bold">
 						<Button
 							size="lg"
 							class={scrapManager.mode === 'rebuild' ? 'ring-2 ring-warning' : ''}
@@ -244,7 +244,9 @@
 	</article>
 
 	<!-- Login operator -->
-	<OperatorLogin />
+	<div class="flex max-md:order-first max-md:w-full">
+		<OperatorLogin />
+	</div>
 </div>
 
 <Dialog.Root bind:open={isQuantityLineDialogOpen}>

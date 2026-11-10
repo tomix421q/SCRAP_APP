@@ -54,7 +54,7 @@
 						{/if}
 					</p>
 
-					<div class="flex gap-4">
+					<div class="flex flex-wrap gap-2 sm:gap-4">
 						<section class="flex items-center gap-2 bg-chart-5 rounded-lg p-0.5 px-1">
 							<Label
 								for={`other-variant-${row.groupId}`}
@@ -164,7 +164,7 @@
 			</div>
 
 			<!-- Photo -->
-			<div class=" -z-30 h-auto size-44 shrink-0">
+			<div class=" -z-30 h-auto size-32 max-sm:size-20 shrink-0">
 				<GroupPhoto group={groupDef} />
 			</div>
 		</div>
