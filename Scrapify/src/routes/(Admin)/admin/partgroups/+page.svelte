@@ -136,14 +136,13 @@
 
 		const currentUrlParam = page.url.searchParams.get('vProject') ?? '';
 		if (selectedVproject !== currentUrlParam) {
+			// selectedPartIds / selectedScrapCodes are $derived from the slots; never overwrite them,
+			// otherwise the form shows parts but submits an empty list (wiping materials on edit).
 			if (!idEditGroup) {
 				partSlots = [''];
-				selectedPartIds = [];
 				scrapSlots = [''];
-				selectedScrapCodes = [];
 			}
 
-			selectedPartIds = [];
 			const url = new URL(page.url);
 			if (selectedVproject) {
 				url.searchParams.set('vProject', selectedVproject);
@@ -172,23 +171,15 @@
 				selectedVproject = editData.vProject ? editData.vProject : '';
 
 				// Parts / Materials
-				if (editData.materials && editData.materials.length > 0) {
-					const ids = editData.materials.map((p) => p.material);
-					selectedPartIds = ids;
-					partSlots = editData.materials.map((p) => p.material);
-				} else {
-					selectedPartIds = [];
-					partSlots = [''];
-				}
+				partSlots =
+					editData.materials && editData.materials.length > 0
+						? editData.materials.map((p) => p.material)
+						: [''];
 				// Scrap codes
-				if (editData.scrapCodes && editData.scrapCodes.length > 0) {
-					const ids = editData.scrapCodes.map((sc) => sc.code);
-					selectedScrapCodes = ids;
-					scrapSlots = ids;
-				} else {
-					selectedScrapCodes = [];
-					scrapSlots = [''];
-				}
+				scrapSlots =
+					editData.scrapCodes && editData.scrapCodes.length > 0
+						? editData.scrapCodes.map((sc) => sc.code)
+						: [''];
 				// Group name
 				partGroupName = editData.name ?? '';
 				interfaceName = editData.interfaceName ?? '';
