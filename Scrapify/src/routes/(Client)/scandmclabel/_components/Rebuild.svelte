@@ -33,7 +33,7 @@
 
 		<div
 			class="border flex backdrop-blur-2xl shadow-2xl rounded-lg justify-between p-1 gap-3 transition-colors overflow-hidden h-full {colorOtherComponent} {colorOtherVariant} {row.isRebuildGroup
-				? 'border-warning border-dashed border-2'
+				? 'border-warning ring-4 ring-warning'
 				: ''}"
 		>
 			<div class="flex flex-col gap-2 min-w-0 flex-1">
