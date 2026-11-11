@@ -211,24 +211,28 @@
 
 	<nav
 		aria-label="Scrap record category"
-		class="flex flex-wrap gap-2 rounded-2xl border border-dashed border-primary/20 bg-card/40 p-2 shadow-lg backdrop-blur-lg"
+		class="flex w-fit max-w-full flex-wrap gap-1 rounded-xl border border-dashed border-primary/20 bg-card/40 p-1 shadow-lg backdrop-blur-lg"
 	>
 		{#each categoryOptions as categoryOption (categoryOption.id)}
 			<Button
 				type="button"
 				variant={data.category === categoryOption.id ? 'default' : 'ghost'}
-				class="rounded-lg px-5 transition-all"
+				size="sm"
+				class="rounded-lg px-3 transition-all"
 				aria-pressed={data.category === categoryOption.id}
 				onclick={() => selectCategory(categoryOption.id)}
 			>
 				{@const totals = categoryTotals.get(categoryOption.id)}
 				<span>{categoryOption.label}</span>
-				<span class="rounded-full bg-background/30 px-1.5 text-xs tabular-nums">
+				<span class="rounded-full bg-background/30 px-1.5 text-xs tabular-nums" title="Records">
 					{totals?.count ?? 0}
 				</span>
-				<span class="text-xs tabular-nums opacity-70" title="Total quantity">
-					Σ {totals?.quantity ?? 0}
-				</span>
+				<!-- Pieces only differ from the record count for quantity scrap (quantity > 1). -->
+				{#if totals && totals.quantity !== totals.count}
+					<span class="text-xs tabular-nums opacity-70" title="Total pieces">
+						· {totals.quantity} pcs
+					</span>
+				{/if}
 			</Button>
 		{/each}
 	</nav>
