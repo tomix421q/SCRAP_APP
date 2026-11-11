@@ -95,8 +95,6 @@ export type ScrapRecordTableColumn = {
 	/** Data fields shown in the cell; the first is the main line, the rest are secondary. */
 	fields: readonly ScrapRecordColumnKey[];
 	group: ScrapRecordColumnGroup;
-	/** ID and DMC identify a record, so they cannot be hidden. */
-	hideable: boolean;
 	/**
 	 * Tailwind width class. '' = flexible: in the fixed table layout the flexible columns
 	 * share the spare width, so fixed columns keep exact widths (the sticky DMC offset relies on it).
@@ -106,40 +104,36 @@ export type ScrapRecordTableColumn = {
 
 /** Table order and layout; header labels come from the data fields above. */
 export const scrapRecordTableColumns: readonly ScrapRecordTableColumn[] = [
-	{ key: 'id', fields: ['id'], group: 'identification', hideable: false, widthClass: 'w-14' },
-	{ key: 'dmc', fields: ['dmc'], group: 'identification', hideable: false, widthClass: 'w-52' },
-	{ key: 'type', fields: ['type'], group: 'type', hideable: true, widthClass: 'w-36' },
+	{ key: 'id', fields: ['id'], group: 'identification', widthClass: 'w-14' },
+	{ key: 'dmc', fields: ['dmc'], group: 'identification', widthClass: 'w-52' },
+	{ key: 'type', fields: ['type'], group: 'type', widthClass: 'w-36' },
 	{
 		key: 'part',
 		fields: ['partGroup', 'project'],
 		group: 'part',
-		hideable: true,
 		widthClass: ''
 	},
 	{
 		key: 'reason',
 		fields: ['scrapCode', 'description'],
 		group: 'reason',
-		hideable: true,
 		widthClass: ''
 	},
 	{
 		key: 'flags',
 		fields: ['otherComponent', 'otherVariant'],
 		group: 'variant',
-		hideable: true,
 		widthClass: 'w-40'
 	},
 	{
 		key: 'replacementPart',
 		fields: ['replacementPart'],
 		group: 'variant',
-		hideable: true,
 		widthClass: 'w-36'
 	},
-	{ key: 'quantity', fields: ['quantity'], group: 'quantity', hideable: true, widthClass: 'w-20' },
-	{ key: 'createdBy', fields: ['createdBy'], group: 'audit', hideable: true, widthClass: 'w-28' },
-	{ key: 'createdAt', fields: ['createdAt'], group: 'audit', hideable: true, widthClass: 'w-32' }
+	{ key: 'quantity', fields: ['quantity'], group: 'quantity', widthClass: 'w-20' },
+	{ key: 'createdBy', fields: ['createdBy'], group: 'audit', widthClass: 'w-28' },
+	{ key: 'createdAt', fields: ['createdAt'], group: 'audit', widthClass: 'w-32' }
 ];
 
 const labelByKey = new Map(scrapRecordColumns.map((column) => [column.key, column.label]));
