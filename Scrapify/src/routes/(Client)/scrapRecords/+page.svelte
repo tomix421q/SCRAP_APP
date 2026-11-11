@@ -224,12 +224,12 @@
 			>
 				{@const totals = categoryTotals.get(categoryOption.id)}
 				<span>{categoryOption.label}</span>
-				<span class="rounded-full bg-background/30 px-1.5 text-xs tabular-nums" title="Records">
+				<span class="text-xs font-normal tabular-nums opacity-60" title="Records">
 					{totals?.count ?? 0}
 				</span>
 				<!-- Pieces only differ from the record count for quantity scrap (quantity > 1). -->
 				{#if totals && totals.quantity !== totals.count}
-					<span class="text-xs tabular-nums opacity-70" title="Total pieces">
+					<span class="text-xs font-normal tabular-nums opacity-50" title="Total pieces">
 						· {totals.quantity} pcs
 					</span>
 				{/if}
