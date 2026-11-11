@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
+	import { navigating, page } from '$app/state';
 	import {
-		CalendarDays,
+		ChevronDown,
 		FileSpreadsheet,
 		Funnel,
 		LoaderCircle,
@@ -38,7 +38,10 @@
 
 	// Shared look of text inputs, selects and date inputs in the filter form.
 	const fieldClass =
-		'h-10 rounded-lg border border-border bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30';
+		'h-9 rounded-lg border border-border bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30';
+
+	const labelClass =
+		'flex min-w-0 max-w-full flex-col gap-1 text-xs font-medium text-muted-foreground';
 
 	const typeBadgeVariant: Record<ScrapRecordType, BadgeVariant> = {
 		Scrap: 'outline',
@@ -103,7 +106,29 @@
 		'otherVariant',
 		'replacementPart'
 	] as const;
-	type FilterState = Record<(typeof filterKeys)[number], string>;
+	type FilterKey = (typeof filterKeys)[number];
+	type FilterState = Record<FilterKey, string>;
+
+	const filterLabels: Record<FilterKey, string> = {
+		dmc: 'Label',
+		scrapCode: 'Scrap code',
+		partGroup: 'Part group',
+		project: 'Project',
+		createdBy: 'Created by',
+		dateFrom: 'Date from',
+		dateTo: 'Date to',
+		exported: 'QAD export',
+		otherComponent: 'Other component',
+		otherVariant: 'Other variant',
+		replacementPart: 'Replacement part'
+	};
+	// Less used filters live in the collapsible "More filters" row.
+	const moreFilterKeys: readonly FilterKey[] = [
+		'scrapCode',
+		'createdBy',
+		'replacementPart',
+		'exported'
+	];
 
 	function filtersFrom(params: URLSearchParams): FilterState {
 		return Object.fromEntries(filterKeys.map((key) => [key, params.get(key) ?? ''])) as FilterState;
@@ -165,6 +190,61 @@
 		goto(page.url.pathname, { keepFocus: true, noScroll: true, replaceState: true });
 	}
 
+	// Start expanded when a filter inside it is already applied (e.g. a shared link).
+	let showMoreFilters = $state(
+		moreFilterKeys.some((key) => page.url.searchParams.get(key)?.trim())
+	);
+	const activeMoreCount = $derived(
+		moreFilterKeys.filter((key) => page.url.searchParams.get(key)?.trim()).length
+	);
+
+	function chipValue(key: FilterKey, value: string) {
+		switch (key) {
+			case 'otherComponent':
+			case 'otherVariant':
+				return value === 'true' ? 'Yes' : value === 'false' ? 'No' : value;
+			case 'exported':
+				return value === 'true' ? 'Exported' : value === 'false' ? 'Not exported' : value;
+			case 'dateFrom':
+			case 'dateTo':
+				return value.replace('T', ' ');
+			default:
+				return value;
+		}
+	}
+
+	type ActiveChip = { key: FilterKey | 'category'; label: string };
+
+	// Chips reflect the applied filters (URL), not the unsaved form draft.
+	const activeChips = $derived.by((): ActiveChip[] => {
+		const params = page.url.searchParams;
+		const chips: ActiveChip[] = filterKeys.flatMap((key) => {
+			const value = params.get(key)?.trim();
+			return value ? [{ key, label: `${filterLabels[key]}: ${chipValue(key, value)}` }] : [];
+		});
+		if (data.category !== 'all') {
+			const category = categoryOptions.find((option) => option.id === data.category);
+			chips.push({ key: 'category', label: `Category: ${category?.label ?? data.category}` });
+		}
+		return chips;
+	});
+
+	function removeChip(key: ActiveChip['key']) {
+		if (key === 'category') {
+			selectCategory('all');
+			return;
+		}
+		const params = new URLSearchParams(page.url.searchParams);
+		params.delete(key);
+		// Same rule as selecting a project: scrap code and part group depend on it.
+		if (key === 'project') {
+			params.delete('scrapCode');
+			params.delete('partGroup');
+		}
+		params.delete('page');
+		goto(`${page.url.pathname}?${params.toString()}`, { keepFocus: true, noScroll: true });
+	}
+
 	let isExporting = $state(false);
 	const canExport = $derived(!isExporting && data.totalRecords > 0);
 
@@ -209,264 +289,270 @@
 <main class="space-y-6">
 	<ResultInfo data={form} />
 
-	<nav
-		aria-label="Scrap record category"
-		class="flex w-fit max-w-full flex-wrap gap-1 rounded-xl border border-dashed border-primary/20 bg-card/40 p-1 shadow-lg backdrop-blur-lg"
+	<h1 class="sr-only">Scrap records</h1>
+
+	<!-- One compact panel: categories, filters, actions and active filter chips.
+	     Same width as the table section below (window width, at most 1920px). -->
+	<form
+		onsubmit={applyFilters}
+		class="formNormalize ml-[calc(50%_-_min(50vw_-_1rem,960px))] w-[min(calc(100vw_-_2rem),1920px)] gap-y-3! p-3! lg:p-4!"
 	>
-		{#each categoryOptions as categoryOption (categoryOption.id)}
+		<div class="flex flex-wrap items-center justify-between gap-2">
+			<nav aria-label="Scrap record category" class="flex flex-wrap gap-1">
+				{#each categoryOptions as categoryOption (categoryOption.id)}
+					<Button
+						type="button"
+						variant={data.category === categoryOption.id ? 'default' : 'ghost'}
+						size="sm"
+						class="rounded-lg px-3 transition-all"
+						aria-pressed={data.category === categoryOption.id}
+						onclick={() => selectCategory(categoryOption.id)}
+					>
+						{@const totals = categoryTotals.get(categoryOption.id)}
+						<span>{categoryOption.label}</span>
+						<span class="text-xs font-normal tabular-nums opacity-60" title="Records">
+							{totals?.count ?? 0}
+						</span>
+						<!-- Pieces only differ from the record count for quantity scrap (quantity > 1). -->
+						{#if totals && totals.quantity !== totals.count}
+							<span class="text-xs font-normal tabular-nums opacity-50" title="Total pieces">
+								· {totals.quantity} pcs
+							</span>
+						{/if}
+					</Button>
+				{/each}
+			</nav>
 			<Button
 				type="button"
-				variant={data.category === categoryOption.id ? 'default' : 'ghost'}
+				variant="outline"
 				size="sm"
-				class="rounded-lg px-3 transition-all"
-				aria-pressed={data.category === categoryOption.id}
-				onclick={() => selectCategory(categoryOption.id)}
+				class="rounded-lg"
+				disabled={!canExport}
+				aria-busy={isExporting}
+				onclick={exportRecords}
 			>
-				{@const totals = categoryTotals.get(categoryOption.id)}
-				<span>{categoryOption.label}</span>
-				<span class="text-xs font-normal tabular-nums opacity-60" title="Records">
-					{totals?.count ?? 0}
-				</span>
-				<!-- Pieces only differ from the record count for quantity scrap (quantity > 1). -->
-				{#if totals && totals.quantity !== totals.count}
-					<span class="text-xs font-normal tabular-nums opacity-50" title="Total pieces">
-						· {totals.quantity} pcs
-					</span>
+				{#if isExporting}
+					<LoaderCircle class="size-4 animate-spin" />
+				{:else}
+					<FileSpreadsheet class="size-4" />
 				{/if}
+				Export ({data.totalRecords})
 			</Button>
-		{/each}
-	</nav>
-
-	<form onsubmit={applyFilters} class="formNormalize gap-y-4!">
-		<header class="flex items-center justify-between gap-4 border-b border-border px-1 pb-4">
-			<div class="flex items-center gap-3">
-				<div class="rounded-lg border border-primary/20 bg-primary/10 p-2.5 text-primary">
-					<SlidersHorizontal class="size-5" />
-				</div>
-				<div>
-					<h2 class="font-semibold tracking-wide">Filter records</h2>
-					<p class="text-xs text-muted-foreground">Narrow down the scrap record list</p>
-				</div>
-			</div>
-		</header>
-
-		<div class="grid gap-4">
-			<fieldset class="rounded-lg border border-border bg-card/30 p-4">
-				<legend class="px-2 text-sm font-medium text-foreground/90 flex items-center gap-2"
-					><Funnel class="size-4 stroke-primary" /> Record filters</legend
-				>
-				<div class="flex flex-wrap items-end gap-x-2 gap-y-2">
-					<label
-						class="flex w-[430px] max-w-full flex-col gap-1.5 text-xs font-medium text-muted-foreground"
-					>
-						Project
-						<div class="flex min-w-0 items-center gap-1">
-							<div class="min-w-0">
-								<Combobox
-									dataBox={projectItems}
-									value={filters.project}
-									onchange={selectProject}
-									firstText="All projects"
-									width="sm"
-								/>
-							</div>
-							{#if filters.project}
-								<Button
-									type="button"
-									title="Clear project"
-									aria-label="Clear project filter"
-									size="icon"
-									variant="ghost"
-									class="shrink-0 text-destructive hover:bg-destructive/50"
-									onclick={() => selectProject('')}
-								>
-									<X />
-								</Button>
-							{/if}
-						</div>
-					</label>
-					<label
-						class="flex w-[430px] max-w-full flex-col gap-1.5 text-xs font-medium text-muted-foreground"
-					>
-						Scrap code
-						<div class="flex min-w-0 items-center gap-1">
-							<div class="min-w-0">
-								<Combobox
-									dataBox={data.scrapCodeOptions}
-									bind:value={filters.scrapCode}
-									firstText="Select scrap code"
-									nameLabel="codeName"
-									width="sm"
-								/>
-							</div>
-							{#if filters.scrapCode}
-								<Button
-									type="button"
-									title="Clear scrap code"
-									aria-label="Clear scrap code filter"
-									size="icon"
-									variant="ghost"
-									class="shrink-0 text-destructive hover:bg-destructive/50"
-									onclick={() => (filters.scrapCode = '')}
-								>
-									<X />
-								</Button>
-							{/if}
-						</div>
-					</label>
-					<label
-						class="flex w-[430px] max-w-full flex-col gap-1.5 text-xs font-medium text-muted-foreground"
-					>
-						Part group
-						<div class="flex min-w-0 items-center gap-1">
-							<div class="min-w-0">
-								<Combobox
-									dataBox={partGroupItems}
-									bind:value={filters.partGroup}
-									firstText="Select part group"
-									width="sm"
-								/>
-							</div>
-							{#if filters.partGroup}
-								<Button
-									type="button"
-									title="Clear part group"
-									aria-label="Clear part group filter"
-									size="icon"
-									variant="ghost"
-									class="shrink-0 text-destructive hover:bg-destructive/50"
-									onclick={() => (filters.partGroup = '')}
-								>
-									<X />
-								</Button>
-							{/if}
-						</div>
-					</label>
-				</div>
-				<div class="mt-3 flex flex-wrap gap-x-3 gap-y-2">
-					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
-						Label
-						<input
-							class={fieldClass}
-							type="search"
-							placeholder="Search label"
-							bind:value={filters.dmc}
-						/>
-					</label>
-					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
-						Created by
-						<input
-							class={fieldClass}
-							type="search"
-							placeholder="Operator or user"
-							bind:value={filters.createdBy}
-						/>
-					</label>
-					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
-						QAD export
-						<select class={fieldClass} bind:value={filters.exported}>
-							<option value="">All</option>
-							<option value="true">Exported</option>
-							<option value="false">Not exported</option>
-						</select>
-					</label>
-					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
-						Other component
-						<select class={fieldClass} bind:value={filters.otherComponent}>
-							<option value="">All</option>
-							<option value="true">Yes</option>
-							<option value="false">No</option>
-						</select>
-					</label>
-					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
-						Other variant
-						<select class={fieldClass} bind:value={filters.otherVariant}>
-							<option value="">All</option>
-							<option value="true">Yes</option>
-							<option value="false">No</option>
-						</select>
-					</label>
-					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
-						Replacement part
-						<input
-							class={fieldClass}
-							type="search"
-							placeholder="Part number"
-							bind:value={filters.replacementPart}
-						/>
-					</label>
-				</div>
-			</fieldset>
-
-			<fieldset class="rounded-lg border border-border bg-card/30 p-4">
-				<legend class="flex items-center gap-2 px-2 text-sm font-medium text-foreground/90">
-					<CalendarDays class="size-4 text-primary" />
-					Created date
-				</legend>
-				<div class="grid max-w-4xl gap-2 sm:grid-cols-2">
-					<label class="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
-						From
-						<input
-							class="{fieldClass} min-w-0 max-w-[420px]"
-							type="datetime-local"
-							bind:value={filters.dateFrom}
-						/>
-					</label>
-					<label class="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
-						To
-						<input
-							class="{fieldClass} min-w-0 max-w-[420px]"
-							type="datetime-local"
-							bind:value={filters.dateTo}
-						/>
-					</label>
-				</div>
-			</fieldset>
 		</div>
 
-		<footer class="flex flex-wrap items-center justify-end gap-3 border-t border-border px-1 pt-4">
-			<div class="flex flex-wrap gap-2">
+		<div class="flex flex-wrap items-end gap-2">
+			<label class={labelClass}>
+				Label
+				<input
+					class="{fieldClass} w-48 max-w-full"
+					type="search"
+					placeholder="Search label"
+					bind:value={filters.dmc}
+				/>
+			</label>
+			<label class={labelClass}>
+				Project
+				<div class="flex min-w-0 max-w-full items-center gap-1">
+					<Combobox
+						dataBox={projectItems}
+						value={filters.project}
+						onchange={selectProject}
+						firstText="All projects"
+						width="xs"
+					/>
+					{#if filters.project}
+						<Button
+							type="button"
+							title="Clear project"
+							aria-label="Clear project filter"
+							size="icon"
+							variant="ghost"
+							class="shrink-0 text-destructive hover:bg-destructive/50"
+							onclick={() => selectProject('')}
+						>
+							<X />
+						</Button>
+					{/if}
+				</div>
+			</label>
+			<label class={labelClass}>
+				Part group
+				<div class="flex min-w-0 max-w-full items-center gap-1">
+					<Combobox
+						dataBox={partGroupItems}
+						bind:value={filters.partGroup}
+						firstText="Select part group"
+						width="xs"
+					/>
+					{#if filters.partGroup}
+						<Button
+							type="button"
+							title="Clear part group"
+							aria-label="Clear part group filter"
+							size="icon"
+							variant="ghost"
+							class="shrink-0 text-destructive hover:bg-destructive/50"
+							onclick={() => (filters.partGroup = '')}
+						>
+							<X />
+						</Button>
+					{/if}
+				</div>
+			</label>
+			<label class={labelClass}>
+				From
+				<input
+					class="{fieldClass} w-52 max-w-full"
+					type="datetime-local"
+					bind:value={filters.dateFrom}
+				/>
+			</label>
+			<label class={labelClass}>
+				To
+				<input
+					class="{fieldClass} w-52 max-w-full"
+					type="datetime-local"
+					bind:value={filters.dateTo}
+				/>
+			</label>
+			<label class={labelClass}>
+				Other component
+				<select class={fieldClass} bind:value={filters.otherComponent}>
+					<option value="">All</option>
+					<option value="true">Yes</option>
+					<option value="false">No</option>
+				</select>
+			</label>
+			<label class={labelClass}>
+				Other variant
+				<select class={fieldClass} bind:value={filters.otherVariant}>
+					<option value="">All</option>
+					<option value="true">Yes</option>
+					<option value="false">No</option>
+				</select>
+			</label>
+			<div class="ml-auto flex flex-wrap gap-2">
 				<Button
 					type="button"
-					variant="outline"
+					variant="ghost"
+					size="sm"
 					class="rounded-lg"
-					disabled={!canExport}
-					aria-busy={isExporting}
-					onclick={exportRecords}
+					aria-expanded={showMoreFilters}
+					aria-controls="more-filters"
+					onclick={() => (showMoreFilters = !showMoreFilters)}
 				>
-					{#if isExporting}
-						<LoaderCircle class="size-4 animate-spin" />
-					{:else}
-						<FileSpreadsheet class="size-4" />
-					{/if}
-					Export ({data.totalRecords})
+					<SlidersHorizontal class="size-4" />
+					More filters{activeMoreCount ? ` (${activeMoreCount})` : ''}
+					<ChevronDown class="size-4 transition-transform {showMoreFilters ? 'rotate-180' : ''}" />
 				</Button>
-				<Button type="button" variant="destructive" class="rounded-lg" onclick={clearFilters}>
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					class="rounded-lg text-destructive hover:bg-destructive/20"
+					onclick={clearFilters}
+				>
 					<RotateCcw class="size-4" />
 					Clear
 				</Button>
-				<Button type="submit" class="rounded-lg px-5 shadow-lg shadow-primary/20">
-					<SlidersHorizontal class="size-4" />
-					Apply filters
+				<Button type="submit" size="sm" class="rounded-lg px-4">
+					<Funnel class="size-4" />
+					Apply
 				</Button>
 			</div>
-		</footer>
+		</div>
+
+		<div
+			id="more-filters"
+			hidden={!showMoreFilters}
+			class="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-card/30 p-2"
+		>
+			<label class={labelClass}>
+				Scrap code
+				<div class="flex min-w-0 max-w-full items-center gap-1">
+					<Combobox
+						dataBox={data.scrapCodeOptions}
+						bind:value={filters.scrapCode}
+						firstText="Select scrap code"
+						nameLabel="codeName"
+						width="xs"
+					/>
+					{#if filters.scrapCode}
+						<Button
+							type="button"
+							title="Clear scrap code"
+							aria-label="Clear scrap code filter"
+							size="icon"
+							variant="ghost"
+							class="shrink-0 text-destructive hover:bg-destructive/50"
+							onclick={() => (filters.scrapCode = '')}
+						>
+							<X />
+						</Button>
+					{/if}
+				</div>
+			</label>
+			<label class={labelClass}>
+				Created by
+				<input
+					class="{fieldClass} w-44 max-w-full"
+					type="search"
+					placeholder="Card number"
+					bind:value={filters.createdBy}
+				/>
+			</label>
+			<label class={labelClass}>
+				Replacement part
+				<input
+					class="{fieldClass} w-44 max-w-full"
+					type="search"
+					placeholder="Part number"
+					bind:value={filters.replacementPart}
+				/>
+			</label>
+			<label class={labelClass}>
+				QAD export
+				<select class={fieldClass} bind:value={filters.exported}>
+					<option value="">All</option>
+					<option value="true">Exported</option>
+					<option value="false">Not exported</option>
+				</select>
+			</label>
+		</div>
+
+		{#if activeChips.length}
+			<div class="flex flex-wrap items-center gap-1.5 border-t border-border pt-2">
+				<span class="text-xs text-muted-foreground">Active filters:</span>
+				{#each activeChips as chip (chip.key)}
+					<Badge variant="outline" class="gap-1 pr-0.5">
+						{chip.label}
+						<button
+							type="button"
+							class="-my-1 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+							aria-label="Remove filter {chip.label}"
+							title="Remove filter"
+							onclick={() => removeChip(chip.key)}
+						>
+							<X class="size-3" />
+						</button>
+					</Badge>
+				{/each}
+			</div>
+		{/if}
 	</form>
 
 	<!-- Breaks out of the layout max-width: as wide as the window, at most 1920px, centered. -->
 	<section
-		class="my-10 ml-[calc(50%_-_min(50vw_-_1rem,960px))] w-[min(calc(100vw_-_2rem),1920px)] space-y-3 text-sm"
+		class="my-6 ml-[calc(50%_-_min(50vw_-_1rem,960px))] w-[min(calc(100vw_-_2rem),1920px)] space-y-3 text-sm"
 	>
-		<header class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-			<h2 class="text-lg font-bold tracking-widest">
-				{categoryOptions.find((option) => option.id === data.category)?.label} records
-			</h2>
-		</header>
 		<article class="listNormalize p-2! lg:p-3!">
 			<!-- Own scroll box (viewport height) keeps the header and pagination in reach; the inner ui/table
 			     wrapper must not scroll, otherwise the sticky header would not stick. -->
 			<div
-				class="max-h-[calc(100dvh-5rem)] overflow-auto rounded-lg border border-border [&>[data-slot=table-container]]:overflow-visible"
+				class="max-h-[calc(100dvh-5rem)] overflow-auto rounded-lg border border-border transition-opacity [&>[data-slot=table-container]]:overflow-visible {navigating.to
+					? 'pointer-events-none opacity-60'
+					: ''}"
+				aria-busy={Boolean(navigating.to)}
 			>
 				<Table.Root class="min-w-[1500px] w-full table-fixed border-separate border-spacing-0">
 					<Table.Header>
