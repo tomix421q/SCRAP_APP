@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client';
-import type { XlsxColumn } from '@/utils/xlsx';
+import type { XlsxColumn } from '@/utils/xlsx.server';
 import { dateTimeLocalTimeDb } from '@/utils/index';
 import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
 
