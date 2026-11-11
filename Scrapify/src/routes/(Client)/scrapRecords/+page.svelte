@@ -1,7 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { CalendarDays, Funnel, RotateCcw, SlidersHorizontal, X } from '@lucide/svelte';
+	import {
+		CalendarDays,
+		FileSpreadsheet,
+		Funnel,
+		LoaderCircle,
+		RotateCcw,
+		SlidersHorizontal,
+		X
+	} from '@lucide/svelte';
+	import { toast } from 'svelte-sonner';
 	import type { PageProps } from './$types';
 	import { dateTimeLocalTimeDb } from '@/utils/index';
 	import { isOtherVariant, scrapRecordColumns, scrapRecordType } from './columns';
@@ -84,6 +93,42 @@
 	function clearFilters() {
 		filters = filtersFrom(new URLSearchParams());
 		goto(page.url.pathname, { keepFocus: true, noScroll: true, replaceState: true });
+	}
+
+	let isExporting = $state(false);
+	const canExport = $derived(!isExporting && data.totalRecords > 0);
+
+	/** Downloads all records matching the applied filters (current URL, not the unsaved form). */
+	async function exportRecords() {
+		if (!canExport) return;
+		isExporting = true;
+		try {
+			const params = new URLSearchParams(page.url.searchParams);
+			params.delete('page');
+			const response = await fetch(`${page.url.pathname}/export?${params.toString()}`, {
+				headers: { accept: 'application/json' }
+			});
+			if (!response.ok) {
+				const body: { message?: string } | null = await response.json().catch(() => null);
+				toast.error(body?.message ?? 'Export failed. Please try again later.');
+				return;
+			}
+			const blob = await response.blob();
+			const disposition = response.headers.get('content-disposition') ?? '';
+			const fileName = /filename="([^"]+)"/.exec(disposition)?.[1] ?? 'scrap_records.xlsx';
+			const objectUrl = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = objectUrl;
+			link.download = fileName;
+			link.click();
+			// Revoking right after click() can cancel the download in some browsers.
+			setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+		} catch (err) {
+			console.error('Scrap records export failed:', err);
+			toast.error('Export failed. Check the connection and try again.');
+		} finally {
+			isExporting = false;
+		}
 	}
 </script>
 
@@ -323,6 +368,21 @@
 				<p>Total quantity: <strong class="text-chart-3">{data.totalQuantity}</strong></p>
 			</div>
 			<div class="flex flex-wrap gap-2">
+				<Button
+					type="button"
+					variant="outline"
+					class="rounded-lg"
+					disabled={!canExport}
+					aria-busy={isExporting}
+					onclick={exportRecords}
+				>
+					{#if isExporting}
+						<LoaderCircle class="size-4 animate-spin" />
+					{:else}
+						<FileSpreadsheet class="size-4" />
+					{/if}
+					Export ({data.totalRecords})
+				</Button>
 				<Button type="button" variant="destructive" class="rounded-lg" onclick={clearFilters}>
 					<RotateCcw class="size-4" />
 					Clear
