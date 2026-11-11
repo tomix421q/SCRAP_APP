@@ -97,7 +97,10 @@ export type ScrapRecordTableColumn = {
 	group: ScrapRecordColumnGroup;
 	/** ID and DMC identify a record, so they cannot be hidden. */
 	hideable: boolean;
-	/** Tailwind width class; '' = flexible column that takes the remaining width. */
+	/**
+	 * Tailwind width class. '' = flexible: in the fixed table layout the flexible columns
+	 * share the spare width, so fixed columns keep exact widths (the sticky DMC offset relies on it).
+	 */
 	widthClass: string;
 };
 
@@ -111,15 +114,13 @@ export const scrapRecordTableColumns: readonly ScrapRecordTableColumn[] = [
 		fields: ['partGroup', 'project'],
 		group: 'part',
 		hideable: true,
-		widthClass: 'w-44'
+		widthClass: ''
 	},
 	{
 		key: 'reason',
 		fields: ['scrapCode', 'description'],
 		group: 'reason',
 		hideable: true,
-		// No fixed width: in the fixed table layout this column absorbs the spare width,
-		// so the other columns keep their exact widths (the sticky DMC offset relies on it).
 		widthClass: ''
 	},
 	{

@@ -449,8 +449,10 @@
 		</footer>
 	</form>
 
-	<!-- Breaks out of the layout max-width so the table can use the whole window width. -->
-	<section class="my-10 ml-[calc(50%-50vw+1rem)] w-[calc(100vw-2rem)] space-y-3 text-sm">
+	<!-- Breaks out of the layout max-width: as wide as the window, at most 1920px, centered. -->
+	<section
+		class="my-10 ml-[calc(50%_-_min(50vw_-_1rem,960px))] w-[min(calc(100vw_-_2rem),1920px)] space-y-3 text-sm"
+	>
 		<header class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
 			<h2 class="text-lg font-bold tracking-widest">
 				{categoryOptions.find((option) => option.id === data.category)?.label} records
@@ -462,7 +464,7 @@
 			<div
 				class="max-h-[calc(100dvh-5rem)] overflow-auto rounded-lg border border-border [&>[data-slot=table-container]]:overflow-visible"
 			>
-				<Table.Root class="min-w-[1400px] w-full table-fixed border-separate border-spacing-0">
+				<Table.Root class="min-w-[1500px] w-full table-fixed border-separate border-spacing-0">
 					<Table.Header>
 						<Table.Row class="border-0">
 							{#each scrapRecordTableColumns as column (column.key)}
@@ -523,12 +525,16 @@
 												.filter(Boolean)
 												.join(' · ')}
 										>
-											<div class="truncate font-medium leading-tight">
-												{record.scrapCode ?? '—'}
-											</div>
-											<div class="truncate text-xs leading-tight text-muted-foreground">
-												{record.scrapCodeDescription ?? '—'}
-											</div>
+											{#if record.scrapCode || record.scrapCodeDescription}
+												<div class="truncate font-medium leading-tight">
+													{record.scrapCode ?? '—'}
+												</div>
+												<div class="truncate text-xs leading-tight text-muted-foreground">
+													{record.scrapCodeDescription ?? '—'}
+												</div>
+											{:else}
+												—
+											{/if}
 										</Table.Cell>
 									{:else if column.key === 'flags'}
 										<Table.Cell class={cellClasses}>
