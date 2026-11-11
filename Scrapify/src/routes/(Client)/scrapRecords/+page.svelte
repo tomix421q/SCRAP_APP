@@ -4,7 +4,7 @@
 	import { CalendarDays, Funnel, RotateCcw, SlidersHorizontal, X } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import { dateTimeLocalTimeDb } from '@/utils/index';
-	import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
+	import { isOtherVariant, scrapRecordColumns, scrapRecordType } from './columns';
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
@@ -22,31 +22,33 @@
 	let { data, form }: PageProps = $props();
 	const projectItems = $derived(data.projects.map((project) => ({ id: project, name: project })));
 	const partGroupItems = $derived(data.partGroups.map((name) => ({ id: name, name })));
-	let filters = $state({
-		dmc: '',
-		scrapCode: '',
-		partGroup: '',
-		project: '',
-		createdBy: '',
-		dateFrom: '',
-		dateTo: '',
-		exported: '',
-		otherComponent: ''
-	});
+	const filterKeys = [
+		'dmc',
+		'scrapCode',
+		'partGroup',
+		'project',
+		'createdBy',
+		'dateFrom',
+		'dateTo',
+		'exported',
+		'otherComponent',
+		'otherVariant',
+		'replacementPart'
+	] as const;
+	type FilterState = Record<(typeof filterKeys)[number], string>;
 
+	function filtersFrom(params: URLSearchParams): FilterState {
+		return Object.fromEntries(filterKeys.map((key) => [key, params.get(key) ?? ''])) as FilterState;
+	}
+
+	let filters = $state(filtersFrom(new URLSearchParams()));
+	const columnCount = $derived(scrapRecordColumns.length + (data.canDelete ? 1 : 0));
+
+	// Filters are an editable draft: inputs and Combobox bind to its properties and it is
+	// reset from the URL after every navigation. A writable $derived would return a plain
+	// (non-proxied) object, so property bindings would not be reactive; hence $state + $effect.
 	$effect(() => {
-		const params = page.url.searchParams;
-		filters = {
-			dmc: params.get('dmc') ?? '',
-			scrapCode: params.get('scrapCode') ?? '',
-			partGroup: params.get('partGroup') ?? '',
-			project: params.get('project') ?? '',
-			createdBy: params.get('createdBy') ?? '',
-			dateFrom: params.get('dateFrom') ?? '',
-			dateTo: params.get('dateTo') ?? '',
-			exported: params.get('exported') ?? '',
-			otherComponent: params.get('otherComponent') ?? ''
-		};
+		filters = filtersFrom(page.url.searchParams);
 	});
 
 	function applyFilters(event: SubmitEvent) {
@@ -80,17 +82,7 @@
 	}
 
 	function clearFilters() {
-		filters = {
-			dmc: '',
-			scrapCode: '',
-			partGroup: '',
-			project: '',
-			createdBy: '',
-			dateFrom: '',
-			dateTo: '',
-			exported: '',
-			otherComponent: ''
-		};
+		filters = filtersFrom(new URLSearchParams());
 		goto(page.url.pathname, { keepFocus: true, noScroll: true, replaceState: true });
 	}
 </script>
@@ -274,6 +266,26 @@
 							<option value="false">No</option>
 						</select>
 					</label>
+					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
+						Other variant
+						<select
+							class="h-10 rounded-lg border border-white/15 bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+							bind:value={filters.otherVariant}
+						>
+							<option value="">All</option>
+							<option value="true">Yes</option>
+							<option value="false">No</option>
+						</select>
+					</label>
+					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
+						Replacement part
+						<input
+							class="h-10 rounded-lg border border-white/15 bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+							type="search"
+							placeholder="Part number"
+							bind:value={filters.replacementPart}
+						/>
+					</label>
 				</div>
 			</fieldset>
 
@@ -332,21 +344,14 @@
 		<article
 			class="overflow-x-auto rounded-lg border border-white/25 bg-white/10 p-2 shadow-2xl backdrop-blur-2xl sm:p-3"
 		>
-			<Table.Root class="min-w-[1450px] w-full table-fixed">
+			<Table.Root class="min-w-[1800px] w-full table-fixed">
 				<Table.Header>
 					<Table.Row
 						class="bg-primary/15 *:border-white/10 *:font-bold text-lg *:text-muted-foreground *:border"
 					>
-						<Table.Head class="w-10">ID</Table.Head>
-						<Table.Head class="w-36">DMC</Table.Head>
-						<Table.Head class="w-32">Part group</Table.Head>
-						<Table.Head class="w-24">Project</Table.Head>
-						<Table.Head class="w-24">Scrap code</Table.Head>
-						<Table.Head class="w-28">Description</Table.Head>
-						<Table.Head class="w-20">Quantity</Table.Head>
-						<Table.Head class="w-28">Type</Table.Head>
-						<Table.Head class="w-24">Created by</Table.Head>
-						<Table.Head class="w-40">Created at</Table.Head>
+						{#each scrapRecordColumns as column (column.key)}
+							<Table.Head class={column.widthClass}>{column.label}</Table.Head>
+						{/each}
 						{#if data.canDelete}
 							<Table.Head class="w-20 text-end">Actions</Table.Head>
 						{/if}
@@ -357,30 +362,45 @@
 						<Table.Row
 							class="*:truncate *:border-white/10 odd:bg-white/5 even:bg-transparent hover:bg-primary/10 *:border"
 						>
-							<Table.Cell class="text-muted-foreground" title={String(record.id)}
-								>{record.id}</Table.Cell
-							>
-							<Table.Cell class="font-medium text-primary" title={record.dmc}>
-								{record.dmc}
-							</Table.Cell>
-							<Table.Cell title={record.partGroup.name}>{record.partGroup.name}</Table.Cell>
-							<Table.Cell title={record.partGroup.vProject ?? ''}>
-								{record.partGroup.vProject ?? '—'}
-							</Table.Cell>
-							<Table.Cell title={record.scrapCode ?? ''}>{record.scrapCode ?? '—'}</Table.Cell>
-							<Table.Cell title={record.scrapCodeDescription ?? ''}>
-								{record.scrapCodeDescription ?? '—'}
-							</Table.Cell>
-							<Table.Cell>{record.quantity}</Table.Cell>
-							<Table.Cell>
-								{record.dmc.startsWith(quantityScrapLabelPrefix)
-									? 'Quantity scrap'
-									: record.isRebuild
-										? 'Rebuild'
-										: 'Scrap'}
-							</Table.Cell>
-							<Table.Cell title={record.createdBy}>{record.createdBy}</Table.Cell>
-							<Table.Cell>{dateTimeLocalTimeDb(record.createdAt)}</Table.Cell>
+							{#each scrapRecordColumns as column (column.key)}
+								{#if column.key === 'id'}
+									<Table.Cell class="text-muted-foreground" title={String(record.id)}>
+										{record.id}
+									</Table.Cell>
+								{:else if column.key === 'dmc'}
+									<Table.Cell class="font-medium text-primary" title={record.dmc}>
+										{record.dmc}
+									</Table.Cell>
+								{:else if column.key === 'type'}
+									<Table.Cell>{scrapRecordType(record)}</Table.Cell>
+								{:else if column.key === 'partGroup'}
+									<Table.Cell title={record.partGroup.name}>{record.partGroup.name}</Table.Cell>
+								{:else if column.key === 'project'}
+									<Table.Cell title={record.partGroup.vProject ?? ''}>
+										{record.partGroup.vProject ?? '—'}
+									</Table.Cell>
+								{:else if column.key === 'scrapCode'}
+									<Table.Cell title={record.scrapCode ?? ''}>{record.scrapCode ?? '—'}</Table.Cell>
+								{:else if column.key === 'description'}
+									<Table.Cell title={record.scrapCodeDescription ?? ''}>
+										{record.scrapCodeDescription ?? '—'}
+									</Table.Cell>
+								{:else if column.key === 'otherComponent'}
+									<Table.Cell>{record.isOtherComponent ? 'Yes' : 'No'}</Table.Cell>
+								{:else if column.key === 'otherVariant'}
+									<Table.Cell>{isOtherVariant(record) ? 'Yes' : 'No'}</Table.Cell>
+								{:else if column.key === 'replacementPart'}
+									<Table.Cell title={record.replacementPartMaterial?.trim() ?? ''}>
+										{record.replacementPartMaterial?.trim() || '—'}
+									</Table.Cell>
+								{:else if column.key === 'quantity'}
+									<Table.Cell>{record.quantity}</Table.Cell>
+								{:else if column.key === 'createdBy'}
+									<Table.Cell title={record.createdBy}>{record.createdBy}</Table.Cell>
+								{:else if column.key === 'createdAt'}
+									<Table.Cell>{dateTimeLocalTimeDb(record.createdAt)}</Table.Cell>
+								{/if}
+							{/each}
 							{#if data.canDelete}
 								<Table.Cell>
 									<div class="flex justify-end">
@@ -391,10 +411,7 @@
 						</Table.Row>
 					{:else}
 						<Table.Row class="*:border-white/10">
-							<Table.Cell
-								colspan={data.canDelete ? 11 : 10}
-								class="py-8 text-center text-muted-foreground"
-							>
+							<Table.Cell colspan={columnCount} class="py-8 text-center text-muted-foreground">
 								No records match these filters.
 							</Table.Cell>
 						</Table.Row>

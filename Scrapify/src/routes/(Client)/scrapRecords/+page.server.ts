@@ -1,103 +1,18 @@
 import { error, fail, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import prismaClient from '@/server/prisma';
-import type { Prisma } from '@prisma/client';
 import { getUserServer, writeToLogger } from '@/utils/serverHelp';
-import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
+import { parseScrapRecordFilters } from './filters.server';
 import { getCachedProjects } from '@/server/cacheVprojects';
 
 const pageSize = 100;
 const deleteRoles = ['ADMIN', 'MODERATOR', 'ENGINEER'];
 
-function parseDate(value: string | null, field: string) {
-	if (!value) return undefined;
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) {
-		throw error(400, { message: `Invalid ${field} date filter.` });
-	}
-	return date;
-}
-
-function parseBooleanFilter(value: string | null, field: string) {
-	if (!value) return undefined;
-	if (value === 'true') return true;
-	if (value === 'false') return false;
-	throw error(400, { message: `Invalid ${field} filter.` });
-}
-
-function parseCategory(value: string | null): 'all' | 'rebuild' | 'scrap' | 'quantity' {
-	const category = value ?? 'all';
-	switch (category) {
-		case 'all':
-		case 'rebuild':
-		case 'scrap':
-		case 'quantity':
-			return category;
-		default:
-			throw error(400, { message: 'Invalid scrap record category.' });
-	}
-}
-
 export const load = (async (event) => {
 	const requestedPage = Number(event.url.searchParams.get('page') ?? '1');
 	const currentPage = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
 	const skip = (currentPage - 1) * pageSize;
-	const params = event.url.searchParams;
-
-	const commonConditions: Prisma.ScrapRecordWhereInput[] = [];
-	const dmc = params.get('dmc')?.trim();
-	const scrapCode = params.get('scrapCode')?.trim();
-	const partGroup = params.get('partGroup')?.trim();
-	const project = params.get('project')?.trim();
-	const createdBy = params.get('createdBy')?.trim();
-	const dateFrom = parseDate(params.get('dateFrom'), 'from');
-	const dateTo = parseDate(params.get('dateTo'), 'to');
-	const dateToExclusive = dateTo ? new Date(dateTo.getTime() + 60_000) : undefined;
-	const isOtherComponent = parseBooleanFilter(params.get('otherComponent'), 'other component');
-	const exported = parseBooleanFilter(params.get('exported'), 'exported');
-	const category = parseCategory(params.get('category'));
-
-	if (dateFrom && dateTo && dateFrom > dateTo) {
-		throw error(400, { message: 'The start date must be before the end date.' });
-	}
-	if (dmc) commonConditions.push({ dmc: { contains: dmc } });
-	if (scrapCode) commonConditions.push({ scrapCode: { contains: scrapCode } });
-	if (partGroup) {
-		commonConditions.push({ partGroup: { is: { name: { contains: partGroup } } } });
-	}
-	if (project) commonConditions.push({ partGroup: { is: { vProject: project } } });
-	if (createdBy) commonConditions.push({ createdBy: { contains: createdBy } });
-	if (dateFrom || dateTo) {
-		commonConditions.push({
-			createdAt: {
-				...(dateFrom ? { gte: dateFrom } : {}),
-				...(dateToExclusive ? { lt: dateToExclusive } : {})
-			}
-		});
-	}
-	if (isOtherComponent !== undefined) commonConditions.push({ isOtherComponent });
-	if (exported === true) commonConditions.push({ QADExported: true });
-	if (exported === false) {
-		commonConditions.push({ OR: [{ QADExported: false }, { QADExported: null }] });
-	}
-
-	const whereFor = (category: 'rebuild' | 'scrap' | 'quantity'): Prisma.ScrapRecordWhereInput => {
-		const categoryConditions: Prisma.ScrapRecordWhereInput[] = [...commonConditions];
-		if (category === 'quantity') {
-			categoryConditions.push({ dmc: { startsWith: quantityScrapLabelPrefix } });
-		} else {
-			categoryConditions.push({
-				NOT: { dmc: { startsWith: quantityScrapLabelPrefix } }
-			});
-			categoryConditions.push({ isRebuild: category === 'rebuild' });
-		}
-		return { AND: categoryConditions };
-	};
-
-	const where =
-		category === 'all'
-			? ({ AND: commonConditions } satisfies Prisma.ScrapRecordWhereInput)
-			: whereFor(category);
+	const { category, project, where, whereFor } = parseScrapRecordFilters(event.url.searchParams);
 	const { user } = await getUserServer({ request: event.request });
 
 	try {
