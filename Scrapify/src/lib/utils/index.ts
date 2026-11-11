@@ -20,24 +20,6 @@ export function dateTimmeUTCformatter(dateTime: Date) {
 	return result;
 }
 
-export function dateTimeLocalTimeDb(dateTime: Date | string) {
-	const dateObject = typeof dateTime === 'string' ? new Date(dateTime) : dateTime;
-
-	if (isNaN(dateObject.getTime())) {
-		return 'Invalid Date';
-	}
-
-	return new Intl.DateTimeFormat('sk-SK', {
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit',
-		hour: '2-digit',
-		minute: '2-digit',
-		second: '2-digit',
-		timeZone: 'UTC'
-	}).format(dateObject);
-}
-
 const dbDateFormatter = new Intl.DateTimeFormat('sk-SK', {
 	year: 'numeric',
 	month: '2-digit',
@@ -50,6 +32,15 @@ const dbTimeFormatter = new Intl.DateTimeFormat('sk-SK', {
 	second: '2-digit',
 	timeZone: 'UTC'
 });
+
+/**
+ * Formats a DB timestamp. The DB stores local wall-clock time (GETDATE()) and Prisma
+ * reads it as UTC, so formatting in UTC shows the original local time.
+ */
+export function dateTimeLocalTimeDb(dateTime: Date | string) {
+	const { date, time } = dateTimePartsLocalTimeDb(dateTime);
+	return time ? `${date} ${time}` : date;
+}
 
 /**
  * Same values as `dateTimeLocalTimeDb`, split into date and time

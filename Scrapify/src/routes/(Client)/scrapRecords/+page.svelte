@@ -21,7 +21,7 @@
 		type ScrapRecordType
 	} from './columns';
 	import Combobox from '@/components/atoms/Combobox.svelte';
-	import { Badge } from '@/components/ui/badge';
+	import { Badge, type BadgeVariant } from '@/components/ui/badge';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
@@ -39,11 +39,10 @@
 	const fieldClass =
 		'h-10 rounded-lg border border-border bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30';
 
-	// Badge has no chart variants, so the outline variant is tinted with theme tokens.
-	const typeBadgeClass: Record<ScrapRecordType, string> = {
-		Scrap: '', // plain outline badge
-		Rebuild: 'border-chart-warning/50 bg-chart-warning/15 text-chart-warning',
-		'Quantity scrap': 'border-chart-2 bg-chart-2/30 text-foreground'
+	const typeBadgeVariant: Record<ScrapRecordType, BadgeVariant> = {
+		Scrap: 'outline',
+		Rebuild: 'chart-warning',
+		'Quantity scrap': 'chart-2'
 	};
 
 	// The first column of each group gets a divider.
@@ -444,10 +443,10 @@
 			</h2>
 		</header>
 		<article class="listNormalize p-2! lg:p-3!">
-			<!-- Own scroll box keeps the header and pagination in reach; the inner ui/table
+			<!-- Own scroll box (viewport height) keeps the header and pagination in reach; the inner ui/table
 			     wrapper must not scroll, otherwise the sticky header would not stick. -->
 			<div
-				class="max-h-[70vh] overflow-auto rounded-lg border border-border [&>[data-slot=table-container]]:overflow-visible"
+				class="max-h-[calc(100dvh-5rem)] overflow-auto rounded-lg border border-border [&>[data-slot=table-container]]:overflow-visible"
 			>
 				<Table.Root class="min-w-[1560px] w-full table-fixed border-separate border-spacing-0">
 					<Table.Header>
@@ -485,7 +484,7 @@
 										</Table.Cell>
 									{:else if column.key === 'type'}
 										<Table.Cell class={cellClasses}>
-											<Badge variant="outline" class={typeBadgeClass[type]}>{type}</Badge>
+											<Badge variant={typeBadgeVariant[type]}>{type}</Badge>
 										</Table.Cell>
 									{:else if column.key === 'partGroup'}
 										<Table.Cell class={cellClasses} title={record.partGroup.name}>

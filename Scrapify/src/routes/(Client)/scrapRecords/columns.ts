@@ -71,7 +71,7 @@ export const scrapRecordColumns: readonly ScrapRecordColumn[] = [
 		label: 'DMC',
 		group: 'identification',
 		hideable: false,
-		widthClass: 'w-36',
+		widthClass: 'w-52',
 		exportValue: (r) => r.dmc
 	},
 	{

@@ -12,6 +12,8 @@
 				destructive:
 					"bg-destructive [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/70 border-transparent text-white",
 				outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+				"chart-warning": "border-chart-warning/50 bg-chart-warning/15 text-chart-warning",
+				"chart-2": "border-chart-2 bg-chart-2/30 text-foreground",
 			},
 		},
 		defaultVariants: {
