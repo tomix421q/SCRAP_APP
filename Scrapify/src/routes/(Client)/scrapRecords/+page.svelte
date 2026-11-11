@@ -479,8 +479,10 @@
 								</Table.Head>
 							{/each}
 							{#if data.canDelete}
-								<Table.Head class="{headBase} z-20 w-20 text-end {groupDivider}">Actions</Table.Head
-								>
+								<!-- Deleting is rare: narrow column, label only for screen readers. -->
+								<Table.Head class="{headBase} z-20 w-12 px-1 {groupDivider}">
+									<span class="sr-only">Actions</span>
+								</Table.Head>
 							{/if}
 						</Table.Row>
 					</Table.Header>
@@ -573,10 +575,9 @@
 									{/if}
 								{/each}
 								{#if data.canDelete}
-									<Table.Cell class={groupDivider}>
-										<div class="flex justify-end">
-											<DeleteBtn id={record.id} actionRoute="?/deleteScrapRecord" />
-										</div>
+									<!-- overflow-visible: the confirm buttons are wider than the column and overlap to the left. -->
+									<Table.Cell class="{groupDivider} overflow-visible! px-1">
+										<DeleteBtn id={record.id} actionRoute="?/deleteScrapRecord" />
 									</Table.Cell>
 								{/if}
 							</Table.Row>
