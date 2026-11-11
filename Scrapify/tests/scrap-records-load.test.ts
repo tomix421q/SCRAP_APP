@@ -7,7 +7,7 @@ const prismaMock = vi.hoisted(() => ({
 		count: vi.fn(),
 		aggregate: vi.fn()
 	},
-	user: { findUnique: vi.fn() },
+	user: { findUnique: vi.fn(), findMany: vi.fn() },
 	operator: { findMany: vi.fn() },
 	partGroup: { findMany: vi.fn() },
 	vScrapCodes: { findMany: vi.fn() }
@@ -51,6 +51,7 @@ beforeEach(() => {
 	prismaMock.vScrapCodes.findMany.mockResolvedValue([]);
 	prismaMock.user.findUnique.mockResolvedValue(null);
 	prismaMock.operator.findMany.mockResolvedValue([]);
+	prismaMock.user.findMany.mockResolvedValue([]);
 });
 
 describe('scrapRecords load: existing filters', () => {
@@ -195,9 +196,32 @@ describe('scrapRecords load: operator names', () => {
 		expect(data).toMatchObject({ operatorNames: { '106605': 'Jan Novak' } });
 	});
 
+	it('also resolves card ids of registered users; operator name wins on a shared card', async () => {
+		prismaMock.scrapRecord.findMany.mockResolvedValue([
+			{ id: 1, createdBy: '106605' },
+			{ id: 2, createdBy: '200001' }
+		]);
+		prismaMock.operator.findMany.mockResolvedValue([{ cardId: 106605, fullName: 'Jan Novak' }]);
+		prismaMock.user.findMany.mockResolvedValue([
+			{ cardId: 106605, name: 'Jan N. (user)' },
+			{ cardId: 200001, name: 'Eva Engineer' }
+		]);
+
+		const data = await runLoad('');
+
+		expect(prismaMock.user.findMany).toHaveBeenCalledWith({
+			where: { cardId: { in: [106605, 200001] } },
+			select: { cardId: true, name: true }
+		});
+		expect(data).toMatchObject({
+			operatorNames: { '106605': 'Jan Novak', '200001': 'Eva Engineer' }
+		});
+	});
+
 	it('skips the operator lookup when no record has a card id', async () => {
 		const data = await runLoad('');
 		expect(prismaMock.operator.findMany).not.toHaveBeenCalled();
+		expect(prismaMock.user.findMany).not.toHaveBeenCalled();
 		expect(data).toMatchObject({ operatorNames: {} });
 	});
 });

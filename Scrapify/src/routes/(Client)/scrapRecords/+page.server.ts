@@ -77,7 +77,8 @@ export const load = (async (event) => {
 				orderBy: { Reason_Code: 'asc' }
 			})
 		]);
-		// createdBy holds the operator card id; resolve names for the listed records (tooltip).
+		// createdBy holds the card id of an operator or a registered user (scan accepts both);
+		// resolve names for the listed records (tooltip). Operator name wins on a shared card.
 		const cardIds = [
 			...new Set(
 				records
@@ -85,15 +86,22 @@ export const load = (async (event) => {
 					.filter((cardId) => Number.isSafeInteger(cardId) && cardId > 0)
 			)
 		];
-		const operators = cardIds.length
-			? await prismaClient.operator.findMany({
-					where: { cardId: { in: cardIds } },
-					select: { cardId: true, fullName: true }
-				})
-			: [];
-		const operatorNames: Record<string, string> = Object.fromEntries(
-			operators.map((operator) => [String(operator.cardId), operator.fullName])
-		);
+		const [operators, users] = cardIds.length
+			? await Promise.all([
+					prismaClient.operator.findMany({
+						where: { cardId: { in: cardIds } },
+						select: { cardId: true, fullName: true }
+					}),
+					prismaClient.user.findMany({
+						where: { cardId: { in: cardIds } },
+						select: { cardId: true, name: true }
+					})
+				])
+			: [[], []];
+		const operatorNames: Record<string, string> = Object.fromEntries([
+			...users.map((user) => [String(user.cardId), user.name]),
+			...operators.map((operator) => [String(operator.cardId), operator.fullName])
+		]);
 
 		const descriptionsByCode = new Map<string, Set<string>>();
 		for (const item of scrapCodes) {
