@@ -8,6 +8,7 @@ const prismaMock = vi.hoisted(() => ({
 		aggregate: vi.fn()
 	},
 	user: { findUnique: vi.fn() },
+	operator: { findMany: vi.fn() },
 	partGroup: { findMany: vi.fn() },
 	vScrapCodes: { findMany: vi.fn() }
 }));
@@ -49,6 +50,7 @@ beforeEach(() => {
 	prismaMock.partGroup.findMany.mockResolvedValue([]);
 	prismaMock.vScrapCodes.findMany.mockResolvedValue([]);
 	prismaMock.user.findUnique.mockResolvedValue(null);
+	prismaMock.operator.findMany.mockResolvedValue([]);
 });
 
 describe('scrapRecords load: existing filters', () => {
@@ -172,5 +174,30 @@ describe('scrapRecords load: other variant and replacement part filters', () => 
 			expect(where.AND.slice(0, 2)).toEqual(expected);
 		}
 		expect(countWheres()).toHaveLength(4);
+	});
+});
+
+describe('scrapRecords load: operator names', () => {
+	it('maps createdBy card ids of the listed records to operator names', async () => {
+		prismaMock.scrapRecord.findMany.mockResolvedValue([
+			{ id: 1, createdBy: '106605' },
+			{ id: 2, createdBy: '106605' },
+			{ id: 3, createdBy: 'admin@firm' }
+		]);
+		prismaMock.operator.findMany.mockResolvedValue([{ cardId: 106605, fullName: 'Jan Novak' }]);
+
+		const data = await runLoad('');
+
+		expect(prismaMock.operator.findMany).toHaveBeenCalledWith({
+			where: { cardId: { in: [106605] } },
+			select: { cardId: true, fullName: true }
+		});
+		expect(data).toMatchObject({ operatorNames: { '106605': 'Jan Novak' } });
+	});
+
+	it('skips the operator lookup when no record has a card id', async () => {
+		const data = await runLoad('');
+		expect(prismaMock.operator.findMany).not.toHaveBeenCalled();
+		expect(data).toMatchObject({ operatorNames: {} });
 	});
 });

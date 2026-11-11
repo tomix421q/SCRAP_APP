@@ -15,9 +15,10 @@
 	import { dateTimePartsLocalTimeDb } from '@/utils/index';
 	import {
 		isOtherVariant,
-		scrapRecordColumns,
+		scrapRecordTableColumns,
 		scrapRecordType,
-		type ScrapRecordColumnKey,
+		tableColumnLabels,
+		type ScrapRecordTableColumnKey,
 		type ScrapRecordType
 	} from './columns';
 	import Combobox from '@/components/atoms/Combobox.svelte';
@@ -46,25 +47,25 @@
 	};
 
 	// The first column of each group gets a divider.
-	const groupStartKeys = new Set<ScrapRecordColumnKey>(
-		scrapRecordColumns
-			.filter((column, index) => column.group !== scrapRecordColumns[index - 1]?.group)
+	const groupStartKeys = new Set<ScrapRecordTableColumnKey>(
+		scrapRecordTableColumns
+			.filter((column, index) => column.group !== scrapRecordTableColumns[index - 1]?.group)
 			.map((column) => column.key)
 	);
 	const groupDivider = 'border-l-2 border-l-border';
 
 	// ID and DMC stay visible on horizontal scroll; `left-14` matches the ID column width (w-14).
-	const stickyColumnClass: Partial<Record<ScrapRecordColumnKey, string>> = {
+	const stickyColumnClass: Partial<Record<ScrapRecordTableColumnKey, string>> = {
 		id: 'sticky left-0',
 		dmc: 'sticky left-14'
 	};
-	const rightAligned = new Set<ScrapRecordColumnKey>(['id', 'quantity']);
+	const rightAligned = new Set<ScrapRecordTableColumnKey>(['id', 'quantity']);
 
 	// Header cells are sticky on top; set here (not via `*:` on the row) so z-index can differ.
 	const headBase =
-		'sticky top-0 h-9 border-b border-border bg-card! bg-clip-border bg-linear-to-r from-chart-4/40 to-chart-4/40 text-xs font-semibold uppercase tracking-wide text-chart-1';
+		'sticky top-0 h-auto py-1.5 border-b border-border bg-card! bg-clip-border bg-linear-to-r from-chart-4/40 to-chart-4/40 text-xs font-semibold uppercase tracking-wide text-chart-1';
 
-	function headClass(key: ScrapRecordColumnKey, widthClass: string) {
+	function headClass(key: ScrapRecordTableColumnKey, widthClass: string) {
 		return [
 			headBase,
 			widthClass,
@@ -74,7 +75,7 @@
 		].join(' ');
 	}
 
-	function cellClass(key: ScrapRecordColumnKey) {
+	function cellClass(key: ScrapRecordTableColumnKey) {
 		return [
 			'py-1',
 			// Sticky cells need an opaque base; row stripe/hover tints are layered on top as an image.
@@ -109,7 +110,18 @@
 	}
 
 	let filters = $state(filtersFrom(new URLSearchParams()));
-	const columnCount = $derived(scrapRecordColumns.length + (data.canDelete ? 1 : 0));
+	const columnCount = $derived(scrapRecordTableColumns.length + (data.canDelete ? 1 : 0));
+
+	// Categories are exhaustive (quantity scrap vs. rebuild/scrap), so "All" is their sum.
+	const categoryTotals = $derived.by(() => {
+		const totals = new Map<string, { count: number; quantity: number }>();
+		for (const summary of data.categorySummaries) totals.set(summary.id, summary);
+		totals.set('all', {
+			count: data.categorySummaries.reduce((sum, summary) => sum + summary.count, 0),
+			quantity: data.categorySummaries.reduce((sum, summary) => sum + summary.quantity, 0)
+		});
+		return totals;
+	});
 
 	// Filters are an editable draft: inputs and Combobox bind to its properties and it is
 	// reset from the URL after every navigation. A writable $derived would return a plain
@@ -209,7 +221,14 @@
 				aria-pressed={data.category === categoryOption.id}
 				onclick={() => selectCategory(categoryOption.id)}
 			>
-				{categoryOption.label}
+				{@const totals = categoryTotals.get(categoryOption.id)}
+				<span>{categoryOption.label}</span>
+				<span class="rounded-full bg-background/30 px-1.5 text-xs tabular-nums">
+					{totals?.count ?? 0}
+				</span>
+				<span class="text-xs tabular-nums opacity-70" title="Total quantity">
+					Σ {totals?.quantity ?? 0}
+				</span>
 			</Button>
 		{/each}
 	</nav>
@@ -401,13 +420,7 @@
 			</fieldset>
 		</div>
 
-		<footer
-			class="flex flex-wrap items-center justify-between gap-3 border-t border-border px-1 pt-4"
-		>
-			<div class="flex flex-wrap gap-x-8 gap-y-2 text-sm text-muted-foreground">
-				<p>Total records: <strong class="text-chart-3">{data.totalRecords}</strong></p>
-				<p>Total quantity: <strong class="text-chart-3">{data.totalQuantity}</strong></p>
-			</div>
+		<footer class="flex flex-wrap items-center justify-end gap-3 border-t border-border px-1 pt-4">
 			<div class="flex flex-wrap gap-2">
 				<Button
 					type="button"
@@ -436,7 +449,8 @@
 		</footer>
 	</form>
 
-	<section class="my-10 space-y-3 text-sm">
+	<!-- Breaks out of the layout max-width so the table can use the whole window width. -->
+	<section class="my-10 ml-[calc(50%-50vw+1rem)] w-[calc(100vw-2rem)] space-y-3 text-sm">
 		<header class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
 			<h2 class="text-lg font-bold tracking-widest">
 				{categoryOptions.find((option) => option.id === data.category)?.label} records
@@ -448,12 +462,18 @@
 			<div
 				class="max-h-[calc(100dvh-5rem)] overflow-auto rounded-lg border border-border [&>[data-slot=table-container]]:overflow-visible"
 			>
-				<Table.Root class="min-w-[1560px] w-full table-fixed border-separate border-spacing-0">
+				<Table.Root class="min-w-[1400px] w-full table-fixed border-separate border-spacing-0">
 					<Table.Header>
 						<Table.Row class="border-0">
-							{#each scrapRecordColumns as column (column.key)}
+							{#each scrapRecordTableColumns as column (column.key)}
+								{@const [mainLabel, ...subLabels] = tableColumnLabels(column)}
 								<Table.Head class={headClass(column.key, column.widthClass)}>
-									{column.label}
+									<div class="leading-tight">{mainLabel}</div>
+									{#if subLabels.length}
+										<div class="text-[10px] font-normal leading-tight text-chart-1/70">
+											{subLabels.join(' · ')}
+										</div>
+									{/if}
 								</Table.Head>
 							{/each}
 							{#if data.canDelete}
@@ -469,7 +489,7 @@
 							<Table.Row
 								class="group border-0 odd:bg-muted/10 *:truncate *:border-b *:border-border"
 							>
-								{#each scrapRecordColumns as column (column.key)}
+								{#each scrapRecordTableColumns as column (column.key)}
 									{@const cellClasses = cellClass(column.key)}
 									{#if column.key === 'id'}
 										<Table.Cell
@@ -486,35 +506,40 @@
 										<Table.Cell class={cellClasses}>
 											<Badge variant={typeBadgeVariant[type]}>{type}</Badge>
 										</Table.Cell>
-									{:else if column.key === 'partGroup'}
-										<Table.Cell class={cellClasses} title={record.partGroup.name}>
-											{record.partGroup.name}
+									{:else if column.key === 'part'}
+										<Table.Cell
+											class={cellClasses}
+											title="{record.partGroup.name} · {record.partGroup.vProject ?? '—'}"
+										>
+											<div class="truncate leading-tight">{record.partGroup.name}</div>
+											<div class="truncate text-xs leading-tight text-muted-foreground">
+												{record.partGroup.vProject ?? '—'}
+											</div>
 										</Table.Cell>
-									{:else if column.key === 'project'}
-										<Table.Cell class={cellClasses} title={record.partGroup.vProject ?? ''}>
-											{record.partGroup.vProject ?? '—'}
+									{:else if column.key === 'reason'}
+										<Table.Cell
+											class={cellClasses}
+											title={[record.scrapCode, record.scrapCodeDescription]
+												.filter(Boolean)
+												.join(' · ')}
+										>
+											<div class="truncate font-medium leading-tight">
+												{record.scrapCode ?? '—'}
+											</div>
+											<div class="truncate text-xs leading-tight text-muted-foreground">
+												{record.scrapCodeDescription ?? '—'}
+											</div>
 										</Table.Cell>
-									{:else if column.key === 'scrapCode'}
-										<Table.Cell class={cellClasses} title={record.scrapCode ?? ''}>
-											{record.scrapCode ?? '—'}
-										</Table.Cell>
-									{:else if column.key === 'description'}
-										<Table.Cell class={cellClasses} title={record.scrapCodeDescription ?? ''}>
-											{record.scrapCodeDescription ?? '—'}
-										</Table.Cell>
-									{:else if column.key === 'otherComponent'}
+									{:else if column.key === 'flags'}
 										<Table.Cell class={cellClasses}>
-											{#if record.isOtherComponent}
-												<Badge variant="outline" class="text-muted-foreground"
-													>Other component</Badge
-												>
-											{/if}
-										</Table.Cell>
-									{:else if column.key === 'otherVariant'}
-										<Table.Cell class={cellClasses}>
-											{#if isOtherVariant(record)}
-												<Badge>Other variant</Badge>
-											{/if}
+											<div class="flex flex-wrap gap-1">
+												{#if record.isOtherComponent}
+													<Badge variant="outline" class="text-muted-foreground">Other comp.</Badge>
+												{/if}
+												{#if isOtherVariant(record)}
+													<Badge>Other variant</Badge>
+												{/if}
+											</div>
 										</Table.Cell>
 									{:else if column.key === 'replacementPart'}
 										<Table.Cell
@@ -526,9 +551,12 @@
 									{:else if column.key === 'quantity'}
 										<Table.Cell class={cellClasses}>{record.quantity}</Table.Cell>
 									{:else if column.key === 'createdBy'}
-										<Table.Cell class={cellClasses} title={record.createdBy}
-											>{record.createdBy}</Table.Cell
+										<Table.Cell
+											class={cellClasses}
+											title={data.operatorNames[record.createdBy] ?? record.createdBy}
 										>
+											{record.createdBy}
+										</Table.Cell>
 									{:else if column.key === 'createdAt'}
 										<Table.Cell class={cellClasses}>
 											<div class="leading-tight">{createdAt.date}</div>

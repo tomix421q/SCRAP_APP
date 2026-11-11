@@ -77,6 +77,24 @@ export const load = (async (event) => {
 				orderBy: { Reason_Code: 'asc' }
 			})
 		]);
+		// createdBy holds the operator card id; resolve names for the listed records (tooltip).
+		const cardIds = [
+			...new Set(
+				records
+					.map((record) => Number(record.createdBy))
+					.filter((cardId) => Number.isSafeInteger(cardId) && cardId > 0)
+			)
+		];
+		const operators = cardIds.length
+			? await prismaClient.operator.findMany({
+					where: { cardId: { in: cardIds } },
+					select: { cardId: true, fullName: true }
+				})
+			: [];
+		const operatorNames: Record<string, string> = Object.fromEntries(
+			operators.map((operator) => [String(operator.cardId), operator.fullName])
+		);
+
 		const descriptionsByCode = new Map<string, Set<string>>();
 		for (const item of scrapCodes) {
 			const descriptions = descriptionsByCode.get(item.Reason_Code) ?? new Set<string>();
@@ -91,6 +109,7 @@ export const load = (async (event) => {
 
 		return {
 			records,
+			operatorNames,
 			totalRecords,
 			totalPages: Math.ceil(totalRecords / pageSize),
 			totalQuantity: totalQuantityForCategory._sum.quantity ?? 0,

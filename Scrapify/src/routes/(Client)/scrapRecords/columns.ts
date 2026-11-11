@@ -7,15 +7,6 @@ export type ScrapRecordRow = Prisma.ScrapRecordGetPayload<{ include: { partGroup
 
 export type ScrapRecordType = 'Scrap' | 'Rebuild' | 'Quantity scrap';
 
-export type ScrapRecordColumnGroup =
-	| 'identification'
-	| 'type'
-	| 'part'
-	| 'reason'
-	| 'variant'
-	| 'quantity'
-	| 'audit';
-
 export type ScrapRecordColumnKey =
 	| 'id'
 	| 'dmc'
@@ -31,14 +22,10 @@ export type ScrapRecordColumnKey =
 	| 'createdBy'
 	| 'createdAt';
 
+/** One data field of a scrap record: its label and its value in the Excel export. */
 export type ScrapRecordColumn = {
 	key: ScrapRecordColumnKey;
 	label: string;
-	group: ScrapRecordColumnGroup;
-	/** ID and DMC identify a record, so they cannot be hidden. */
-	hideable: boolean;
-	/** Tailwind width class; '' = flexible column that takes the remaining width. */
-	widthClass: string;
 	exportValue: XlsxColumn<ScrapRecordRow>['value'];
 };
 
@@ -56,112 +43,107 @@ export function scrapRecordType(
 
 const yesNo = (value: boolean) => (value ? 'Yes' : 'No');
 
-/** Single source of truth for table order, headers, groups and export columns. */
+/** Data fields in table order; the export writes each one as its own column. */
 export const scrapRecordColumns: readonly ScrapRecordColumn[] = [
+	{ key: 'id', label: 'ID', exportValue: (r) => r.id },
+	{ key: 'dmc', label: 'DMC', exportValue: (r) => r.dmc },
+	{ key: 'type', label: 'Type', exportValue: scrapRecordType },
+	{ key: 'partGroup', label: 'Part group', exportValue: (r) => r.partGroup.name },
+	{ key: 'project', label: 'Project', exportValue: (r) => r.partGroup.vProject ?? null },
+	{ key: 'scrapCode', label: 'Scrap code', exportValue: (r) => r.scrapCode ?? null },
+	{ key: 'description', label: 'Description', exportValue: (r) => r.scrapCodeDescription ?? null },
 	{
-		key: 'id',
-		label: 'ID',
-		group: 'identification',
-		hideable: false,
-		widthClass: 'w-14',
-		exportValue: (r) => r.id
+		key: 'otherComponent',
+		label: 'Other component',
+		exportValue: (r) => yesNo(r.isOtherComponent)
 	},
+	{ key: 'otherVariant', label: 'Other variant', exportValue: (r) => yesNo(isOtherVariant(r)) },
 	{
-		key: 'dmc',
-		label: 'DMC',
-		group: 'identification',
-		hideable: false,
-		widthClass: 'w-52',
-		exportValue: (r) => r.dmc
+		key: 'replacementPart',
+		label: 'Replacement part',
+		exportValue: (r) => r.replacementPartMaterial?.trim() || null
 	},
+	{ key: 'quantity', label: 'Quantity', exportValue: (r) => r.quantity },
+	{ key: 'createdBy', label: 'Created by', exportValue: (r) => r.createdBy },
+	{ key: 'createdAt', label: 'Created at', exportValue: (r) => dateTimeLocalTimeDb(r.createdAt) }
+];
+
+export type ScrapRecordTableColumnKey =
+	| 'id'
+	| 'dmc'
+	| 'type'
+	| 'part'
+	| 'reason'
+	| 'flags'
+	| 'replacementPart'
+	| 'quantity'
+	| 'createdBy'
+	| 'createdAt';
+
+export type ScrapRecordColumnGroup =
+	| 'identification'
+	| 'type'
+	| 'part'
+	| 'reason'
+	| 'variant'
+	| 'quantity'
+	| 'audit';
+
+/** A table column; it can show several data fields stacked in one cell. */
+export type ScrapRecordTableColumn = {
+	key: ScrapRecordTableColumnKey;
+	/** Data fields shown in the cell; the first is the main line, the rest are secondary. */
+	fields: readonly ScrapRecordColumnKey[];
+	group: ScrapRecordColumnGroup;
+	/** ID and DMC identify a record, so they cannot be hidden. */
+	hideable: boolean;
+	/** Tailwind width class; '' = flexible column that takes the remaining width. */
+	widthClass: string;
+};
+
+/** Table order and layout; header labels come from the data fields above. */
+export const scrapRecordTableColumns: readonly ScrapRecordTableColumn[] = [
+	{ key: 'id', fields: ['id'], group: 'identification', hideable: false, widthClass: 'w-14' },
+	{ key: 'dmc', fields: ['dmc'], group: 'identification', hideable: false, widthClass: 'w-52' },
+	{ key: 'type', fields: ['type'], group: 'type', hideable: true, widthClass: 'w-36' },
 	{
-		key: 'type',
-		label: 'Type',
-		group: 'type',
-		hideable: true,
-		widthClass: 'w-36',
-		exportValue: scrapRecordType
-	},
-	{
-		key: 'partGroup',
-		label: 'Part group',
+		key: 'part',
+		fields: ['partGroup', 'project'],
 		group: 'part',
 		hideable: true,
-		widthClass: 'w-32',
-		exportValue: (r) => r.partGroup.name
+		widthClass: 'w-44'
 	},
 	{
-		key: 'project',
-		label: 'Project',
-		group: 'part',
-		hideable: true,
-		widthClass: 'w-24',
-		exportValue: (r) => r.partGroup.vProject ?? null
-	},
-	{
-		key: 'scrapCode',
-		label: 'Scrap code',
-		group: 'reason',
-		hideable: true,
-		widthClass: 'w-24',
-		exportValue: (r) => r.scrapCode ?? null
-	},
-	{
-		key: 'description',
-		label: 'Description',
+		key: 'reason',
+		fields: ['scrapCode', 'description'],
 		group: 'reason',
 		hideable: true,
 		// No fixed width: in the fixed table layout this column absorbs the spare width,
 		// so the other columns keep their exact widths (the sticky DMC offset relies on it).
-		widthClass: '',
-		exportValue: (r) => r.scrapCodeDescription ?? null
+		widthClass: ''
 	},
 	{
-		key: 'otherComponent',
-		label: 'Other component',
+		key: 'flags',
+		fields: ['otherComponent', 'otherVariant'],
 		group: 'variant',
 		hideable: true,
-		widthClass: 'w-32',
-		exportValue: (r) => yesNo(r.isOtherComponent)
-	},
-	{
-		key: 'otherVariant',
-		label: 'Other variant',
-		group: 'variant',
-		hideable: true,
-		widthClass: 'w-28',
-		exportValue: (r) => yesNo(isOtherVariant(r))
+		widthClass: 'w-40'
 	},
 	{
 		key: 'replacementPart',
-		label: 'Replacement part',
+		fields: ['replacementPart'],
 		group: 'variant',
 		hideable: true,
-		widthClass: 'w-36',
-		exportValue: (r) => r.replacementPartMaterial?.trim() || null
+		widthClass: 'w-36'
 	},
-	{
-		key: 'quantity',
-		label: 'Quantity',
-		group: 'quantity',
-		hideable: true,
-		widthClass: 'w-20',
-		exportValue: (r) => r.quantity
-	},
-	{
-		key: 'createdBy',
-		label: 'Created by',
-		group: 'audit',
-		hideable: true,
-		widthClass: 'w-24',
-		exportValue: (r) => r.createdBy
-	},
-	{
-		key: 'createdAt',
-		label: 'Created at',
-		group: 'audit',
-		hideable: true,
-		widthClass: 'w-40',
-		exportValue: (r) => dateTimeLocalTimeDb(r.createdAt)
-	}
+	{ key: 'quantity', fields: ['quantity'], group: 'quantity', hideable: true, widthClass: 'w-20' },
+	{ key: 'createdBy', fields: ['createdBy'], group: 'audit', hideable: true, widthClass: 'w-28' },
+	{ key: 'createdAt', fields: ['createdAt'], group: 'audit', hideable: true, widthClass: 'w-32' }
 ];
+
+const labelByKey = new Map(scrapRecordColumns.map((column) => [column.key, column.label]));
+
+/** Header labels of a table column: main label first, secondary labels after. */
+export function tableColumnLabels(column: ScrapRecordTableColumn): string[] {
+	return column.fields.map((field) => labelByKey.get(field) ?? field);
+}
