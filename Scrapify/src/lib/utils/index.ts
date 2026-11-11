@@ -38,6 +38,31 @@ export function dateTimeLocalTimeDb(dateTime: Date | string) {
 	}).format(dateObject);
 }
 
+const dbDateFormatter = new Intl.DateTimeFormat('sk-SK', {
+	year: 'numeric',
+	month: '2-digit',
+	day: '2-digit',
+	timeZone: 'UTC'
+});
+const dbTimeFormatter = new Intl.DateTimeFormat('sk-SK', {
+	hour: '2-digit',
+	minute: '2-digit',
+	second: '2-digit',
+	timeZone: 'UTC'
+});
+
+/**
+ * Same values as `dateTimeLocalTimeDb`, split into date and time
+ * (e.g. for a two-line table cell).
+ */
+export function dateTimePartsLocalTimeDb(dateTime: Date | string): { date: string; time: string } {
+	const dateObject = typeof dateTime === 'string' ? new Date(dateTime) : dateTime;
+	if (isNaN(dateObject.getTime())) {
+		return { date: 'Invalid Date', time: '' };
+	}
+	return { date: dbDateFormatter.format(dateObject), time: dbTimeFormatter.format(dateObject) };
+}
+
 export function isWithinTimeLimit(createdAt: Date | string, limitMinutes: number): boolean {
 	const createdDate = typeof createdAt === 'string' ? new Date(createdAt) : createdAt;
 	if (isNaN(createdDate.getTime())) {

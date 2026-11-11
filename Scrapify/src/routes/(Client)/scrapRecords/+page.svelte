@@ -12,9 +12,16 @@
 	} from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import type { PageProps } from './$types';
-	import { dateTimeLocalTimeDb } from '@/utils/index';
-	import { isOtherVariant, scrapRecordColumns, scrapRecordType } from './columns';
+	import { dateTimePartsLocalTimeDb } from '@/utils/index';
+	import {
+		isOtherVariant,
+		scrapRecordColumns,
+		scrapRecordType,
+		type ScrapRecordColumnKey,
+		type ScrapRecordType
+	} from './columns';
 	import Combobox from '@/components/atoms/Combobox.svelte';
+	import { Badge } from '@/components/ui/badge';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
@@ -27,6 +34,58 @@
 		{ id: 'scrap', label: 'Scrap' },
 		{ id: 'quantity', label: 'Quantity scrap' }
 	] as const;
+
+	// Shared look of text inputs, selects and date inputs in the filter form.
+	const fieldClass =
+		'h-10 rounded-lg border border-border bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30';
+
+	// Badge has no chart variants, so the outline variant is tinted with theme tokens.
+	const typeBadgeClass: Record<ScrapRecordType, string> = {
+		Scrap: '', // plain outline badge
+		Rebuild: 'border-chart-warning/50 bg-chart-warning/15 text-chart-warning',
+		'Quantity scrap': 'border-chart-2 bg-chart-2/30 text-foreground'
+	};
+
+	// The first column of each group gets a divider.
+	const groupStartKeys = new Set<ScrapRecordColumnKey>(
+		scrapRecordColumns
+			.filter((column, index) => column.group !== scrapRecordColumns[index - 1]?.group)
+			.map((column) => column.key)
+	);
+	const groupDivider = 'border-l-2 border-l-border';
+
+	// ID and DMC stay visible on horizontal scroll; `left-14` matches the ID column width (w-14).
+	const stickyColumnClass: Partial<Record<ScrapRecordColumnKey, string>> = {
+		id: 'sticky left-0',
+		dmc: 'sticky left-14'
+	};
+	const rightAligned = new Set<ScrapRecordColumnKey>(['id', 'quantity']);
+
+	// Header cells are sticky on top; set here (not via `*:` on the row) so z-index can differ.
+	const headBase =
+		'sticky top-0 h-9 border-b border-border bg-card! bg-clip-border bg-linear-to-r from-chart-4/40 to-chart-4/40 text-xs font-semibold uppercase tracking-wide text-chart-1';
+
+	function headClass(key: ScrapRecordColumnKey, widthClass: string) {
+		return [
+			headBase,
+			widthClass,
+			stickyColumnClass[key] ? `${stickyColumnClass[key]} z-30` : 'z-20',
+			groupStartKeys.has(key) && key !== 'id' ? groupDivider : '',
+			rightAligned.has(key) ? 'text-right' : ''
+		].join(' ');
+	}
+
+	function cellClass(key: ScrapRecordColumnKey) {
+		return [
+			'py-1',
+			// Sticky cells need an opaque base; row stripe/hover tints are layered on top as an image.
+			stickyColumnClass[key]
+				? `${stickyColumnClass[key]} z-10 bg-card! bg-clip-border group-odd:bg-linear-to-r group-odd:from-muted/10 group-odd:to-muted/10 group-hover:bg-linear-to-r group-hover:from-muted/50 group-hover:to-muted/50`
+				: '',
+			groupStartKeys.has(key) && key !== 'id' ? groupDivider : '',
+			rightAligned.has(key) ? 'text-right tabular-nums' : ''
+		].join(' ');
+	}
 
 	let { data, form }: PageProps = $props();
 	const projectItems = $derived(data.projects.map((project) => ({ id: project, name: project })));
@@ -141,7 +200,7 @@
 
 	<nav
 		aria-label="Scrap record category"
-		class="flex flex-wrap gap-2 rounded-lg border border-white/20 bg-white/10 p-2 shadow-lg backdrop-blur-xl"
+		class="flex flex-wrap gap-2 rounded-2xl border border-dashed border-primary/20 bg-card/40 p-2 shadow-lg backdrop-blur-lg"
 	>
 		{#each categoryOptions as categoryOption (categoryOption.id)}
 			<Button
@@ -156,16 +215,8 @@
 		{/each}
 	</nav>
 
-	<form
-		onsubmit={applyFilters}
-		class="relative isolate overflow-hidden rounded-lg border border-white/20 bg-background/45 shadow-2xl backdrop-blur-2xl"
-	>
-		<div
-			class="pointer-events-none absolute -right-20 -top-28 -z-10 size-72 rounded-full bg-primary/20 blur-3xl"
-		></div>
-		<header
-			class="flex items-center justify-between gap-4 border-b border-white/15 bg-background/20 px-5 py-4"
-		>
+	<form onsubmit={applyFilters} class="formNormalize gap-y-4!">
+		<header class="flex items-center justify-between gap-4 border-b border-border px-1 pb-4">
 			<div class="flex items-center gap-3">
 				<div class="rounded-lg border border-primary/20 bg-primary/10 p-2.5 text-primary">
 					<SlidersHorizontal class="size-5" />
@@ -177,8 +228,8 @@
 			</div>
 		</header>
 
-		<div class="grid gap-4 p-4 sm:p-5">
-			<fieldset class="rounded-lg border border-white/15 bg-background/20 p-4">
+		<div class="grid gap-4">
+			<fieldset class="rounded-lg border border-border bg-card/30 p-4">
 				<legend class="px-2 text-sm font-medium text-foreground/90 flex items-center gap-2"
 					><Funnel class="size-4 stroke-primary" /> Record filters</legend
 				>
@@ -274,7 +325,7 @@
 					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
 						Label
 						<input
-							class="h-10 rounded-lg border border-white/15 bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+							class={fieldClass}
 							type="search"
 							placeholder="Search label"
 							bind:value={filters.dmc}
@@ -283,7 +334,7 @@
 					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
 						Created by
 						<input
-							class="h-10 rounded-lg border border-white/15 bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+							class={fieldClass}
 							type="search"
 							placeholder="Operator or user"
 							bind:value={filters.createdBy}
@@ -291,10 +342,7 @@
 					</label>
 					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
 						QAD export
-						<select
-							class="h-10 rounded-lg border border-white/15 bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-							bind:value={filters.exported}
-						>
+						<select class={fieldClass} bind:value={filters.exported}>
 							<option value="">All</option>
 							<option value="true">Exported</option>
 							<option value="false">Not exported</option>
@@ -302,10 +350,7 @@
 					</label>
 					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
 						Other component
-						<select
-							class="h-10 rounded-lg border border-white/15 bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-							bind:value={filters.otherComponent}
-						>
+						<select class={fieldClass} bind:value={filters.otherComponent}>
 							<option value="">All</option>
 							<option value="true">Yes</option>
 							<option value="false">No</option>
@@ -313,10 +358,7 @@
 					</label>
 					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
 						Other variant
-						<select
-							class="h-10 rounded-lg border border-white/15 bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-							bind:value={filters.otherVariant}
-						>
+						<select class={fieldClass} bind:value={filters.otherVariant}>
 							<option value="">All</option>
 							<option value="true">Yes</option>
 							<option value="false">No</option>
@@ -325,7 +367,7 @@
 					<label class="flex max-w-64 flex-col gap-1.5 text-xs font-medium text-muted-foreground">
 						Replacement part
 						<input
-							class="h-10 rounded-lg border border-white/15 bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+							class={fieldClass}
 							type="search"
 							placeholder="Part number"
 							bind:value={filters.replacementPart}
@@ -334,7 +376,7 @@
 				</div>
 			</fieldset>
 
-			<fieldset class="rounded-lg border border-white/15 bg-background/20 p-4">
+			<fieldset class="rounded-lg border border-border bg-card/30 p-4">
 				<legend class="flex items-center gap-2 px-2 text-sm font-medium text-foreground/90">
 					<CalendarDays class="size-4 text-primary" />
 					Created date
@@ -343,7 +385,7 @@
 					<label class="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
 						From
 						<input
-							class="h-10 min-w-0 max-w-[420px] rounded-lg border border-white/15 bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+							class="{fieldClass} min-w-0 max-w-[420px]"
 							type="datetime-local"
 							bind:value={filters.dateFrom}
 						/>
@@ -351,7 +393,7 @@
 					<label class="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
 						To
 						<input
-							class="h-10 min-w-0 max-w-[420px] rounded-lg border border-white/15 bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+							class="{fieldClass} min-w-0 max-w-[420px]"
 							type="datetime-local"
 							bind:value={filters.dateTo}
 						/>
@@ -361,7 +403,7 @@
 		</div>
 
 		<footer
-			class="flex flex-wrap items-center justify-between gap-3 border-t border-white/15 bg-background/20 px-4 py-3 sm:px-5"
+			class="flex flex-wrap items-center justify-between gap-3 border-t border-border px-1 pt-4"
 		>
 			<div class="flex flex-wrap gap-x-8 gap-y-2 text-sm text-muted-foreground">
 				<p>Total records: <strong class="text-chart-3">{data.totalRecords}</strong></p>
@@ -401,83 +443,120 @@
 				{categoryOptions.find((option) => option.id === data.category)?.label} records
 			</h2>
 		</header>
-		<article
-			class="overflow-x-auto rounded-lg border border-white/25 bg-white/10 p-2 shadow-2xl backdrop-blur-2xl sm:p-3"
-		>
-			<Table.Root class="min-w-[1800px] w-full table-fixed">
-				<Table.Header>
-					<Table.Row
-						class="bg-primary/15 *:border-white/10 *:font-bold text-lg *:text-muted-foreground *:border"
-					>
-						{#each scrapRecordColumns as column (column.key)}
-							<Table.Head class={column.widthClass}>{column.label}</Table.Head>
-						{/each}
-						{#if data.canDelete}
-							<Table.Head class="w-20 text-end">Actions</Table.Head>
-						{/if}
-					</Table.Row>
-				</Table.Header>
-				<Table.Body>
-					{#each data.records as record (record.id)}
-						<Table.Row
-							class="*:truncate *:border-white/10 odd:bg-white/5 even:bg-transparent hover:bg-primary/10 *:border"
-						>
+		<article class="listNormalize p-2! lg:p-3!">
+			<!-- Own scroll box keeps the header and pagination in reach; the inner ui/table
+			     wrapper must not scroll, otherwise the sticky header would not stick. -->
+			<div
+				class="max-h-[70vh] overflow-auto rounded-lg border border-border [&>[data-slot=table-container]]:overflow-visible"
+			>
+				<Table.Root class="min-w-[1560px] w-full table-fixed border-separate border-spacing-0">
+					<Table.Header>
+						<Table.Row class="border-0">
 							{#each scrapRecordColumns as column (column.key)}
-								{#if column.key === 'id'}
-									<Table.Cell class="text-muted-foreground" title={String(record.id)}>
-										{record.id}
-									</Table.Cell>
-								{:else if column.key === 'dmc'}
-									<Table.Cell class="font-medium text-primary" title={record.dmc}>
-										{record.dmc}
-									</Table.Cell>
-								{:else if column.key === 'type'}
-									<Table.Cell>{scrapRecordType(record)}</Table.Cell>
-								{:else if column.key === 'partGroup'}
-									<Table.Cell title={record.partGroup.name}>{record.partGroup.name}</Table.Cell>
-								{:else if column.key === 'project'}
-									<Table.Cell title={record.partGroup.vProject ?? ''}>
-										{record.partGroup.vProject ?? '—'}
-									</Table.Cell>
-								{:else if column.key === 'scrapCode'}
-									<Table.Cell title={record.scrapCode ?? ''}>{record.scrapCode ?? '—'}</Table.Cell>
-								{:else if column.key === 'description'}
-									<Table.Cell title={record.scrapCodeDescription ?? ''}>
-										{record.scrapCodeDescription ?? '—'}
-									</Table.Cell>
-								{:else if column.key === 'otherComponent'}
-									<Table.Cell>{record.isOtherComponent ? 'Yes' : 'No'}</Table.Cell>
-								{:else if column.key === 'otherVariant'}
-									<Table.Cell>{isOtherVariant(record) ? 'Yes' : 'No'}</Table.Cell>
-								{:else if column.key === 'replacementPart'}
-									<Table.Cell title={record.replacementPartMaterial?.trim() ?? ''}>
-										{record.replacementPartMaterial?.trim() || '—'}
-									</Table.Cell>
-								{:else if column.key === 'quantity'}
-									<Table.Cell>{record.quantity}</Table.Cell>
-								{:else if column.key === 'createdBy'}
-									<Table.Cell title={record.createdBy}>{record.createdBy}</Table.Cell>
-								{:else if column.key === 'createdAt'}
-									<Table.Cell>{dateTimeLocalTimeDb(record.createdAt)}</Table.Cell>
-								{/if}
+								<Table.Head class={headClass(column.key, column.widthClass)}>
+									{column.label}
+								</Table.Head>
 							{/each}
 							{#if data.canDelete}
-								<Table.Cell>
-									<div class="flex justify-end">
-										<DeleteBtn id={record.id} actionRoute="?/deleteScrapRecord" />
-									</div>
-								</Table.Cell>
+								<Table.Head class="{headBase} z-20 w-20 text-end {groupDivider}">Actions</Table.Head
+								>
 							{/if}
 						</Table.Row>
-					{:else}
-						<Table.Row class="*:border-white/10">
-							<Table.Cell colspan={columnCount} class="py-8 text-center text-muted-foreground">
-								No records match these filters.
-							</Table.Cell>
-						</Table.Row>
-					{/each}
-				</Table.Body>
-			</Table.Root>
+					</Table.Header>
+					<Table.Body>
+						{#each data.records as record (record.id)}
+							{@const type = scrapRecordType(record)}
+							{@const createdAt = dateTimePartsLocalTimeDb(record.createdAt)}
+							<Table.Row
+								class="group border-0 odd:bg-muted/10 *:truncate *:border-b *:border-border"
+							>
+								{#each scrapRecordColumns as column (column.key)}
+									{@const cellClasses = cellClass(column.key)}
+									{#if column.key === 'id'}
+										<Table.Cell
+											class="{cellClasses} text-muted-foreground"
+											title={String(record.id)}
+										>
+											{record.id}
+										</Table.Cell>
+									{:else if column.key === 'dmc'}
+										<Table.Cell class="{cellClasses} font-medium text-primary" title={record.dmc}>
+											{record.dmc}
+										</Table.Cell>
+									{:else if column.key === 'type'}
+										<Table.Cell class={cellClasses}>
+											<Badge variant="outline" class={typeBadgeClass[type]}>{type}</Badge>
+										</Table.Cell>
+									{:else if column.key === 'partGroup'}
+										<Table.Cell class={cellClasses} title={record.partGroup.name}>
+											{record.partGroup.name}
+										</Table.Cell>
+									{:else if column.key === 'project'}
+										<Table.Cell class={cellClasses} title={record.partGroup.vProject ?? ''}>
+											{record.partGroup.vProject ?? '—'}
+										</Table.Cell>
+									{:else if column.key === 'scrapCode'}
+										<Table.Cell class={cellClasses} title={record.scrapCode ?? ''}>
+											{record.scrapCode ?? '—'}
+										</Table.Cell>
+									{:else if column.key === 'description'}
+										<Table.Cell class={cellClasses} title={record.scrapCodeDescription ?? ''}>
+											{record.scrapCodeDescription ?? '—'}
+										</Table.Cell>
+									{:else if column.key === 'otherComponent'}
+										<Table.Cell class={cellClasses}>
+											{#if record.isOtherComponent}
+												<Badge variant="outline" class="text-muted-foreground"
+													>Other component</Badge
+												>
+											{/if}
+										</Table.Cell>
+									{:else if column.key === 'otherVariant'}
+										<Table.Cell class={cellClasses}>
+											{#if isOtherVariant(record)}
+												<Badge>Other variant</Badge>
+											{/if}
+										</Table.Cell>
+									{:else if column.key === 'replacementPart'}
+										<Table.Cell
+											class={cellClasses}
+											title={record.replacementPartMaterial?.trim() ?? ''}
+										>
+											{record.replacementPartMaterial?.trim() || '—'}
+										</Table.Cell>
+									{:else if column.key === 'quantity'}
+										<Table.Cell class={cellClasses}>{record.quantity}</Table.Cell>
+									{:else if column.key === 'createdBy'}
+										<Table.Cell class={cellClasses} title={record.createdBy}
+											>{record.createdBy}</Table.Cell
+										>
+									{:else if column.key === 'createdAt'}
+										<Table.Cell class={cellClasses}>
+											<div class="leading-tight">{createdAt.date}</div>
+											<div class="text-xs leading-tight text-muted-foreground">
+												{createdAt.time}
+											</div>
+										</Table.Cell>
+									{/if}
+								{/each}
+								{#if data.canDelete}
+									<Table.Cell class={groupDivider}>
+										<div class="flex justify-end">
+											<DeleteBtn id={record.id} actionRoute="?/deleteScrapRecord" />
+										</div>
+									</Table.Cell>
+								{/if}
+							</Table.Row>
+						{:else}
+							<Table.Row class="border-0">
+								<Table.Cell colspan={columnCount} class="py-8 text-center text-muted-foreground">
+									No records match these filters.
+								</Table.Cell>
+							</Table.Row>
+						{/each}
+					</Table.Body>
+				</Table.Root>
+			</div>
 		</article>
 	</section>
 

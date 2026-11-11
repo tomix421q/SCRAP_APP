@@ -37,6 +37,7 @@ export type ScrapRecordColumn = {
 	group: ScrapRecordColumnGroup;
 	/** ID and DMC identify a record, so they cannot be hidden. */
 	hideable: boolean;
+	/** Tailwind width class; '' = flexible column that takes the remaining width. */
 	widthClass: string;
 	exportValue: XlsxColumn<ScrapRecordRow>['value'];
 };
@@ -110,7 +111,9 @@ export const scrapRecordColumns: readonly ScrapRecordColumn[] = [
 		label: 'Description',
 		group: 'reason',
 		hideable: true,
-		widthClass: 'w-28',
+		// No fixed width: in the fixed table layout this column absorbs the spare width,
+		// so the other columns keep their exact widths (the sticky DMC offset relies on it).
+		widthClass: '',
 		exportValue: (r) => r.scrapCodeDescription ?? null
 	},
 	{
