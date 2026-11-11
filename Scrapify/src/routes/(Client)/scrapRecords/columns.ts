@@ -79,7 +79,7 @@ export const scrapRecordColumns: readonly ScrapRecordColumn[] = [
 		label: 'Type',
 		group: 'type',
 		hideable: true,
-		widthClass: 'w-28',
+		widthClass: 'w-36',
 		exportValue: scrapRecordType
 	},
 	{
