@@ -1,15 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { navigating, page } from '$app/state';
-	import {
-		ChevronDown,
-		FileSpreadsheet,
-		Funnel,
-		LoaderCircle,
-		RotateCcw,
-		SlidersHorizontal,
-		X
-	} from '@lucide/svelte';
+	import { FileSpreadsheet, Funnel, LoaderCircle, RotateCcw, X } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import type { PageProps } from './$types';
 	import { dateTimePartsLocalTimeDb } from '@/utils/index';
@@ -38,10 +30,12 @@
 
 	// Shared look of text inputs, selects and date inputs in the filter form.
 	const fieldClass =
-		'h-9 rounded-lg border border-border bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30';
+		'w-full max-w-[300px] h-9 rounded-lg border border-border bg-background/35 px-3 text-sm text-foreground shadow-inner backdrop-blur-sm transition placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30';
 
 	const labelClass =
 		'flex min-w-0 max-w-full flex-col gap-1 text-xs font-medium text-muted-foreground';
+	const groupClass = 'flex min-w-0 flex-col gap-2';
+	const legendClass = 'mb-1 text-[11px] font-semibold uppercase tracking-wider text-chart-1/80';
 
 	const typeBadgeVariant: Record<ScrapRecordType, BadgeVariant> = {
 		Scrap: 'outline',
@@ -122,13 +116,6 @@
 		otherVariant: 'Other variant',
 		replacementPart: 'Replacement part'
 	};
-	// Less used filters live in the collapsible "More filters" row.
-	const moreFilterKeys: readonly FilterKey[] = [
-		'scrapCode',
-		'createdBy',
-		'replacementPart',
-		'exported'
-	];
 
 	function filtersFrom(params: URLSearchParams): FilterState {
 		return Object.fromEntries(filterKeys.map((key) => [key, params.get(key) ?? ''])) as FilterState;
@@ -189,14 +176,6 @@
 		filters = filtersFrom(new URLSearchParams());
 		goto(page.url.pathname, { keepFocus: true, noScroll: true, replaceState: true });
 	}
-
-	// Start expanded when a filter inside it is already applied (e.g. a shared link).
-	let showMoreFilters = $state(
-		moreFilterKeys.some((key) => page.url.searchParams.get(key)?.trim())
-	);
-	const activeMoreCount = $derived(
-		moreFilterKeys.filter((key) => page.url.searchParams.get(key)?.trim()).length
-	);
 
 	function chipValue(key: FilterKey, value: string) {
 		switch (key) {
@@ -297,154 +276,207 @@
 		onsubmit={applyFilters}
 		class="formNormalize ml-[calc(50%_-_min(50vw_-_1rem,960px))] w-[min(calc(100vw_-_2rem),1920px)] gap-y-3! p-3! lg:p-4!"
 	>
-		<div class="flex flex-wrap items-center justify-between gap-2">
-			<nav aria-label="Scrap record category" class="flex flex-wrap gap-1">
-				{#each categoryOptions as categoryOption (categoryOption.id)}
-					<Button
-						type="button"
-						variant={data.category === categoryOption.id ? 'default' : 'ghost'}
-						size="sm"
-						class="rounded-lg px-3 transition-all"
-						aria-pressed={data.category === categoryOption.id}
-						onclick={() => selectCategory(categoryOption.id)}
-					>
-						{@const totals = categoryTotals.get(categoryOption.id)}
-						<span>{categoryOption.label}</span>
-						<span class="text-xs font-normal tabular-nums opacity-60" title="Records">
-							{totals?.count ?? 0}
-						</span>
-						<!-- Pieces only differ from the record count for quantity scrap (quantity > 1). -->
-						{#if totals && totals.quantity !== totals.count}
-							<span class="text-xs font-normal tabular-nums opacity-50" title="Total pieces">
-								· {totals.quantity} pcs
-							</span>
-						{/if}
-					</Button>
-				{/each}
-			</nav>
-			<Button
-				type="button"
-				variant="outline"
-				size="sm"
-				class="rounded-lg"
-				disabled={!canExport}
-				aria-busy={isExporting}
-				onclick={exportRecords}
-			>
-				{#if isExporting}
-					<LoaderCircle class="size-4 animate-spin" />
-				{:else}
-					<FileSpreadsheet class="size-4" />
-				{/if}
-				Export ({data.totalRecords})
-			</Button>
-		</div>
-
-		<div class="flex flex-wrap items-end gap-2">
-			<label class={labelClass}>
-				Label
-				<input
-					class="{fieldClass} w-48 max-w-full"
-					type="search"
-					placeholder="Search label"
-					bind:value={filters.dmc}
-				/>
-			</label>
-			<label class={labelClass}>
-				Project
-				<div class="flex min-w-0 max-w-full items-center gap-1">
-					<Combobox
-						dataBox={projectItems}
-						value={filters.project}
-						onchange={selectProject}
-						firstText="All projects"
-						width="xs"
-					/>
-					{#if filters.project}
-						<Button
-							type="button"
-							title="Clear project"
-							aria-label="Clear project filter"
-							size="icon"
-							variant="ghost"
-							class="shrink-0 text-destructive hover:bg-destructive/50"
-							onclick={() => selectProject('')}
-						>
-							<X />
-						</Button>
-					{/if}
-				</div>
-			</label>
-			<label class={labelClass}>
-				Part group
-				<div class="flex min-w-0 max-w-full items-center gap-1">
-					<Combobox
-						dataBox={partGroupItems}
-						bind:value={filters.partGroup}
-						firstText="Select part group"
-						width="xs"
-					/>
-					{#if filters.partGroup}
-						<Button
-							type="button"
-							title="Clear part group"
-							aria-label="Clear part group filter"
-							size="icon"
-							variant="ghost"
-							class="shrink-0 text-destructive hover:bg-destructive/50"
-							onclick={() => (filters.partGroup = '')}
-						>
-							<X />
-						</Button>
-					{/if}
-				</div>
-			</label>
-			<label class={labelClass}>
-				From
-				<input
-					class="{fieldClass} w-52 max-w-full"
-					type="datetime-local"
-					bind:value={filters.dateFrom}
-				/>
-			</label>
-			<label class={labelClass}>
-				To
-				<input
-					class="{fieldClass} w-52 max-w-full"
-					type="datetime-local"
-					bind:value={filters.dateTo}
-				/>
-			</label>
-			<label class={labelClass}>
-				Other component
-				<select class={fieldClass} bind:value={filters.otherComponent}>
-					<option value="">All</option>
-					<option value="true">Yes</option>
-					<option value="false">No</option>
-				</select>
-			</label>
-			<label class={labelClass}>
-				Other variant
-				<select class={fieldClass} bind:value={filters.otherVariant}>
-					<option value="">All</option>
-					<option value="true">Yes</option>
-					<option value="false">No</option>
-				</select>
-			</label>
-			<div class="ml-auto flex flex-wrap gap-2">
+		<nav aria-label="Scrap record category" class="flex flex-wrap gap-1">
+			{#each categoryOptions as categoryOption (categoryOption.id)}
 				<Button
 					type="button"
-					variant="ghost"
+					variant={data.category === categoryOption.id ? 'default' : 'ghost'}
 					size="sm"
-					class="rounded-lg"
-					aria-expanded={showMoreFilters}
-					aria-controls="more-filters"
-					onclick={() => (showMoreFilters = !showMoreFilters)}
+					class="rounded-lg px-3 transition-all"
+					aria-pressed={data.category === categoryOption.id}
+					onclick={() => selectCategory(categoryOption.id)}
 				>
-					<SlidersHorizontal class="size-4" />
-					More filters{activeMoreCount ? ` (${activeMoreCount})` : ''}
-					<ChevronDown class="size-4 transition-transform {showMoreFilters ? 'rotate-180' : ''}" />
+					{@const totals = categoryTotals.get(categoryOption.id)}
+					<span>{categoryOption.label}</span>
+					<span class="text-xs font-normal tabular-nums opacity-60" title="Records">
+						{totals?.count ?? 0}
+					</span>
+					<!-- Pieces only differ from the record count for quantity scrap (quantity > 1). -->
+					{#if totals && totals.quantity !== totals.count}
+						<span class="text-xs font-normal tabular-nums opacity-50" title="Total pieces">
+							· {totals.quantity} pcs
+						</span>
+					{/if}
 				</Button>
+			{/each}
+		</nav>
+
+		<!-- Filters grouped by meaning into four equal columns (stacked on small screens). -->
+		<div class="grid gap-4 border-t border-border pt-3 sm:grid-cols-2 xl:grid-cols-4">
+			<fieldset class={groupClass}>
+				<legend class={legendClass}>Part</legend>
+				<label class={labelClass}>
+					Project
+					<div class="flex min-w-0 max-w-full items-center gap-1">
+						<Combobox
+							dataBox={projectItems}
+							value={filters.project}
+							onchange={selectProject}
+							firstText="All projects"
+							width="xs"
+						/>
+						{#if filters.project}
+							<Button
+								type="button"
+								title="Clear project"
+								aria-label="Clear project filter"
+								size="icon"
+								variant="ghost"
+								class="shrink-0 text-destructive hover:bg-destructive/50"
+								onclick={() => selectProject('')}
+							>
+								<X />
+							</Button>
+						{/if}
+					</div>
+				</label>
+				<label class={labelClass}>
+					Part group
+					<div class="flex min-w-0 max-w-full items-center gap-1">
+						<Combobox
+							dataBox={partGroupItems}
+							bind:value={filters.partGroup}
+							firstText="Select part group"
+							width="xs"
+						/>
+						{#if filters.partGroup}
+							<Button
+								type="button"
+								title="Clear part group"
+								aria-label="Clear part group filter"
+								size="icon"
+								variant="ghost"
+								class="shrink-0 text-destructive hover:bg-destructive/50"
+								onclick={() => (filters.partGroup = '')}
+							>
+								<X />
+							</Button>
+						{/if}
+					</div>
+				</label>
+				<label class={labelClass}>
+					Scrap code
+					<div class="flex min-w-0 max-w-full items-center gap-1">
+						<Combobox
+							dataBox={data.scrapCodeOptions}
+							bind:value={filters.scrapCode}
+							firstText="Select scrap code"
+							nameLabel="codeName"
+							width="xs"
+						/>
+						{#if filters.scrapCode}
+							<Button
+								type="button"
+								title="Clear scrap code"
+								aria-label="Clear scrap code filter"
+								size="icon"
+								variant="ghost"
+								class="shrink-0 text-destructive hover:bg-destructive/50"
+								onclick={() => (filters.scrapCode = '')}
+							>
+								<X />
+							</Button>
+						{/if}
+					</div>
+				</label>
+			</fieldset>
+
+			<fieldset class={groupClass}>
+				<legend class={legendClass}>Record</legend>
+				<label class={labelClass}>
+					Label
+					<input
+						class={fieldClass}
+						type="search"
+						placeholder="Search label"
+						bind:value={filters.dmc}
+					/>
+				</label>
+				<label class={labelClass}>
+					Created by
+					<input
+						class={fieldClass}
+						type="search"
+						placeholder="Card number"
+						bind:value={filters.createdBy}
+					/>
+				</label>
+				<label class={labelClass}>
+					Replacement part
+					<input
+						class={fieldClass}
+						type="search"
+						placeholder="Part number"
+						bind:value={filters.replacementPart}
+					/>
+				</label>
+			</fieldset>
+
+			<fieldset class={groupClass}>
+				<legend class={legendClass}>Flags</legend>
+				<label class={labelClass}>
+					Other component
+					<select class={fieldClass} bind:value={filters.otherComponent}>
+						<option value="">All</option>
+						<option value="true">Yes</option>
+						<option value="false">No</option>
+					</select>
+				</label>
+				<label class={labelClass}>
+					Other variant
+					<select class={fieldClass} bind:value={filters.otherVariant}>
+						<option value="">All</option>
+						<option value="true">Yes</option>
+						<option value="false">No</option>
+					</select>
+				</label>
+				<label class={labelClass}>
+					QAD export
+					<select class={fieldClass} bind:value={filters.exported}>
+						<option value="">All</option>
+						<option value="true">Exported</option>
+						<option value="false">Not exported</option>
+					</select>
+				</label>
+			</fieldset>
+
+			<fieldset class={groupClass}>
+				<legend class={legendClass}>Created date</legend>
+				<label class={labelClass}>
+					From
+					<input class={fieldClass} type="datetime-local" bind:value={filters.dateFrom} />
+				</label>
+				<label class={labelClass}>
+					To
+					<input class={fieldClass} type="datetime-local" bind:value={filters.dateTo} />
+				</label>
+			</fieldset>
+		</div>
+
+		<!-- Active filter chips on the left, actions bottom right. -->
+		<div class="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
+			<div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+				{#if activeChips.length}
+					<span class="text-xs text-muted-foreground">Active filters:</span>
+					{#each activeChips as chip (chip.key)}
+						<Badge variant="outline" class="gap-1 pr-0.5">
+							{chip.label}
+							<button
+								type="button"
+								class="-my-1 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+								aria-label="Remove filter {chip.label}"
+								title="Remove filter"
+								onclick={() => removeChip(chip.key)}
+							>
+								<X class="size-3" />
+							</button>
+						</Badge>
+					{/each}
+				{:else}
+					<span class="text-xs text-muted-foreground">No active filters</span>
+				{/if}
+			</div>
+			<div class="ml-auto flex flex-wrap gap-2">
 				<Button
 					type="button"
 					variant="ghost"
@@ -459,86 +491,24 @@
 					<Funnel class="size-4" />
 					Apply
 				</Button>
-			</div>
-		</div>
-
-		<div
-			id="more-filters"
-			hidden={!showMoreFilters}
-			class="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-card/30 p-2"
-		>
-			<label class={labelClass}>
-				Scrap code
-				<div class="flex min-w-0 max-w-full items-center gap-1">
-					<Combobox
-						dataBox={data.scrapCodeOptions}
-						bind:value={filters.scrapCode}
-						firstText="Select scrap code"
-						nameLabel="codeName"
-						width="xs"
-					/>
-					{#if filters.scrapCode}
-						<Button
-							type="button"
-							title="Clear scrap code"
-							aria-label="Clear scrap code filter"
-							size="icon"
-							variant="ghost"
-							class="shrink-0 text-destructive hover:bg-destructive/50"
-							onclick={() => (filters.scrapCode = '')}
-						>
-							<X />
-						</Button>
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					class="rounded-lg"
+					disabled={!canExport}
+					aria-busy={isExporting}
+					onclick={exportRecords}
+				>
+					{#if isExporting}
+						<LoaderCircle class="size-4 animate-spin" />
+					{:else}
+						<FileSpreadsheet class="size-4" />
 					{/if}
-				</div>
-			</label>
-			<label class={labelClass}>
-				Created by
-				<input
-					class="{fieldClass} w-44 max-w-full"
-					type="search"
-					placeholder="Card number"
-					bind:value={filters.createdBy}
-				/>
-			</label>
-			<label class={labelClass}>
-				Replacement part
-				<input
-					class="{fieldClass} w-44 max-w-full"
-					type="search"
-					placeholder="Part number"
-					bind:value={filters.replacementPart}
-				/>
-			</label>
-			<label class={labelClass}>
-				QAD export
-				<select class={fieldClass} bind:value={filters.exported}>
-					<option value="">All</option>
-					<option value="true">Exported</option>
-					<option value="false">Not exported</option>
-				</select>
-			</label>
-		</div>
-
-		{#if activeChips.length}
-			<div class="flex flex-wrap items-center gap-1.5 border-t border-border pt-2">
-				<span class="text-xs text-muted-foreground">Active filters:</span>
-				{#each activeChips as chip (chip.key)}
-					<Badge variant="outline" class="gap-1 pr-0.5">
-						{chip.label}
-						<button
-							type="button"
-							class="-my-1 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-							aria-label="Remove filter {chip.label}"
-							title="Remove filter"
-							onclick={() => removeChip(chip.key)}
-						>
-							<X class="size-3" />
-						</button>
-					</Badge>
-				{/each}
+					Export ({data.totalRecords})
+				</Button>
 			</div>
-		{/if}
+		</div>
 	</form>
 
 	<!-- Breaks out of the layout max-width: as wide as the window, at most 1920px, centered. -->
