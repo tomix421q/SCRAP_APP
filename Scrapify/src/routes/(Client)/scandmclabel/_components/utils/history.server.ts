@@ -1,6 +1,6 @@
 import prismaClient from '@/server/prisma';
 import { dateTimePartsLocalTimeDb, getLocalDateTimeForDb } from '@/utils/index';
-import { scrapRecordType } from '../scrapRecords/columns';
+import { scrapRecordType } from '../../../scrapRecords/columns';
 import { operatorHistoryLimit, type OperatorHistory } from './history';
 
 /**

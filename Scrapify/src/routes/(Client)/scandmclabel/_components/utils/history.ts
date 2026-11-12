@@ -1,4 +1,4 @@
-import type { ScrapRecordType } from '../scrapRecords/columns';
+import type { ScrapRecordType } from '../../../scrapRecords/columns';
 
 /** Maximum number of records shown in the operator history. */
 export const operatorHistoryLimit = 200;

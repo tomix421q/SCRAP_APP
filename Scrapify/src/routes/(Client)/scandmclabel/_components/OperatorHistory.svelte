@@ -6,7 +6,7 @@
 	import * as Dialog from '@/components/ui/dialog';
 	import { operatorCardId } from '@/stores/stores';
 	import { History, RefreshCw } from '@lucide/svelte';
-	import { operatorHistoryLimit, type OperatorHistory, type OperatorHistoryMode } from '../history';
+	import { operatorHistoryLimit, type OperatorHistory, type OperatorHistoryMode } from './utils/history';
 
 	const modeLabels: Record<OperatorHistoryMode, string> = {
 		Scrap: 'Scrap',

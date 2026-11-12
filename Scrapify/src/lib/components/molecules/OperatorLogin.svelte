@@ -129,20 +129,26 @@
 
 <main class="w-fit mx-auto max-md:w-full">
 	{#if verifiedOperator}
-		<div class="formNormalize min-w-2xs! h-full! flex flex-col gap-3">
-			{@render cardHeader()}
+		<!-- Badge layout: identity on the left, actions on the right keeps the card no taller than the scanner. -->
+		<div
+			class="formNormalize min-w-2xs! h-full! flex-row! items-center justify-between gap-x-8 gap-y-0!"
+		>
+			<section class="flex flex-col gap-1">
+				{@render cardHeader()}
+				{#if fullName}
+					<p class="mt-1 text-xl lg:text-2xl font-semibold leading-tight">{fullName}</p>
+				{/if}
+				<p class="text-3xl lg:text-4xl font-bold leading-none tabular-nums text-chart-success">
+					{cardId}
+				</p>
+			</section>
 
-			{#if fullName}
-				<p class="text-xl lg:text-2xl font-semibold">{fullName}</p>
-			{/if}
-			<p class="text-3xl lg:text-4xl font-bold tabular-nums text-chart-success">{cardId}</p>
-
-			<footer class="mt-auto flex items-center gap-2 pt-2">
+			<footer class="flex flex-col items-stretch gap-2">
 				{@render actions?.()}
 				<Button
 					variant="ghost"
 					size="sm"
-					class="ml-auto text-destructive hover:text-destructive"
+					class="text-destructive hover:text-destructive"
 					onclick={logoutOperator}>Odhlásiť</Button
 				>
 			</footer>
@@ -151,7 +157,7 @@
 		<form
 			method="POST"
 			onsubmit={handleLoginOperator}
-			class="formNormalize min-w-2xs! h-full! flex flex-col gap-3"
+			class="formNormalize min-w-2xs! h-full! gap-y-2!"
 		>
 			{@render cardHeader()}
 			<ResultInfo data={infoResult} />
@@ -168,7 +174,7 @@
 				required
 			/>
 
-			<footer class="mt-auto flex items-center gap-2 pt-2">
+			<footer class="mt-auto flex items-center gap-2">
 				<Button type="submit" variant="default" size="sm" disabled={isSubmitting}>
 					{isSubmitting ? 'Prihlasujem…' : 'Prihlásiť'}
 				</Button>
