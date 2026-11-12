@@ -6,7 +6,7 @@ export const operatorHistoryLimit = 200;
 export type OperatorHistoryMode = ScrapRecordType;
 
 /** One saved scrap record as the operator sees it in the history dialog. */
-export type OperatorHistoryEntry = {
+export type OperatorHistoryRecord = {
 	id: number;
 	/** Local time of saving, HH:mm. */
 	time: string;
@@ -21,6 +21,13 @@ export type OperatorHistoryEntry = {
 	quantity: number;
 	qadExported: boolean;
 };
+
+/**
+ * One row of the history. A rebuild save writes one record per part group: the main one
+ * carries the reason, the others only the flag. They are shown as one row with the main
+ * record on top and the rest in `related` (expandable). Other rows have empty `related`.
+ */
+export type OperatorHistoryEntry = OperatorHistoryRecord & { related: OperatorHistoryRecord[] };
 
 export type OperatorHistory = {
 	entries: OperatorHistoryEntry[];

@@ -18,7 +18,8 @@ Súvisiaca (hotová) špecifikácia: `.scratch/action-panel/spec.md`. Panel akci
 
 - **Koho záznamy:** iba prihláseného operátora (`ScrapRecord.createdBy` = číslo jeho karty z `$operatorCardId`).
 - **Obdobie:** od polnoci (začiatok aktuálneho kalendárneho dňa) po teraz. Poznámka: nočná zmena (22:00–06:00) preto o polnoci „stratí“ prvú polovicu záznamov; riziko je vedome akceptované.
-- **Rozsah a poradie:** všetky záznamy v tomto období, najnovšie hore, pevný strop 200 riadkov. Pri dosiahnutí stropu je pod zoznamom poznámka „Zobrazených posledných 200“. Bez filtrov, stránkovania a zoskupovania: jeden riadok = jeden záznam v DB.
+- **Rozsah a poradie:** všetky záznamy v tomto období, najnovšie hore, pevný strop 200 záznamov. Pri dosiahnutí stropu je pod zoznamom poznámka „Zobrazených posledných 200“. Bez filtrov a stránkovania. Jeden riadok = jeden záznam v DB, okrem rebuildu (viď Zoskupenie rebuildu). Strop 200 sa počíta v záznamoch, nie v riadkoch.
+- **Zoskupenie rebuildu:** pri rebuilde operátor zadá dôvod iba pri hlavnej skupine (tá, ktorá má chybu). Ostatné skupiny sa uložia len s príznakom (`isRebuild = true`, prípadne `isOtherComponent`). Záznamy jedného uloženia rebuildu (rovnaký `dmc` a rovnaký `createdAt`, lebo sa ukladajú jedným `createMany` a `GETDATE()` sa vyhodnotí raz) sa zobrazia ako jeden riadok s hlavným záznamom. Hlavný je prvý záznam s dôvodom (scrap code alebo iný variant), inak prvý záznam. Ostatné záznamy sú skryté a zobrazia sa po kliknutí na „+N ďalšie skupiny“ (rozbalenie priamo v riadku). Scrap a quantity scrap sa nezoskupujú.
 - **Riadok obsahuje:** čas (HH:mm), DMC, názov skupiny (`partGroup.interfaceName`), režim (Scrap / Rebuild / Quantity), dôvod scrapu alebo štítok „Iný komponent“ / „Iný variant“ (s part number náhradného dielu), množstvo len ak je iné než 1 a text **„QAD: áno/nie“** podľa `QADExported`.
 - **Režim sa neukladá**, odvodzuje sa: label s prefixom `quantityScrapLabelPrefix` = Quantity, inak `isRebuild` = Rebuild, inak Scrap.
 - **Načítanie:** SvelteKit akcia `?/history` v `scandmclabel/+page.server.ts` (vzor `scanDmc`), len čítanie, volaná po kliknutí na tlačidlo. Číslo karty príde z klienta, rovnako ako pri ukladaní (operátori nemajú serverovú session; v internej sieti je to pri čítaní prijateľné). Stav načítavania a chyba sa v modale zobrazia zrozumiteľne.
@@ -37,6 +38,7 @@ Súvisiaca (hotová) špecifikácia: `.scratch/action-panel/spec.md`. Panel akci
 7. Ako operátor chcem, aby karta operátora vyzerala ako preukaz s menom a číslom karty, aby bolo hneď jasné, kto je prihlásený.
 8. Ako operátor nechcem preklepnúť Odhlásiť namiesto Histórie.
 9. Ako vývojár chcem, aby sa tlačidlo zobrazilo len tam, kde akcia existuje (na úvodnej stránke nie).
+10. Ako operátor chcem pri rebuilde vidieť iba hlavný záznam s dôvodom a ostatné skupiny rozbaliť až na požiadanie, aby ma nerušili.
 
 ## Mimo rozsahu
 

@@ -5,8 +5,14 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import * as Dialog from '@/components/ui/dialog';
 	import { operatorCardId } from '@/stores/stores';
-	import { History, RefreshCw } from '@lucide/svelte';
-	import { operatorHistoryLimit, type OperatorHistory, type OperatorHistoryMode } from './utils/history';
+	import { ChevronDown, History, RefreshCw } from '@lucide/svelte';
+	import { SvelteSet } from 'svelte/reactivity';
+	import {
+		operatorHistoryLimit,
+		type OperatorHistory,
+		type OperatorHistoryMode,
+		type OperatorHistoryRecord
+	} from './utils/history';
 
 	const modeLabels: Record<OperatorHistoryMode, string> = {
 		Scrap: 'Scrap',
@@ -23,6 +29,8 @@
 	let isLoading = $state(false);
 	let history = $state<OperatorHistory>();
 	let loadError = $state<ResultInfoData>();
+	/** Entries whose related rebuild records are expanded. */
+	const expandedIds = new SvelteSet<number>();
 	/** Increments per request so a late response cannot overwrite a newer one. */
 	let requestId = 0;
 
@@ -42,6 +50,7 @@
 		isLoading = true;
 		history = undefined;
 		loadError = undefined;
+		expandedIds.clear();
 
 		try {
 			const body = new FormData();
@@ -77,7 +86,29 @@
 			if (currentRequest === requestId) isLoading = false;
 		}
 	}
+
+	function toggleRelated(id: number) {
+		if (expandedIds.has(id)) expandedIds.delete(id);
+		else expandedIds.add(id);
+	}
 </script>
+
+{#snippet reasonLine(record: OperatorHistoryRecord)}
+	<div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+		<span class="text-foreground">{record.partGroupName}</span>
+		{#if record.scrapCode || record.scrapCodeDescription}
+			<span>
+				{[record.scrapCode, record.scrapCodeDescription].filter(Boolean).join(' · ')}
+			</span>
+		{/if}
+		{#if record.isOtherComponent}
+			<Badge variant="outline" class="text-muted-foreground">Iný komponent</Badge>
+		{/if}
+		{#if record.replacementPartMaterial}
+			<Badge variant="default">Iný variant: {record.replacementPartMaterial}</Badge>
+		{/if}
+	</div>
+{/snippet}
 
 <Button type="button" variant="outline" size="sm" onclick={openHistory} disabled={!$operatorCardId}>
 	<History class="size-4" />História
@@ -122,22 +153,30 @@
 									QAD: {entry.qadExported ? 'áno' : 'nie'}
 								</span>
 							</div>
-							<div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-								<span class="text-foreground">{entry.partGroupName}</span>
-								{#if entry.scrapCode || entry.scrapCodeDescription}
-									<span>
-										{entry.scrapCode ?? ''}{entry.scrapCode && entry.scrapCodeDescription
-											? ' · '
-											: ''}{entry.scrapCodeDescription ?? ''}
-									</span>
+							{@render reasonLine(entry)}
+							{#if entry.related.length > 0}
+								{@const isExpanded = expandedIds.has(entry.id)}
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									class="-ml-2 w-fit text-muted-foreground"
+									aria-expanded={isExpanded}
+									onclick={() => toggleRelated(entry.id)}
+								>
+									<ChevronDown
+										class="size-4 transition-transform {isExpanded ? 'rotate-180' : ''}"
+									/>
+									{isExpanded ? 'Skryť' : `+${entry.related.length} ďalšie`} skupiny
+								</Button>
+								{#if isExpanded}
+									<ul class="ml-2 flex flex-col gap-1 border-l-2 border-border pl-3">
+										{#each entry.related as related (related.id)}
+											<li>{@render reasonLine(related)}</li>
+										{/each}
+									</ul>
 								{/if}
-								{#if entry.isOtherComponent}
-									<Badge variant="outline" class="text-muted-foreground">Iný komponent</Badge>
-								{/if}
-								{#if entry.replacementPartMaterial}
-									<Badge variant="default">Iný variant: {entry.replacementPartMaterial}</Badge>
-								{/if}
-							</div>
+							{/if}
 						</li>
 					{/each}
 				</ul>

@@ -1,7 +1,12 @@
 import prismaClient from '@/server/prisma';
 import { dateTimePartsLocalTimeDb, getLocalDateTimeForDb } from '@/utils/index';
 import { scrapRecordType } from '../../../scrapRecords/columns';
-import { operatorHistoryLimit, type OperatorHistory } from './history';
+import {
+	operatorHistoryLimit,
+	type OperatorHistory,
+	type OperatorHistoryEntry,
+	type OperatorHistoryRecord
+} from './history';
 
 /**
  * Start of the current local calendar day in the DB representation
@@ -23,12 +28,13 @@ export async function loadOperatorHistory(cardId: string): Promise<OperatorHisto
 		take: operatorHistoryLimit + 1
 	});
 
-	return {
-		limitReached: records.length > operatorHistoryLimit,
-		entries: records.slice(0, operatorHistoryLimit).map((record) => ({
+	const historyRecords = records
+		.slice(0, operatorHistoryLimit)
+		.map((record): OperatorHistoryRecord & { savedAt: number } => ({
 			id: record.id,
 			// The DB time formatter yields HH:mm:ss; the history shows minutes only.
 			time: dateTimePartsLocalTimeDb(record.createdAt).time.slice(0, 5),
+			savedAt: record.createdAt.getTime(),
 			dmc: record.dmc,
 			partGroupName: record.partGroup.interfaceName,
 			// The mode is not stored, it is derived the same way as on `scrapRecords`.
@@ -40,6 +46,34 @@ export async function loadOperatorHistory(cardId: string): Promise<OperatorHisto
 			replacementPartMaterial: record.replacementPartMaterial?.trim() || null,
 			quantity: record.quantity,
 			qadExported: record.QADExported === true
-		}))
+		}));
+
+	return {
+		limitReached: records.length > operatorHistoryLimit,
+		entries: groupRebuildSaves(historyRecords)
 	};
+}
+
+/**
+ * Collapses each rebuild save into one entry. Records of one save share the label and
+ * `createdAt` (one `createMany`, `GETDATE()` evaluated once). The main record is the one
+ * with a reason (scrap code or Other variant); the rest go to `related` in original order.
+ */
+function groupRebuildSaves(
+	records: (OperatorHistoryRecord & { savedAt: number })[]
+): OperatorHistoryEntry[] {
+	const groups = new Map<string, OperatorHistoryRecord[]>();
+	for (const { savedAt, ...record } of records) {
+		const key =
+			record.mode === 'Rebuild' ? `rebuild|${record.dmc}|${savedAt}` : `record|${record.id}`;
+		const group = groups.get(key);
+		if (group) group.push(record);
+		else groups.set(key, [record]);
+	}
+
+	return [...groups.values()].map((group) => {
+		const main =
+			group.find((record) => record.scrapCode || record.replacementPartMaterial) ?? group[0];
+		return { ...main, related: group.filter((record) => record !== main) };
+	});
 }

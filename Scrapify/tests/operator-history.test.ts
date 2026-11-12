@@ -100,7 +100,8 @@ describe('scandmclabel history action: query', () => {
 					isOtherComponent: false,
 					replacementPartMaterial: 'MAT-9',
 					quantity: 4,
-					qadExported: true
+					qadExported: true,
+					related: []
 				},
 				{
 					id: 2,
@@ -113,7 +114,8 @@ describe('scandmclabel history action: query', () => {
 					isOtherComponent: true,
 					replacementPartMaterial: null,
 					quantity: 1,
-					qadExported: false
+					qadExported: false,
+					related: []
 				},
 				{
 					id: 1,
@@ -126,10 +128,54 @@ describe('scandmclabel history action: query', () => {
 					isOtherComponent: false,
 					replacementPartMaterial: 'MAT-1',
 					quantity: 1,
-					qadExported: false
+					qadExported: false,
+					related: []
 				}
 			]
 		});
+	});
+
+	it('groups one rebuild save under its main record; scrap and other saves stay separate', async () => {
+		const savedAt = new Date('2026-11-12T09:30:00Z');
+		const record = (
+			id: number,
+			dmc: string,
+			createdAt: Date,
+			isRebuild: boolean,
+			reason: { scrapCode?: string; isOtherComponent?: boolean }
+		) => ({
+			id,
+			dmc,
+			createdAt,
+			isRebuild,
+			scrapCode: reason.scrapCode ?? null,
+			scrapCodeDescription: null,
+			isOtherComponent: reason.isOtherComponent ?? false,
+			replacementPartMaterial: null,
+			quantity: 1,
+			QADExported: false,
+			partGroup: { interfaceName: `Group-${id}` }
+		});
+		prismaMock.scrapRecord.findMany.mockResolvedValue([
+			record(12, 'DMC-R', savedAt, true, { isOtherComponent: true }),
+			record(11, 'DMC-R', savedAt, true, { scrapCode: 'R1' }),
+			record(10, 'DMC-R', savedAt, true, { isOtherComponent: true }),
+			record(9, 'DMC-R', new Date('2026-11-12T09:10:00Z'), true, { scrapCode: 'R2' }),
+			record(8, 'DMC-S', savedAt, false, { scrapCode: 'S1' }),
+			record(7, 'DMC-S', savedAt, false, { isOtherComponent: true })
+		]);
+
+		const result = (await runHistory('4321')) as {
+			entries: { id: number; related: { id: number }[] }[];
+		};
+		expect(
+			result.entries.map((entry) => [entry.id, entry.related.map((related) => related.id)])
+		).toEqual([
+			[11, [12, 10]],
+			[9, []],
+			[8, []],
+			[7, []]
+		]);
 	});
 
 	it.each([
