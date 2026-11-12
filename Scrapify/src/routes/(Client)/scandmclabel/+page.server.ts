@@ -5,6 +5,7 @@ import { matchDmcWithMask } from '@/utils/serverHelp';
 import { saveQuantityScrapSchema, saveScrapSchema } from '@/utils/zod';
 import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
 import { loadOperatorHistory } from './_components/utils/history.server';
+import { findCardHolder } from '@/server/cardHolder';
 
 async function findMatchingLabels(barcode: string) {
 	const labelGroups = await prismaClient.labelGroup.findMany({
@@ -121,19 +122,12 @@ export const actions = {
 				});
 			}
 
-			const [matchedLabels, registeredOperator, registeredUser] = await Promise.all([
+			const [matchedLabels, cardHolder] = await Promise.all([
 				findMatchingLabels(dmc),
-				prismaClient.operator.findUnique({
-					where: { cardId: operatorCardId },
-					select: { cardId: true }
-				}),
-				prismaClient.user.findUnique({
-					where: { cardId: operatorCardId },
-					select: { cardId: true }
-				})
+				findCardHolder(operatorCardId)
 			]);
 
-			if (!registeredOperator && !registeredUser) {
+			if (!cardHolder) {
 				return fail(403, {
 					success: false,
 					message: 'Operátor nebol overený.',
@@ -221,12 +215,9 @@ export const actions = {
 				createdBy: operator
 			}));
 
-			//
-			console.log(recordsToInsert);
 			await prismaClient.scrapRecord.createMany({
 				data: recordsToInsert
 			});
-			console.log(recordsToInsert);
 			return {
 				success: true,
 				message: `👍 Scrap pre Label:${dmc} bol úspešne zaevidovaný `
@@ -264,7 +255,7 @@ export const actions = {
 				});
 			}
 
-			const [quantityScrapLabel, registeredOperator] = await Promise.all([
+			const [quantityScrapLabel, cardHolder] = await Promise.all([
 				prismaClient.labelGroup.findUnique({
 					where: { id: labelGroupId },
 					include: {
@@ -274,13 +265,10 @@ export const actions = {
 						}
 					}
 				}),
-				prismaClient.operator.findUnique({
-					where: { cardId: operatorCardId },
-					select: { cardId: true }
-				})
+				findCardHolder(operatorCardId)
 			]);
 
-			if (!registeredOperator) {
+			if (!cardHolder) {
 				return fail(403, {
 					success: false,
 					message: 'Operátor nebol overený.',

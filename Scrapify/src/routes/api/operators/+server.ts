@@ -1,15 +1,17 @@
 import type { RequestHandler } from './$types';
-import prismaClient from '@/server/prisma';
+import { findCardHolder } from '@/server/cardHolder';
 import { json } from '@sveltejs/kit';
 
 export const POST: RequestHandler = async ({ request }) => {
 	const { cardId } = await request.json();
 
 	try {
-		const findOperator = await prismaClient.operator.findFirst({
-			where: { cardId: Number(cardId) }
-		});
-		if (!findOperator) {
+		// Operators and registered users (e.g. engineers) may both record scrap with their card.
+		const parsedCardId = Number(cardId);
+		const cardHolder = Number.isSafeInteger(parsedCardId)
+			? await findCardHolder(parsedCardId)
+			: null;
+		if (!cardHolder) {
 			return json(
 				{
 					success: false,
@@ -22,9 +24,9 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json(
 				{
 					success: true,
-					message: `Uspesne prihlaseny - ${findOperator?.cardId}`,
+					message: `Uspesne prihlaseny - ${parsedCardId}`,
 					error: false,
-					fullName: findOperator.fullName
+					fullName: cardHolder.fullName
 				},
 				{ status: 200 }
 			);
