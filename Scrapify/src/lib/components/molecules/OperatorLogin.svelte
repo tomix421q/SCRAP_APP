@@ -7,7 +7,9 @@
 	import { operatorCardId } from '@/stores/stores';
 	import { toast } from 'svelte-sonner';
 	import { onMount, type Snippet } from 'svelte';
-	import { UserRound } from '@lucide/svelte';
+	import { LogOut, UserRound } from '@lucide/svelte';
+	import * as AlertDialog from '@/components/ui/alert-dialog';
+	import { buttonVariants } from '@/components/ui/button';
 
 	let {
 		/** Extra buttons for the logged-in card (e.g. history), rendered before logout. */
@@ -129,29 +131,54 @@
 
 <main class="w-fit mx-auto max-md:w-full">
 	{#if verifiedOperator}
-		<!-- Badge layout: identity on the left, actions on the right keeps the card no taller than the scanner. -->
-		<div
-			class="formNormalize min-w-2xs! h-full! flex-row! items-center justify-between gap-x-8 gap-y-0!"
-		>
-			<section class="flex flex-col gap-1">
+		<!-- Badge layout: logout sits in the top corner, away from the actions, and needs confirmation. -->
+		<div class="formNormalize min-w-2xs! h-full! justify-between gap-y-1!">
+			<div class="flex items-center justify-between gap-4">
 				{@render cardHeader()}
-				{#if fullName}
-					<p class="mt-1 text-xl lg:text-2xl font-semibold leading-tight">{fullName}</p>
-				{/if}
-				<p class="text-3xl lg:text-4xl font-bold leading-none tabular-nums text-chart-success">
-					{cardId}
-				</p>
-			</section>
+				<AlertDialog.Root>
+					<AlertDialog.Trigger
+						class={buttonVariants({
+							variant: 'ghost',
+							size: 'sm',
+							class: '-mr-2 text-destructive hover:text-destructive'
+						})}
+					>
+						<LogOut class="size-4" />Odhlásiť
+					</AlertDialog.Trigger>
+					<AlertDialog.Content>
+						<AlertDialog.Header>
+							<AlertDialog.Title>Odhlásiť operátora?</AlertDialog.Title>
+							<AlertDialog.Description>
+								Karta {cardId} bude odhlásená. Pred ďalším scanom sa treba znova prihlásiť.
+							</AlertDialog.Description>
+						</AlertDialog.Header>
+						<AlertDialog.Footer>
+							<AlertDialog.Cancel>Zostať prihlásený</AlertDialog.Cancel>
+							<AlertDialog.Action
+								class={buttonVariants({ variant: 'destructive' })}
+								onclick={logoutOperator}>Odhlásiť</AlertDialog.Action
+							>
+						</AlertDialog.Footer>
+					</AlertDialog.Content>
+				</AlertDialog.Root>
+			</div>
 
-			<footer class="flex flex-col items-stretch gap-2">
-				{@render actions?.()}
-				<Button
-					variant="ghost"
-					size="sm"
-					class="text-destructive hover:text-destructive"
-					onclick={logoutOperator}>Odhlásiť</Button
-				>
-			</footer>
+			<div class="flex items-end justify-between gap-x-8">
+				<section class="flex flex-col gap-1">
+					{#if fullName}
+						<p class="mt-1 text-xl lg:text-2xl font-semibold leading-tight">{fullName}</p>
+					{/if}
+					<p class="text-3xl lg:text-4xl font-bold leading-none tabular-nums text-chart-success">
+						{cardId}
+					</p>
+				</section>
+
+				{#if actions}
+					<footer class="flex items-center gap-2">
+						{@render actions()}
+					</footer>
+				{/if}
+			</div>
 		</div>
 	{:else}
 		<form
