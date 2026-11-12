@@ -22,12 +22,24 @@
 	let userIdCardFromLc = $state<string | null>(null);
 	const { user } = $derived(data);
 	let getActuallTime = $state<Date>(new Date());
+	// Formatted only in the browser so it shows the viewer's local time, not the server's zone.
+	let lastUpdate = $state('');
+
+	/** Build time as "HH:mm" when it was today, otherwise "dd.MM. HH:mm". */
+	function formatBuildTime(iso: string, now: Date): string {
+		const builtAt = new Date(iso);
+		const time = builtAt.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
+		if (builtAt.toDateString() === now.toDateString()) return time;
+		const date = builtAt.toLocaleDateString('sk-SK', { day: '2-digit', month: '2-digit' });
+		return `${date} ${time}`;
+	}
 
 	onMount(() => {
 		if (user?.cardId) {
 			localStorage.setItem('operatorId', user.cardId.toString());
 		}
 		userIdCardFromLc = getUserIdCardFromLc();
+		lastUpdate = formatBuildTime(__APP_BUILD_TIME__, new Date());
 
 		const intervalId = setInterval(() => {
 			getActuallTime = new Date();
@@ -96,6 +108,12 @@
 							class="max-sm:hidden px-2 rounded-sm py-0.5 font-semibold hover:text-primary text-chart-1"
 							>Tldraw docs</a
 						>
+						{#if lastUpdate}
+							<span class="max-sm:hidden">·</span>
+							<span class="max-sm:hidden" title="Čas posledného buildu aplikácie"
+								>Last update: {lastUpdate}</span
+							>
+						{/if}
 					</p>
 					<span class="mb-auto leading-3 mx-2 text-xs">{user?.role}</span>
 					<span class="mb-auto leading-3 mx-2 text-xs">{userIdCardFromLc}</span>

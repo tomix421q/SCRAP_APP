@@ -14,6 +14,8 @@ export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
 	// Replaced at build time with the string literal, e.g. "4.3.5".
 	define: {
-		__APP_VERSION__: JSON.stringify(version)
+		__APP_VERSION__: JSON.stringify(version),
+		// ISO timestamp of the build, shown as "Last update" in the header.
+		__APP_BUILD_TIME__: JSON.stringify(new Date().toISOString())
 	}
 });

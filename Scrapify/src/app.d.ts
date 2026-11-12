@@ -10,6 +10,8 @@ declare global {
 	}
 	// Injected by Vite `define` from package.json (see vite.config.ts).
 	const __APP_VERSION__: string;
+	// ISO timestamp of the build, injected by Vite `define` (see vite.config.ts).
+	const __APP_BUILD_TIME__: string;
 }
 
 export {};
