@@ -93,7 +93,7 @@
 							href="https://draw.zilka-tomas.com/test-room-lMV2FeG8cLDj7egkgO4lm?d=v166.84.2113.1453.xm698mn4hLAx2QhjfRfS0"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="max-sm:hidden bg-chart-4 px-2 rounded-sm py-0.5 font-semibold hover:text-primary text-chart-1"
+							class="max-sm:hidden px-2 rounded-sm py-0.5 font-semibold hover:text-primary text-chart-1"
 							>Tldraw docs</a
 						>
 					</p>
