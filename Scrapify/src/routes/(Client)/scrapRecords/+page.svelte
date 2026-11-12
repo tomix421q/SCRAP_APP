@@ -7,14 +7,14 @@
 	import { dateTimePartsLocalTimeDb } from '@/utils/index';
 	import {
 		isOtherVariant,
+		scrapRecordTypeBadgeVariant,
 		scrapRecordTableColumns,
 		scrapRecordType,
 		tableColumnLabels,
-		type ScrapRecordTableColumnKey,
-		type ScrapRecordType
+		type ScrapRecordTableColumnKey
 	} from './columns';
 	import Combobox from '@/components/atoms/Combobox.svelte';
-	import { Badge, type BadgeVariant } from '@/components/ui/badge';
+	import { Badge } from '@/components/ui/badge';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 	import Pagination from '@/components/molecules/Pagination.svelte';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
@@ -36,12 +36,6 @@
 		'flex min-w-0 max-w-full flex-col gap-1 text-xs font-medium text-muted-foreground';
 	const groupClass = 'flex min-w-0 flex-col gap-2';
 	const legendClass = 'mb-1 text-[11px] font-semibold uppercase tracking-wider text-chart-1/80';
-
-	const typeBadgeVariant: Record<ScrapRecordType, BadgeVariant> = {
-		Scrap: 'outline',
-		Rebuild: 'chart-warning',
-		'Quantity scrap': 'chart-2'
-	};
 
 	// The first column of each group gets a divider.
 	const groupStartKeys = new Set<ScrapRecordTableColumnKey>(
@@ -568,7 +562,7 @@
 										</Table.Cell>
 									{:else if column.key === 'type'}
 										<Table.Cell class={cellClasses}>
-											<Badge variant={typeBadgeVariant[type]}>{type}</Badge>
+											<Badge variant={scrapRecordTypeBadgeVariant[type]}>{type}</Badge>
 										</Table.Cell>
 									{:else if column.key === 'part'}
 										<Table.Cell

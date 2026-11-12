@@ -7,6 +7,8 @@
 	import { operatorCardId } from '@/stores/stores';
 	import { ChevronDown, History, RefreshCw } from '@lucide/svelte';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { Separator } from '@/components/ui/separator';
+	import { scrapRecordTypeBadgeVariant } from '../../scrapRecords/columns';
 	import {
 		operatorHistoryLimit,
 		type OperatorHistory,
@@ -18,15 +20,6 @@
 		Scrap: 'Scrap',
 		Rebuild: 'Rebuild',
 		'Quantity scrap': 'Quantity'
-	};
-	const modeVariants = {
-		Scrap: 'outline',
-		Rebuild: 'chart-warning',
-		'Quantity scrap': 'chart-2'
-	} as const satisfies Record<OperatorHistoryMode, string>;
-	/** Soft red for Scrap, matching the muted tint of the Rebuild badge. */
-	const modeClasses: Partial<Record<OperatorHistoryMode, string>> = {
-		Scrap: 'border-destructive/50 bg-destructive/15 text-destructive'
 	};
 
 	let isOpen = $state(false);
@@ -126,6 +119,7 @@
 				>Záznamy uložené pod kartou {$operatorCardId}, najnovšie hore.</Dialog.Description
 			>
 		</Dialog.Header>
+		<Separator />
 
 		<div class="min-h-24 overflow-y-auto -mx-2 px-2">
 			{#if isLoading}
@@ -145,7 +139,7 @@
 							<div class="flex flex-wrap items-center gap-2">
 								<span class="font-semibold tabular-nums">{entry.time}</span>
 								<span class="font-mono font-semibold text-primary break-all">{entry.dmc}</span>
-								<Badge variant={modeVariants[entry.mode]} class={modeClasses[entry.mode]}
+								<Badge variant={scrapRecordTypeBadgeVariant[entry.mode]}
 									>{modeLabels[entry.mode]}</Badge
 								>
 								{#if entry.quantity !== 1}

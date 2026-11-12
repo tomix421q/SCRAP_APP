@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import type { XlsxColumn } from '@/utils/xlsx.server';
+import type { BadgeVariant } from '@/components/ui/badge';
 import { dateTimeLocalTimeDb } from '@/utils/index';
 import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
 
@@ -33,6 +34,13 @@ export type ScrapRecordColumn = {
 export function isOtherVariant(record: Pick<ScrapRecordRow, 'replacementPartMaterial'>) {
 	return Boolean(record.replacementPartMaterial?.trim());
 }
+
+/** Badge variant per record type, shared by every view that shows the type as a badge. */
+export const scrapRecordTypeBadgeVariant: Record<ScrapRecordType, BadgeVariant> = {
+	Scrap: 'chart-destructive',
+	Rebuild: 'chart-warning',
+	'Quantity scrap': 'chart-2'
+};
 
 export function scrapRecordType(
 	record: Pick<ScrapRecordRow, 'dmc' | 'isRebuild'>

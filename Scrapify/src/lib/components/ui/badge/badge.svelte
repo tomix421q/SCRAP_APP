@@ -14,6 +14,7 @@
 				outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
 				"chart-warning": "border-chart-warning/50 bg-chart-warning/15 text-chart-warning",
 				"chart-2": "border-chart-2 bg-chart-2/30 text-foreground",
+				"chart-destructive": "border-destructive/50 bg-destructive/15 text-destructive",
 			},
 		},
 		defaultVariants: {
