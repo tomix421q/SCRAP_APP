@@ -20,7 +20,7 @@
 		'Quantity scrap': 'Quantity'
 	};
 	const modeVariants = {
-		Scrap: 'outline',
+		Scrap: 'destructive',
 		Rebuild: 'chart-warning',
 		'Quantity scrap': 'chart-2'
 	} as const satisfies Record<OperatorHistoryMode, string>;
@@ -115,7 +115,7 @@
 </Button>
 
 <Dialog.Root bind:open={isOpen}>
-	<Dialog.Content class="cardNormalize max-h-[90dvh] flex flex-col sm:max-w-2xl">
+	<Dialog.Content class="cardNormalize max-h-[90dvh] flex flex-col sm:max-w-3xl lg:max-w-4xl">
 		<Dialog.Header>
 			<Dialog.Title>Moje scrapy od polnoci</Dialog.Title>
 			<Dialog.Description
@@ -154,6 +154,9 @@
 								</span>
 							</div>
 							{@render reasonLine(entry)}
+							{#each entry.otherReasons as record (record.id)}
+								{@render reasonLine(record)}
+							{/each}
 							{#if entry.related.length > 0}
 								{@const isExpanded = expandedIds.has(entry.id)}
 								<Button

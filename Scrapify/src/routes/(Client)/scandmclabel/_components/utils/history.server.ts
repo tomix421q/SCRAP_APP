@@ -56,8 +56,8 @@ export async function loadOperatorHistory(cardId: string): Promise<OperatorHisto
 
 /**
  * Collapses each rebuild save into one entry. Records of one save share the label and
- * `createdAt` (one `createMany`, `GETDATE()` evaluated once). The main record is the one
- * with a reason (scrap code or Other variant); the rest go to `related` in original order.
+ * `createdAt` (one `createMany`, `GETDATE()` evaluated once). Records with a reason
+ * (scrap code or Other variant) stay visible, flag-only records go to `related`.
  */
 function groupRebuildSaves(
 	records: (OperatorHistoryRecord & { savedAt: number })[]
@@ -72,8 +72,13 @@ function groupRebuildSaves(
 	}
 
 	return [...groups.values()].map((group) => {
-		const main =
-			group.find((record) => record.scrapCode || record.replacementPartMaterial) ?? group[0];
-		return { ...main, related: group.filter((record) => record !== main) };
+		const withReason = group.filter((record) => record.scrapCode || record.replacementPartMaterial);
+		// A save without any reason still needs a record to show on top.
+		const [main, ...otherReasons] = withReason.length > 0 ? withReason : group;
+		return {
+			...main,
+			otherReasons,
+			related: group.filter((record) => record !== main && !otherReasons.includes(record))
+		};
 	});
 }

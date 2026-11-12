@@ -23,11 +23,15 @@ export type OperatorHistoryRecord = {
 };
 
 /**
- * One row of the history. A rebuild save writes one record per part group: the main one
- * carries the reason, the others only the flag. They are shown as one row with the main
- * record on top and the rest in `related` (expandable). Other rows have empty `related`.
+ * One row of the history. A rebuild save writes one record per part group: groups with a
+ * reason (scrap code or Other variant) and groups carrying only the flag. They are shown as
+ * one row: the first record with a reason on top, further reasons in `otherReasons`, and
+ * flag-only records in `related` (expandable). Other rows have both lists empty.
  */
-export type OperatorHistoryEntry = OperatorHistoryRecord & { related: OperatorHistoryRecord[] };
+export type OperatorHistoryEntry = OperatorHistoryRecord & {
+	otherReasons: OperatorHistoryRecord[];
+	related: OperatorHistoryRecord[];
+};
 
 export type OperatorHistory = {
 	entries: OperatorHistoryEntry[];

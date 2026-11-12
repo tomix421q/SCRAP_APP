@@ -101,6 +101,7 @@ describe('scandmclabel history action: query', () => {
 					replacementPartMaterial: 'MAT-9',
 					quantity: 4,
 					qadExported: true,
+					otherReasons: [],
 					related: []
 				},
 				{
@@ -115,6 +116,7 @@ describe('scandmclabel history action: query', () => {
 					replacementPartMaterial: null,
 					quantity: 1,
 					qadExported: false,
+					otherReasons: [],
 					related: []
 				},
 				{
@@ -129,13 +131,14 @@ describe('scandmclabel history action: query', () => {
 					replacementPartMaterial: 'MAT-1',
 					quantity: 1,
 					qadExported: false,
+					otherReasons: [],
 					related: []
 				}
 			]
 		});
 	});
 
-	it('groups one rebuild save under its main record; scrap and other saves stay separate', async () => {
+	it('groups one rebuild save: records with a reason shown, flag-only records hidden in related', async () => {
 		const savedAt = new Date('2026-11-12T09:30:00Z');
 		const record = (
 			id: number,
@@ -160,21 +163,23 @@ describe('scandmclabel history action: query', () => {
 			record(12, 'DMC-R', savedAt, true, { isOtherComponent: true }),
 			record(11, 'DMC-R', savedAt, true, { scrapCode: 'R1' }),
 			record(10, 'DMC-R', savedAt, true, { isOtherComponent: true }),
+			record(13, 'DMC-R', savedAt, true, { scrapCode: 'R3' }),
 			record(9, 'DMC-R', new Date('2026-11-12T09:10:00Z'), true, { scrapCode: 'R2' }),
 			record(8, 'DMC-S', savedAt, false, { scrapCode: 'S1' }),
 			record(7, 'DMC-S', savedAt, false, { isOtherComponent: true })
 		]);
 
 		const result = (await runHistory('4321')) as {
-			entries: { id: number; related: { id: number }[] }[];
+			entries: { id: number; otherReasons: { id: number }[]; related: { id: number }[] }[];
 		};
+		const ids = (records: { id: number }[]) => records.map((record) => record.id);
 		expect(
-			result.entries.map((entry) => [entry.id, entry.related.map((related) => related.id)])
+			result.entries.map((entry) => [entry.id, ids(entry.otherReasons), ids(entry.related)])
 		).toEqual([
-			[11, [12, 10]],
-			[9, []],
-			[8, []],
-			[7, []]
+			[11, [13], [12, 10]],
+			[9, [], []],
+			[8, [], []],
+			[7, [], []]
 		]);
 	});
 
