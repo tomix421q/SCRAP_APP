@@ -1,7 +1,17 @@
 import prismaClient from '@/server/prisma';
-import { dateTimePartsLocalTimeDb, startOfLocalDayForDb } from '@/utils/index';
+import { dateTimePartsLocalTimeDb, getLocalDateTimeForDb } from '@/utils/index';
 import { scrapRecordType } from '../scrapRecords/columns';
 import { operatorHistoryLimit, type OperatorHistory } from './history';
+
+/**
+ * Start of the current local calendar day in the DB representation
+ * (local wall-clock time read as UTC, see `getLocalDateTimeForDb`).
+ */
+function startOfLocalDayForDb(now: Date = new Date()): Date {
+	const localAsUtc = getLocalDateTimeForDb(now);
+	localAsUtc.setUTCHours(0, 0, 0, 0);
+	return localAsUtc;
+}
 
 /** Records the operator (identified by card ID) saved since local midnight, newest first. */
 export async function loadOperatorHistory(cardId: string): Promise<OperatorHistory> {

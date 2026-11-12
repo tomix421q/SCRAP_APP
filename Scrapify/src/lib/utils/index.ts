@@ -84,13 +84,3 @@ export function getLocalDateTimeForDb(date: Date = new Date()): Date {
 	const adjustedDatedInMs = dateInMs - timezoneOffsetMinutes * 60 * 1000;
 	return new Date(adjustedDatedInMs);
 }
-
-/**
- * Start of the current local calendar day in the DB representation
- * (local wall-clock time read as UTC, see `getLocalDateTimeForDb`).
- */
-export function startOfLocalDayForDb(now: Date = new Date()): Date {
-	const localAsUtc = getLocalDateTimeForDb(now);
-	localAsUtc.setUTCHours(0, 0, 0, 0);
-	return localAsUtc;
-}
