@@ -22,12 +22,16 @@
 	let userIdCardFromLc = $state<string | null>(null);
 	const { user } = $derived(data);
 	let getActuallTime = $state<Date>(new Date());
-	// Formatted only in the browser so it shows the viewer's local time, not the server's zone.
-	let lastUpdate = $state('');
+	// Build info is computed only in the browser (after mount) so it uses the viewer's local
+	// time, not the server's zone. It follows the minute timer, so the highlight expires on its own.
+	let isMounted = $state(false);
+	const builtAt = new Date(__APP_BUILD_TIME__);
+	const recentBuildMs = 24 * 60 * 60 * 1000;
+	const lastUpdate = $derived(isMounted ? formatBuildTime(builtAt, getActuallTime) : '');
+	const isRecentBuild = $derived(getActuallTime.getTime() - builtAt.getTime() < recentBuildMs);
 
 	/** Build time as "HH:mm" when it was today, otherwise "dd.MM. HH:mm". */
-	function formatBuildTime(iso: string, now: Date): string {
-		const builtAt = new Date(iso);
+	function formatBuildTime(builtAt: Date, now: Date): string {
 		const time = builtAt.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
 		if (builtAt.toDateString() === now.toDateString()) return time;
 		const date = builtAt.toLocaleDateString('sk-SK', { day: '2-digit', month: '2-digit' });
@@ -39,7 +43,7 @@
 			localStorage.setItem('operatorId', user.cardId.toString());
 		}
 		userIdCardFromLc = getUserIdCardFromLc();
-		lastUpdate = formatBuildTime(__APP_BUILD_TIME__, new Date());
+		isMounted = true;
 
 		const intervalId = setInterval(() => {
 			getActuallTime = new Date();
@@ -110,7 +114,9 @@
 						>
 						{#if lastUpdate}
 							<span class="max-sm:hidden">·</span>
-							<span class="max-sm:hidden" title="Čas posledného buildu aplikácie"
+							<span
+								class="max-sm:hidden {isRecentBuild ? 'font-semibold text-chart-1' : ''}"
+								title="Čas posledného buildu aplikácie"
 								>Last update: {lastUpdate}</span
 							>
 						{/if}
