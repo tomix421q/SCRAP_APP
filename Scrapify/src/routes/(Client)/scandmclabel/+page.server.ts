@@ -4,6 +4,7 @@ import type { PageServerLoad } from './$types';
 import { matchDmcWithMask } from '@/utils/serverHelp';
 import { saveQuantityScrapSchema, saveScrapSchema } from '@/utils/zod';
 import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
+import { loadOperatorHistory } from './history.server';
 
 async function findMatchingLabels(barcode: string) {
 	const labelGroups = await prismaClient.labelGroup.findMany({
@@ -30,6 +31,32 @@ export const load = (async () => {
 }) satisfies PageServerLoad;
 
 export const actions = {
+	history: async ({ request }) => {
+		const formData = await request.formData();
+		const operator = String(formData.get('operator') ?? '').trim();
+		// Digits only: `Number()` would also accept forms like "1e3" that never match `createdBy`.
+		const parsedCardId = /^\d+$/.test(operator) ? Number(operator) : NaN;
+		if (!Number.isSafeInteger(parsedCardId) || parsedCardId <= 0) {
+			return fail(400, {
+				success: false,
+				message: 'Neplatné ID operátora.',
+				error: 'Prihlás sa znova platnou kartou operátora.'
+			});
+		}
+
+		try {
+			// `createdBy` holds the card ID string exactly as sent when saving.
+			const history = await loadOperatorHistory(operator);
+			return { success: true, message: 'História bola načítaná.', ...history };
+		} catch (err) {
+			console.error('Failed to load operator history:', err);
+			return fail(500, {
+				success: false,
+				message: 'Nepodarilo sa načítať históriu.',
+				error: 'Skús to znova alebo kontaktuj správcu.'
+			});
+		}
+	},
 	scanDmc: async ({ request }) => {
 		const formData = await request.formData();
 		const barcode = String(formData.get('barcode') ?? '').trim();

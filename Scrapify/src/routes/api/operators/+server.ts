@@ -23,7 +23,8 @@ export const POST: RequestHandler = async ({ request }) => {
 				{
 					success: true,
 					message: `Uspesne prihlaseny - ${findOperator?.cardId}`,
-					error: false
+					error: false,
+					fullName: findOperator.fullName
 				},
 				{ status: 200 }
 			);

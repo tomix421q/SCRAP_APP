@@ -6,12 +6,41 @@
 	import Label from '../ui/label/label.svelte';
 	import { operatorCardId } from '@/stores/stores';
 	import { toast } from 'svelte-sonner';
+	import { onMount, type Snippet } from 'svelte';
+	import { UserRound } from '@lucide/svelte';
+
+	let {
+		/** Extra buttons for the logged-in card (e.g. history), rendered before logout. */
+		actions
+	}: { actions?: Snippet } = $props();
 
 	let cardId = $state('');
 	let isSubmitting = $state(false);
 	let infoResult = $state<ResultInfoData>();
 
 	let verifiedOperator = $state(false);
+	/** Operator name; shown only once loaded, never stored in localStorage. */
+	let fullName = $state<string>();
+
+	function readFullName(value: unknown): string | undefined {
+		if (typeof value !== 'object' || value === null || !('fullName' in value)) return undefined;
+		return typeof value.fullName === 'string' && value.fullName ? value.fullName : undefined;
+	}
+
+	async function loadFullName(id: string) {
+		try {
+			const response = await fetch('/api/operators', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ cardId: id })
+			});
+			if (!response.ok) return;
+			// Ignore a late response after logout or a different login.
+			if (id === cardId) fullName = readFullName(await response.json());
+		} catch {
+			// The card ID alone is enough to identify the operator.
+		}
+	}
 
 	async function handleLoginOperator(event: SubmitEvent) {
 		event.preventDefault();
@@ -42,6 +71,7 @@
 				}
 			} else {
 				infoResult = apiResult;
+				fullName = readFullName(apiResult);
 				setOperatorToLc();
 				// window.location.reload();
 			}
@@ -62,6 +92,7 @@
 		cardId = '';
 		$operatorCardId = '';
 		verifiedOperator = false;
+		fullName = undefined;
 		infoResult = undefined;
 	};
 
@@ -76,74 +107,72 @@
 		}
 	}
 
-	$effect(() => {
-		let isOperator = localStorage.getItem('operatorId');
-		if (isOperator) {
+	onMount(() => {
+		const storedCardId = localStorage.getItem('operatorId');
+		if (storedCardId) {
 			verifiedOperator = true;
-			cardId = isOperator;
-			$operatorCardId = cardId;
+			cardId = storedCardId;
+			$operatorCardId = storedCardId;
+			void loadFullName(storedCardId);
 		}
 	});
 
 	// $inspect();
 </script>
 
-<main class="w-fit mx-auto">
+{#snippet cardHeader()}
+	<header class="flex items-center gap-2 text-muted-foreground">
+		<UserRound class="size-6" />
+		<span class="text-sm font-bold uppercase tracking-widest">Operátor</span>
+	</header>
+{/snippet}
+
+<main class="w-fit mx-auto max-md:w-full">
 	{#if verifiedOperator}
-		<div class="formNormalize min-w-2xs! h-full!">
-			<section class="flex justify-between flex-col h-full">
-				<h3 class="text-2xl lg:text-4xl font-bold uppercase tracking-wider">Card ID</h3>
+		<div class="formNormalize min-w-2xs! h-full! flex flex-col gap-3">
+			{@render cardHeader()}
 
-				<div class="flex flex-col">
-					<p class="text-2xl lg:text-4xl font-bold text-primary">
-						{cardId}
-					</p>
+			{#if fullName}
+				<p class="text-xl lg:text-2xl font-semibold">{fullName}</p>
+			{/if}
+			<p class="text-3xl lg:text-4xl font-bold tabular-nums text-chart-success">{cardId}</p>
 
-					<Button
-						variant="destructive"
-						class="mt-10 my-auto"
-						size="sm"
-						onclick={() => {
-							logoutOperator();
-						}}>Odhlasit</Button
-					>
-				</div>
-			</section>
+			<footer class="mt-auto flex items-center gap-2 pt-2">
+				{@render actions?.()}
+				<Button
+					variant="ghost"
+					size="sm"
+					class="ml-auto text-destructive hover:text-destructive"
+					onclick={logoutOperator}>Odhlásiť</Button
+				>
+			</footer>
 		</div>
 	{:else}
-		<form method="POST" onsubmit={handleLoginOperator} class="formNormalize min-w-2xs! h-full!">
-			<div>
-				<ResultInfo data={infoResult} />
-			</div>
+		<form
+			method="POST"
+			onsubmit={handleLoginOperator}
+			class="formNormalize min-w-2xs! h-full! flex flex-col gap-3"
+		>
+			{@render cardHeader()}
+			<ResultInfo data={infoResult} />
 
-			<section class="flex justify-between flex-col h-full">
-				<Label for="cardId" class="text-2xl lg:text-4xl font-bold uppercase tracking-wider"
-					>Card ID</Label
-				>
-				<div class="flex gap-4 flex-col">
-					<article class="text-2xl lg:text-4xl font-bold text-primary">
-						<!-- <Label for="cardId" class="text-xl">ID karty</Label> -->
-						<Input
-							type="number"
-							name="cardId"
-							autocomplete={'off'}
-							bind:value={cardId}
-							placeholder="Zadaj ID karty"
-							class="inputNormalize text-2xl lg:text-4xl font-bold text-primary max-w-[220px] placeholder:text-xl"
-							id="cardId"
-							required
-						/>
-					</article>
+			<Label for="cardId" class="text-sm text-muted-foreground">Číslo karty</Label>
+			<Input
+				type="number"
+				name="cardId"
+				autocomplete={'off'}
+				bind:value={cardId}
+				placeholder="Zadaj ID karty"
+				class="inputNormalize text-3xl lg:text-4xl font-bold tabular-nums text-chart-success max-w-[220px] placeholder:text-xl"
+				id="cardId"
+				required
+			/>
 
-					<Button type="submit" class="mt-10 my-auto" variant="default" size="sm">
-						{#if isSubmitting}
-							<span>Submitting...</span>
-						{:else}
-							Login
-						{/if}
-					</Button>
-				</div>
-			</section>
+			<footer class="mt-auto flex items-center gap-2 pt-2">
+				<Button type="submit" variant="default" size="sm" disabled={isSubmitting}>
+					{isSubmitting ? 'Prihlasujem…' : 'Prihlásiť'}
+				</Button>
+			</footer>
 		</form>
 	{/if}
 </main>

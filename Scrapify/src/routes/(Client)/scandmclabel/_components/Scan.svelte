@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import OperatorLogin from '@/components/molecules/OperatorLogin.svelte';
+	import OperatorHistory from './OperatorHistory.svelte';
 	import type { ScanInitPayload, ScrapManager } from './ScrapManager.svelte';
 	import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
 	import { playBeep } from '@/utils/frontHelp';
@@ -245,7 +246,11 @@
 
 	<!-- Login operator -->
 	<div class="flex max-md:order-first max-md:w-full">
-		<OperatorLogin />
+		<OperatorLogin>
+			{#snippet actions()}
+				<OperatorHistory />
+			{/snippet}
+		</OperatorLogin>
 	</div>
 </div>
 
