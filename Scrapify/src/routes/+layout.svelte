@@ -104,18 +104,18 @@
 				<div class="flex flex-col gap-0.5 text-muted-foreground">
 					<p class="mb-auto leading-3 mx-2 text-xs">
 						Version {__APP_VERSION__}
-						<span class="max-sm:hidden">·</span>
+						<!-- <span class="max-sm:hidden">·</span>
 						<a
 							href="https://draw.zilka-tomas.com/test-room-lMV2FeG8cLDj7egkgO4lm?d=v166.84.2113.1453.xm698mn4hLAx2QhjfRfS0"
 							target="_blank"
 							rel="noopener noreferrer"
 							class="max-sm:hidden px-2 rounded-sm py-0.5 font-semibold hover:text-primary text-chart-1"
 							>Tldraw docs</a
-						>
+						> -->
 						{#if lastUpdate}
 							<span class="max-sm:hidden">·</span>
 							<span
-								class="max-sm:hidden {isRecentBuild ? 'font-semibold text-chart-1' : ''}"
+								class="max-sm:hidden {isRecentBuild ? 'text-chart-1' : ''}"
 								title="Čas posledného buildu aplikácie"
 								>Last update: {lastUpdate}</span
 							>
