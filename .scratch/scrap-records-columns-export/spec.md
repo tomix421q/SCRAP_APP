@@ -57,7 +57,7 @@ S pridanými údajmi má záznam 13 dátových polí. Už teraz je široká (vod
 19. Ako engineer chcem kompaktnejšie riadky a menšiu hlavičku, aby som naraz videl viac záznamov.
 20. Ako engineer chcem čísla (ID, Quantity) zarovnané doprava s rovnakou šírkou číslic, aby sa dali ľahko porovnávať.
 21. Ako engineer chcem vidieť Created at ako dátum a pod ním menším písmom čas, aby bol stĺpec užší a prehľadný.
-22. Ako engineer chcem, aby sa Type zobrazoval ako farebný štítok (Scrap neutrálny, Rebuild výrazný, Quantity scrap odlišný), aby som typy rozlíšil na prvý pohľad.
+22. Ako engineer chcem, aby sa Type zobrazoval ako farebný štítok (Scrap jemne červený, Rebuild oranžový, Quantity scrap odlišný), aby som typy rozlíšil na prvý pohľad.
 23. Ako engineer chcem, aby sa Other variant zobrazoval ako štítok a „No“ sa nevypisovalo, aby som videl iba výnimky.
 24. Ako engineer chcem, aby bol štítok Other component nenápadný, aby nepôsobil ako chyba a nerušil.
 25.–28. *(Zrušené: skrývanie stĺpcov, viď Mimo rozsahu.)*
@@ -120,8 +120,8 @@ Definícia v `scrapRecords/columns.ts` má dve úrovne:
   - menší vertikálny padding buniek,
   - ID a Quantity zarovnané doprava s `tabular-nums`,
   - Created at ako dátum a pod ním čas v `text-xs text-muted-foreground`.
-- **Štítky** (existujúci `ui/badge`, nový atóm nevzniká; `ui/badge` dostal varianty `chart-warning` a `chart-2`):
-  - Type: Scrap = `outline` (neutrálny), Rebuild = `chart-warning`, Quantity scrap = `chart-2`.
+- **Štítky** (existujúci `ui/badge`, nový atóm nevzniká; `ui/badge` dostal varianty `chart-warning`, `chart-2` a `chart-destructive`):
+  - Type: Scrap = `chart-destructive` (jemná červená), Rebuild = `chart-warning`, Quantity scrap = `chart-2`. Mapovanie je jedno (`scrapRecordTypeBadgeVariant` v `columns.ts`) a používa ho aj história operátora na `scandmclabel`.
   - Other component = nenápadný štítok „Other comp.“ (`outline` + `text-muted-foreground`), nie `destructive`.
   - Other variant = `primary`.
   - Oba príznaky sú v jednom stĺpci; „No“ sa nezobrazuje (bez štítku). Replacement part je obyčajný text alebo „—“.
