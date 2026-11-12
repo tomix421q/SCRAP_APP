@@ -43,7 +43,6 @@ export class ScrapManager {
 		this.barcode = barcode;
 		this.mode = null;
 
-		
 		if (this.scanData?.groups) {
 			this.scrapPayload = this.scanData.groups.map((g) => ({
 				label: scanDataPayload.label,

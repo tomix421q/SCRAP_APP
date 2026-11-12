@@ -17,7 +17,10 @@
 
 	let gridOpen = $state(false);
 
-	const GRID_ICONS = { 1: Square, 2: Columns2, 3: Columns3, 4: Columns4 } satisfies Record<GridSize, unknown>;
+	const GRID_ICONS = { 1: Square, 2: Columns2, 3: Columns3, 4: Columns4 } satisfies Record<
+		GridSize,
+		unknown
+	>;
 </script>
 
 {#snippet gridSwitch(mode: ScrapMode)}
@@ -71,7 +74,14 @@
 		<Popover.Root bind:open={gridOpen}>
 			<Popover.Trigger>
 				{#snippet child({ props })}
-					<Button {...props} type="button" size="icon" variant="outline" title="Rozloženie" class="max-md:hidden">
+					<Button
+						{...props}
+						type="button"
+						size="icon"
+						variant="outline"
+						title="Rozloženie"
+						class="max-md:hidden"
+					>
 						<ActiveIcon />
 					</Button>
 				{/snippet}
