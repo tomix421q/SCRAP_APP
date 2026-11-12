@@ -20,10 +20,14 @@
 		'Quantity scrap': 'Quantity'
 	};
 	const modeVariants = {
-		Scrap: 'destructive',
+		Scrap: 'outline',
 		Rebuild: 'chart-warning',
 		'Quantity scrap': 'chart-2'
 	} as const satisfies Record<OperatorHistoryMode, string>;
+	/** Soft red for Scrap, matching the muted tint of the Rebuild badge. */
+	const modeClasses: Partial<Record<OperatorHistoryMode, string>> = {
+		Scrap: 'border-destructive/50 bg-destructive/15 text-destructive'
+	};
 
 	let isOpen = $state(false);
 	let isLoading = $state(false);
@@ -141,7 +145,9 @@
 							<div class="flex flex-wrap items-center gap-2">
 								<span class="font-semibold tabular-nums">{entry.time}</span>
 								<span class="font-mono font-semibold text-primary break-all">{entry.dmc}</span>
-								<Badge variant={modeVariants[entry.mode]}>{modeLabels[entry.mode]}</Badge>
+								<Badge variant={modeVariants[entry.mode]} class={modeClasses[entry.mode]}
+									>{modeLabels[entry.mode]}</Badge
+								>
 								{#if entry.quantity !== 1}
 									<span class="font-semibold tabular-nums">{entry.quantity} ks</span>
 								{/if}
