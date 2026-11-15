@@ -165,6 +165,18 @@ describe('scrapRecords load: other variant and replacement part filters', () => 
 		expect(findManyWhere().AND).toEqual([{ replacementPartMaterial: { contains: '12345' } }]);
 	});
 
+	it('payloadRecId finds the records of one save by the exact trimmed ID', async () => {
+		await runLoad('payloadRecId=%20cbef8b86-347b-4a86-8f55-f48ed5fe7bb5%20');
+		expect(findManyWhere().AND).toEqual([{ payloadRecId: 'cbef8b86-347b-4a86-8f55-f48ed5fe7bb5' }]);
+	});
+
+	it.each(['CBEF8B86', 'not-a-uuid', 'cbef8b86-347b-4a86-8f55-f48ed5fe7bb5x'])(
+		'rejects an incomplete or invalid payloadRecId %s with 400',
+		async (value) => {
+			await expectStatus(`payloadRecId=${value}`, 400);
+		}
+	);
+
 	it('new filters also narrow every category summary', async () => {
 		await runLoad('otherVariant=false&replacementPart=777');
 		const expected = [

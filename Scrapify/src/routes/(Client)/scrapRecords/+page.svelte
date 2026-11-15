@@ -35,6 +35,9 @@
 	const labelClass =
 		'flex min-w-0 max-w-full flex-col gap-1 text-xs font-medium text-muted-foreground';
 	const groupClass = 'flex min-w-0 flex-col gap-2';
+	// HTML `pattern` is anchored implicitly; surrounding spaces are allowed because values are trimmed.
+	const uuidInputPattern =
+		'\\s*[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\s*';
 	const legendClass = 'mb-1 text-[11px] font-semibold uppercase tracking-wider text-chart-1/80';
 
 	// The first column of each group gets a divider.
@@ -92,7 +95,8 @@
 		'exported',
 		'otherComponent',
 		'otherVariant',
-		'replacementPart'
+		'replacementPart',
+		'payloadRecId'
 	] as const;
 	type FilterKey = (typeof filterKeys)[number];
 	type FilterState = Record<FilterKey, string>;
@@ -108,7 +112,8 @@
 		exported: 'QAD export',
 		otherComponent: 'Other component',
 		otherVariant: 'Other variant',
-		replacementPart: 'Replacement part'
+		replacementPart: 'Replacement part',
+		payloadRecId: 'Payload ID'
 	};
 
 	function filtersFrom(params: URLSearchParams): FilterState {
@@ -171,6 +176,15 @@
 		goto(page.url.pathname, { keepFocus: true, noScroll: true, replaceState: true });
 	}
 
+	/**
+	 * Shows every record of one save. Other filters and the category are dropped on purpose:
+	 * they could hide part of the save (e.g. Other component = Yes hides the reason row).
+	 */
+	function showPayload(payloadRecId: string) {
+		const params = new URLSearchParams({ payloadRecId });
+		goto(`${page.url.pathname}?${params.toString()}`, { keepFocus: true, noScroll: true });
+	}
+
 	function chipValue(key: FilterKey, value: string) {
 		switch (key) {
 			case 'otherComponent':
@@ -181,6 +195,9 @@
 			case 'dateFrom':
 			case 'dateTo':
 				return value.replace('T', ' ');
+			case 'payloadRecId':
+				// The full UUID is too long for a chip; its start is enough to recognise it.
+				return `${value.slice(0, 8)}…`;
 			default:
 				return value;
 		}
@@ -435,7 +452,7 @@
 			</fieldset>
 
 			<fieldset class={groupClass}>
-				<legend class={legendClass}>Created date</legend>
+				<legend class={legendClass}>Created</legend>
 				<label class={labelClass}>
 					From
 					<input class={fieldClass} type="datetime-local" bind:value={filters.dateFrom} />
@@ -443,6 +460,18 @@
 				<label class={labelClass}>
 					To
 					<input class={fieldClass} type="datetime-local" bind:value={filters.dateTo} />
+				</label>
+				<label class={labelClass}>
+					Payload ID
+					<!-- Full UUID only (the column is a SQL Server uniqueidentifier); the browser blocks partial input. -->
+					<input
+						class={fieldClass}
+						type="search"
+						placeholder="Full payload ID"
+						pattern={uuidInputPattern}
+						title="Full payload ID, e.g. CBEF8B86-347B-4A86-8F55-F48ED5FE7BB5"
+						bind:value={filters.payloadRecId}
+					/>
 				</label>
 			</fieldset>
 		</div>
@@ -552,9 +581,23 @@
 									{#if column.key === 'id'}
 										<Table.Cell
 											class="{cellClasses} text-muted-foreground"
-											title={String(record.id)}
+											title={record.payloadRecId
+												? `ID ${record.id} · Payload ${record.payloadRecId} · Click to show the whole save`
+												: String(record.id)}
 										>
-											{record.id}
+											{#if record.payloadRecId}
+												{@const payloadRecId = record.payloadRecId}
+												<button
+													type="button"
+													class="cursor-pointer rounded-sm tabular-nums hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+													aria-label="Show all records saved together with record {record.id}"
+													onclick={() => showPayload(payloadRecId)}
+												>
+													{record.id}
+												</button>
+											{:else}
+												{record.id}
+											{/if}
 										</Table.Cell>
 									{:else if column.key === 'dmc'}
 										<Table.Cell class="{cellClasses} font-medium text-primary" title={record.dmc}>

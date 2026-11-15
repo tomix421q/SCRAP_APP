@@ -31,6 +31,18 @@ function parseBooleanFilter(value: string | null, field: string) {
 	throw error(400, { message: `Invalid ${field} filter.` });
 }
 
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The column is a SQL Server `uniqueidentifier`: anything but a full UUID would fail in SQL. */
+function parsePayloadRecId(value: string | null) {
+	const payloadRecId = value?.trim();
+	if (!payloadRecId) return undefined;
+	if (!uuidPattern.test(payloadRecId)) {
+		throw error(400, { message: 'Invalid payload ID filter. Enter the full payload ID.' });
+	}
+	return payloadRecId;
+}
+
 function parseCategory(value: string | null): ScrapRecordCategory {
 	const category = value ?? 'all';
 	switch (category) {
@@ -62,6 +74,7 @@ export function parseScrapRecordFilters(params: URLSearchParams): ScrapRecordFil
 	const isOtherComponent = parseBooleanFilter(params.get('otherComponent'), 'other component');
 	const isOtherVariant = parseBooleanFilter(params.get('otherVariant'), 'other variant');
 	const exported = parseBooleanFilter(params.get('exported'), 'exported');
+	const payloadRecId = parsePayloadRecId(params.get('payloadRecId'));
 	const category = parseCategory(params.get('category'));
 
 	if (dateFrom && dateTo && dateFrom > dateTo) {
@@ -100,6 +113,7 @@ export function parseScrapRecordFilters(params: URLSearchParams): ScrapRecordFil
 	if (replacementPart) {
 		commonConditions.push({ replacementPartMaterial: { contains: replacementPart } });
 	}
+	if (payloadRecId) commonConditions.push({ payloadRecId });
 	if (exported === true) commonConditions.push({ QADExported: true });
 	if (exported === false) {
 		commonConditions.push({ OR: [{ QADExported: false }, { QADExported: null }] });
