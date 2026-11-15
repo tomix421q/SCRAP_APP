@@ -178,13 +178,29 @@ export class ScrapManager {
 		}
 	}
 
+	// Quantity scrap row state: "started" = any field touched, "complete" = all three filled
+	private hasQntQuantity(row: ScrapRowState) {
+		return typeof row.quantity === 'number' && Number.isInteger(row.quantity) && row.quantity > 0;
+	}
+	private hasQntPart(row: ScrapRowState) {
+		return Boolean(row.replacementPartMaterial) && row.replacementPartMaterial !== 'empty';
+	}
+	isQntRowComplete(row: ScrapRowState) {
+		return this.hasQntQuantity(row) && this.hasQntPart(row) && Boolean(row.selectedScrapCode);
+	}
+	isQntRowStarted(row: ScrapRowState) {
+		return this.hasQntQuantity(row) || this.hasQntPart(row) || Boolean(row.selectedScrapCode);
+	}
+	hasIncompleteQntRow = $derived(
+		this.mode === 'qntScrap' &&
+			this.scrapPayload.some((row) => this.isQntRowStarted(row) && !this.isQntRowComplete(row))
+	);
+
 	// Future payload only selected scraps
 	relevantPayload = $derived.by(() => {
 		return this.scrapPayload.filter((row) => {
 			if (this.mode === 'qntScrap') {
-				return (
-					typeof row.quantity === 'number' && Number.isInteger(row.quantity) && row.quantity > 0
-				);
+				return this.isQntRowComplete(row);
 			}
 			if (row.selectedScrapCode) {
 				return true;
@@ -228,7 +244,7 @@ export class ScrapManager {
 	// Can submit?
 	canSubmit = $derived(
 		this.mode === 'qntScrap'
-			? this.relevantPayload.length > 0
+			? this.relevantPayload.length > 0 && !this.hasIncompleteQntRow
 			: this.mode !== null &&
 					this.hasAnySelection &&
 					this.relevantPayload.length > 0 &&
@@ -243,6 +259,8 @@ export class ScrapManager {
 
 		row.selectedScrapCode = null;
 		row.selectedScrapDescription = null;
+		// Quantity scrap keeps the selected part; it has its own clear button
+		if (this.mode === 'qntScrap') return;
 		row.isOtherVariant = false;
 		row.replacementPartMaterial = null;
 		row.isOtherComponent = false;

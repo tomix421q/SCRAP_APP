@@ -33,8 +33,14 @@
 		<div class="grid grid-cols-1 gap-4 mx-auto w-full {GRID_COLS_CLASS[viewStore.grid.qntScrap]} {GRID_MAX_W_CLASS[viewStore.grid.qntScrap]}">
 			{#each scrapManager.scrapPayload as row (row.groupId)}
 				{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
+				{@const isRowComplete = scrapManager.isQntRowComplete(row)}
+				{@const isRowStarted = scrapManager.isQntRowStarted(row)}
 				<div
-					class="flex justify-between gap-3 rounded-lg border p-1 shadow-xl drop-shadow-lg bg-chart-3/10 overflow-hidden h-full"
+					class="flex justify-between gap-3 rounded-lg border p-1 shadow-xl drop-shadow-lg overflow-hidden h-full transition-colors {isRowComplete
+						? 'bg-destructive'
+						: isRowStarted
+							? 'bg-warning'
+							: 'bg-chart-3/10'}"
 				>
 					<div class="flex flex-col gap-2 min-w-0 flex-1">
 						<section class="flex flex-col gap-2 min-w-0">
