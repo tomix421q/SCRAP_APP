@@ -65,17 +65,23 @@ export const load = (async (event) => {
 					})
 				: Promise.resolve(null),
 			getCachedProjects(),
-			prismaClient.partGroup.findMany({
-				where: project ? { vProject: project } : undefined,
-				distinct: ['name'],
-				select: { name: true },
-				orderBy: { name: 'asc' }
-			}),
-			prismaClient.vScrapCodes.findMany({
-				where: project ? { Reason_Project: project } : undefined,
-				select: { Reason_Code: true, Reason_Description: true },
-				orderBy: { Reason_Code: 'asc' }
-			})
+			// Options only for a selected project: across all projects the lists grow too large
+			// for the comboboxes (the page disables them until a project is chosen).
+			project
+				? prismaClient.partGroup.findMany({
+						where: { vProject: project },
+						distinct: ['name'],
+						select: { name: true },
+						orderBy: { name: 'asc' }
+					})
+				: Promise.resolve([]),
+			project
+				? prismaClient.vScrapCodes.findMany({
+						where: { Reason_Project: project },
+						select: { Reason_Code: true, Reason_Description: true },
+						orderBy: { Reason_Code: 'asc' }
+					})
+				: Promise.resolve([])
 		]);
 		// createdBy holds the card id of an operator or a registered user (scan accepts both);
 		// resolve names for the listed records (tooltip). Operator name wins on a shared card.

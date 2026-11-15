@@ -54,6 +54,39 @@ beforeEach(() => {
 	prismaMock.user.findMany.mockResolvedValue([]);
 });
 
+describe('scrapRecords load: part group and scrap code options', () => {
+	it('without a project loads no options, so the lists stay small', async () => {
+		const data = await runLoad('');
+		expect(prismaMock.partGroup.findMany).not.toHaveBeenCalled();
+		expect(prismaMock.vScrapCodes.findMany).not.toHaveBeenCalled();
+		expect(data).toMatchObject({ partGroups: [], scrapCodeOptions: [] });
+	});
+
+	it('with a project loads only that project options', async () => {
+		prismaMock.partGroup.findMany.mockResolvedValue([{ name: 'Bumper' }]);
+		prismaMock.vScrapCodes.findMany.mockResolvedValue([
+			{ Reason_Code: 'S1', Reason_Description: 'Crack' }
+		]);
+		const data = await runLoad('project=PRJ1');
+		expect(prismaMock.partGroup.findMany.mock.calls[0][0].where).toEqual({ vProject: 'PRJ1' });
+		expect(prismaMock.vScrapCodes.findMany.mock.calls[0][0].where).toEqual({
+			Reason_Project: 'PRJ1'
+		});
+		expect(data).toMatchObject({
+			partGroups: ['Bumper'],
+			scrapCodeOptions: [{ id: 'S1', code: 'S1', name: 'Crack' }]
+		});
+	});
+
+	it('a part group or scrap code filter without a project still filters records', async () => {
+		await runLoad('partGroup=Bumper&scrapCode=S1');
+		expect(findManyWhere().AND).toEqual([
+			{ scrapCode: { contains: 'S1' } },
+			{ partGroup: { is: { name: { contains: 'Bumper' } } } }
+		]);
+	});
+});
+
 describe('scrapRecords load: existing filters', () => {
 	it('without filters queries all records, newest first, first page', async () => {
 		const data = await runLoad('');

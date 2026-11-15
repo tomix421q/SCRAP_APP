@@ -347,7 +347,8 @@
 						<Combobox
 							dataBox={partGroupItems}
 							bind:value={filters.partGroup}
-							firstText="Select part group"
+							firstText={filters.project ? 'Select part group' : 'Select project first'}
+							disabled={!filters.project}
 							width="xs"
 						/>
 						{#if filters.partGroup}
@@ -371,7 +372,8 @@
 						<Combobox
 							dataBox={data.scrapCodeOptions}
 							bind:value={filters.scrapCode}
-							firstText="Select scrap code"
+							firstText={filters.project ? 'Select scrap code' : 'Select project first'}
+							disabled={!filters.project}
 							nameLabel="codeName"
 							width="xs"
 						/>

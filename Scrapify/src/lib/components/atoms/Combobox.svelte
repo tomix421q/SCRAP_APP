@@ -16,6 +16,7 @@
 		nameLabel = 'name',
 		width = 'sm',
 		firstText = 'Select item',
+		disabled = false,
 		onchange
 	}: {
 		dataBox: any[];
@@ -25,6 +26,8 @@
 		nameLabel?: NameLabel;
 		width?: 'xs' | 'sm' | 'lg' | 'xl';
 		firstText?: string;
+		/** Blocks opening the list; `firstText` can explain why (e.g. a missing parent choice). */
+		disabled?: boolean;
 		onchange?: (val: string) => void;
 	} = $props();
 
@@ -98,6 +101,7 @@
 				<Button
 					{...props}
 					{id}
+					{disabled}
 					variant="secondary"
 					role="combobox"
 					aria-expanded={open}
