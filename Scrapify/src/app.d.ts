@@ -12,6 +12,15 @@ declare global {
 	const __APP_VERSION__: string;
 	// ISO timestamp of the build, injected by Vite `define` (see vite.config.ts).
 	const __APP_BUILD_TIME__: string;
+	// Recent app commits read from git at build time (see vite.config.ts).
+	const __APP_CHANGELOG__: ChangelogEntry[];
+
+	interface ChangelogEntry {
+		hash: string;
+		/** ISO 8601 author date. */
+		date: string;
+		subject: string;
+	}
 }
 
 export {};

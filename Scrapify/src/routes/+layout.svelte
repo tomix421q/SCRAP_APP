@@ -15,6 +15,7 @@
 	import { onMount } from 'svelte';
 	import MobileMenu from '@/components/molecules/MobileMenu.svelte';
 	import { Toaster } from '@/components/ui/sonner';
+	import Changelog from '@/components/molecules/Changelog.svelte';
 
 	// let navigatee = $derived(navigating.complete);
 	let { children, data }: { children: any; data: LayoutData } = $props();
@@ -107,12 +108,7 @@
 					<p class="mb-auto leading-3 mx-2 text-xs">
 						Version {__APP_VERSION__}
 						<span class="max-sm:hidden">·</span>
-						<a
-							href="https://draw.zilka-tomas.com/test-room-lMV2FeG8cLDj7egkgO4lm?d=v166.84.2113.1453.xm698mn4hLAx2QhjfRfS0"
-							target="_blank"
-							rel="noopener noreferrer"
-							class="max-sm:hidden px-2 rounded-sm py-0.5 hover:text-primary">Send bug</a
-						>
+						<Changelog now={getActuallTime} triggerClass="max-sm:hidden" />
 						{#if lastUpdate}
 							<span class="max-sm:hidden">·</span>
 							<span
