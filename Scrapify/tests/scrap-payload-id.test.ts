@@ -148,6 +148,7 @@ describe('a failed save writes no records', () => {
 				})
 		],
 		['scrap with an empty DMC', () => saveScrap({ ...scrapFields, dmc: '' })],
+		['scrap with an empty payload', () => saveScrap({ ...scrapFields, scrapPayload: '' })],
 		[
 			'quantity scrap with an invalid operator',
 			() => saveQuantityScrap({ ...quantityFields, operator: 'abc' })

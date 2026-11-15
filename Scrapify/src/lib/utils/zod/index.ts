@@ -134,6 +134,9 @@ export const saveScrapSchema = z
 			)
 	})
 	.superRefine((data, ctx) => {
+		// Zod still runs object refinements when a field failed without aborting
+		// (e.g. an empty `scrapPayload` string), so the payload may not be an array here.
+		if (!Array.isArray(data.scrapPayload)) return;
 		if (
 			!data.isRebuild &&
 			data.scrapPayload.some(
