@@ -1,6 +1,6 @@
 # Scrap records: payloadRecId – spoločné ID jedného odoslania
 
-Status: ready-for-agent
+Status: done
 
 ## Problém
 
@@ -73,3 +73,8 @@ Operator pri jednom uložení na stránke `scandmclabel` často vytvorí viac sc
 
 1. [01 – Schéma a zápis payloadRecId](issues/01-schema-and-save.md)
 2. [02 – Payload ID v exporte](issues/02-export-column.md)
+
+## Comments
+
+- Po implementácii pridané nad rámec pôvodného rozsahu (na žiadosť používateľa): filter **Payload ID** na `scrapRecords` (iba celé UUID, inak 400), tooltip s payload ID na stĺpci ID a klik na ID zobrazí celé uloženie (ostatné filtre sa zrušia).
+- Opravená existujúca chyba: prázdny `scrapPayload` v `saveScrap` vracal 500 namiesto 400.

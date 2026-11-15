@@ -1,6 +1,6 @@
 # 02 – Payload ID v exporte
 
-Status: ready-for-agent
+Status: done
 Rodič: [spec.md](../spec.md)
 Blokované: [01](01-schema-and-save.md)
 

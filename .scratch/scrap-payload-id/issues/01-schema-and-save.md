@@ -1,6 +1,6 @@
 # 01 – Schéma a zápis payloadRecId
 
-Status: ready-for-agent
+Status: done
 Rodič: [spec.md](../spec.md)
 
 ## Čo postaviť
