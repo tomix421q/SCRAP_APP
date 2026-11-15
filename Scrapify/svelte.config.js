@@ -10,6 +10,8 @@ const config = {
 			trustedOrigins: ['http://10.184.145.18:3001', 'http://localhost:3001']
 		},
 		adapter: adapter(),
+		// Clients check for a new deploy every minute; see autoReloadOnUpdate in $lib/utils/appUpdate.svelte.ts.
+		version: { pollInterval: 60_000 },
 		// paths: { base: BASE },
 		alias: {
 			'@/*': './src/lib/*'

@@ -16,6 +16,7 @@
 	import MobileMenu from '@/components/molecules/MobileMenu.svelte';
 	import { Toaster } from '@/components/ui/sonner';
 	import Changelog from '@/components/molecules/Changelog.svelte';
+	import { autoReloadOnUpdate } from '@/utils/appUpdate.svelte';
 
 	// let navigatee = $derived(navigating.complete);
 	let { children, data }: { children: any; data: LayoutData } = $props();
@@ -40,6 +41,9 @@
 		const date = builtAt.toLocaleDateString('sk-SK', { day: '2-digit', month: '2-digit' });
 		return `${date} ${time}`;
 	}
+
+	// Pick up a new deploy without operators having to refresh.
+	autoReloadOnUpdate();
 
 	onMount(() => {
 		if (user?.cardId) {
