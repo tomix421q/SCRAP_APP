@@ -27,6 +27,10 @@ _Avoid_: barcode, štítok, kód (bez upresnenia)
 **Quantity scrap label**:
 Label, ktorý nepatrí fyzickému dielu, ale zastupuje skupinu dielov, pre ktoré sa scrap zadáva množstvom.
 
+**Payload**:
+Jedno uloženie formulára na skenovacej stránke (scrap, rebuild alebo quantity scrap), ktoré vytvorí jeden alebo viac scrap recordov. Všetky scrap recordy jedného payloadu majú rovnaké payload ID (`payloadRecId`, UUID generované serverom). Opätovné uloženie toho istého labelu je nový payload s novým ID. Scrap recordy spred zavedenia payload ID ho nemajú.
+_Avoid_: dávka, batch, submit (ako podstatné meno)
+
 ## Diely a dôvody
 
 **Project**:
