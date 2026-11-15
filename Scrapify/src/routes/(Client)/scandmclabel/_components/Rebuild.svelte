@@ -4,7 +4,7 @@
 	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Label from '@/components/ui/label/label.svelte';
 	import type { ScrapManager } from './ScrapManager.svelte';
-	import { GRID_COLS_CLASS, viewStore } from '@/stores/viewStore.svelte';
+	import { GRID_COLS_CLASS, GRID_MAX_W_CLASS, viewStore } from '@/stores/viewStore.svelte';
 	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
 	import { X } from '@lucide/svelte';
 
@@ -17,7 +17,7 @@
 	// $inspect(scrapManager.mode);
 </script>
 
-<div class="grid grid-cols-1 gap-4 {GRID_COLS_CLASS[viewStore.grid.rebuild]}">
+<div class="grid grid-cols-1 gap-4 mx-auto w-full {GRID_COLS_CLASS[viewStore.grid.rebuild]} {GRID_MAX_W_CLASS[viewStore.grid.rebuild]}">
 	{#each scrapManager.scrapPayload as row (row.groupId)}
 		{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
 		{@const colorOtherComponent = row.isOtherComponent ? 'bg-red-500/50 border-warning/50' : ''}

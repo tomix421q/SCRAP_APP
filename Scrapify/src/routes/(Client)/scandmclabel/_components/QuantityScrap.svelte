@@ -2,7 +2,7 @@
 	import GroupPhoto from './GroupPhoto.svelte';
 	import Input from '@/components/ui/input/input.svelte';
 	import type { ScrapManager } from './ScrapManager.svelte';
-	import { GRID_COLS_CLASS, viewStore } from '@/stores/viewStore.svelte';
+	import { GRID_COLS_CLASS, GRID_MAX_W_CLASS, viewStore } from '@/stores/viewStore.svelte';
 	import Label from '@/components/ui/label/label.svelte';
 	import { Minus, Plus, X } from '@lucide/svelte';
 	import Button from '@/components/ui/button/button.svelte';
@@ -30,7 +30,7 @@
 			Pre label QNT-SCRAP nie sú nakonfigurované žiadne skupiny dielov.
 		</p>
 	{:else}
-		<div class="grid grid-cols-1 gap-4 {GRID_COLS_CLASS[viewStore.grid.qntScrap]}">
+		<div class="grid grid-cols-1 gap-4 mx-auto w-full {GRID_COLS_CLASS[viewStore.grid.qntScrap]} {GRID_MAX_W_CLASS[viewStore.grid.qntScrap]}">
 			{#each scrapManager.scrapPayload as row (row.groupId)}
 				{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
 				<div

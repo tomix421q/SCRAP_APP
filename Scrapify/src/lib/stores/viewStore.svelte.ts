@@ -26,6 +26,14 @@ export const GRID_COLS_CLASS: Record<GridSize, string> = {
 	4: 'md:grid-cols-4'
 };
 
+// Caps grid width for fewer columns so cards do not stretch on wide screens
+export const GRID_MAX_W_CLASS: Record<GridSize, string> = {
+	1: 'max-w-[900px]',
+	2: 'max-w-[1400px]',
+	3: 'max-w-none',
+	4: 'max-w-none'
+};
+
 class ViewStore {
 	grid = $state<Record<ScrapMode, GridSize>>({ ...DEFAULT_GRID });
 

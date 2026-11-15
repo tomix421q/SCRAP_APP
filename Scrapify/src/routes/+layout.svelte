@@ -29,6 +29,8 @@
 	const recentBuildMs = 24 * 60 * 60 * 1000;
 	const lastUpdate = $derived(isMounted ? formatBuildTime(builtAt, getActuallTime) : '');
 	const isRecentBuild = $derived(getActuallTime.getTime() - builtAt.getTime() < recentBuildMs);
+	// Scan page uses the full screen width so 4-column card grids have more room
+	const isFullWidthPage = $derived(page.url.pathname.startsWith('/scandmclabel'));
 
 	/** Build time as "HH:mm" when it was today, otherwise "dd.MM. HH:mm". */
 	function formatBuildTime(builtAt: Date, now: Date): string {
@@ -151,7 +153,9 @@
 	</nav>
 
 	<!-- ALL CONTENT RENDER -->
-	<main class="max-w-[1750px] mx-auto px-2 md:px-3 lg:px-4 min-h-screen">
+	<main
+		class="{isFullWidthPage ? 'max-w-none' : 'max-w-[1750px]'} mx-auto px-2 md:px-3 lg:px-4 min-h-screen"
+	>
 		<Toaster />
 		{@render children?.()}
 	</main>
