@@ -404,12 +404,15 @@
 					/>
 				</label>
 				<label class={labelClass}>
-					Created by
+					Payload ID
+					<!-- Full UUID only (the column is a SQL Server uniqueidentifier); the browser blocks partial input. -->
 					<input
 						class={fieldClass}
 						type="search"
-						placeholder="Card number"
-						bind:value={filters.createdBy}
+						placeholder="Full payload ID"
+						pattern={uuidInputPattern}
+						title="Full payload ID, e.g. CBEF8B86-347B-4A86-8F55-F48ED5FE7BB5"
+						bind:value={filters.payloadRecId}
 					/>
 				</label>
 				<label class={labelClass}>
@@ -462,15 +465,12 @@
 					<input class={fieldClass} type="datetime-local" bind:value={filters.dateTo} />
 				</label>
 				<label class={labelClass}>
-					Payload ID
-					<!-- Full UUID only (the column is a SQL Server uniqueidentifier); the browser blocks partial input. -->
+					Created by
 					<input
 						class={fieldClass}
 						type="search"
-						placeholder="Full payload ID"
-						pattern={uuidInputPattern}
-						title="Full payload ID, e.g. CBEF8B86-347B-4A86-8F55-F48ED5FE7BB5"
-						bind:value={filters.payloadRecId}
+						placeholder="Card number"
+						bind:value={filters.createdBy}
 					/>
 				</label>
 			</fieldset>
