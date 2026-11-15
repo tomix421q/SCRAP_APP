@@ -144,6 +144,7 @@ model LabelGroup {
 model ScrapRecord {
   id                      Int        @id @default(autoincrement())
   dmc                     String     @db.NVarChar(128)
+  payloadRecId            String?    @db.UniqueIdentifier
   partGroupId             Int
   scrapCode               String?
   scrapCodeDescription    String?
@@ -161,6 +162,7 @@ model ScrapRecord {
   @@index([createdAt])
   @@index([partGroupId])
   @@index([scrapCode])
+  @@index([payloadRecId])
 }
 
 view vParts {

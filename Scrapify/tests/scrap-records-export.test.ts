@@ -26,6 +26,8 @@ import { GET } from '../src/routes/(Client)/scrapRecords/export/+server';
 const baseRecord = {
 	id: 7,
 	dmc: 'DMC-1',
+	// Saved before payload IDs existed.
+	payloadRecId: null,
 	partGroupId: 1,
 	scrapCode: 'S10',
 	scrapCodeDescription: 'Crack',
@@ -65,7 +67,8 @@ const header = [
 	'Replacement part',
 	'Quantity',
 	'Created by',
-	'Created at'
+	'Created at',
+	'Payload ID'
 ];
 
 beforeEach(() => {
@@ -120,7 +123,8 @@ describe('scrap records export', () => {
 			'P-777',
 			3,
 			'john',
-			'15. 01. 2026 08:05:00'
+			'15. 01. 2026 08:05:00',
+			null
 		]);
 		expect(rows[2]).toMatchObject({
 			2: 'Quantity scrap',
@@ -131,6 +135,16 @@ describe('scrap records export', () => {
 			10: 2.5
 		});
 		expect(rows[3]).toMatchObject({ 2: 'Rebuild', 8: 'No', 9: null });
+	});
+
+	it('writes the payload ID as the last column', async () => {
+		prismaMock.scrapRecord.findMany.mockResolvedValue([
+			{ ...baseRecord, payloadRecId: '3F2504E0-4F89-11D3-9A0C-0305E82C3301' }
+		]);
+		const rows = await readRows(await runExport());
+
+		expect(rows[0].at(-1)).toBe('Payload ID');
+		expect(rows[1].at(-1)).toBe('3F2504E0-4F89-11D3-9A0C-0305E82C3301');
 	});
 
 	it('uses the same filters as the page and loads every matching record', async () => {

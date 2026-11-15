@@ -21,7 +21,8 @@ export type ScrapRecordColumnKey =
 	| 'replacementPart'
 	| 'quantity'
 	| 'createdBy'
-	| 'createdAt';
+	| 'createdAt'
+	| 'payloadRecId';
 
 /** One data field of a scrap record: its label and its value in the Excel export. */
 export type ScrapRecordColumn = {
@@ -73,7 +74,9 @@ export const scrapRecordColumns: readonly ScrapRecordColumn[] = [
 	},
 	{ key: 'quantity', label: 'Quantity', exportValue: (r) => r.quantity },
 	{ key: 'createdBy', label: 'Created by', exportValue: (r) => r.createdBy },
-	{ key: 'createdAt', label: 'Created at', exportValue: (r) => dateTimeLocalTimeDb(r.createdAt) }
+	{ key: 'createdAt', label: 'Created at', exportValue: (r) => dateTimeLocalTimeDb(r.createdAt) },
+	// Export only (not in the table); last so existing export columns keep their position.
+	{ key: 'payloadRecId', label: 'Payload ID', exportValue: (r) => r.payloadRecId ?? null }
 ];
 
 export type ScrapRecordTableColumnKey =

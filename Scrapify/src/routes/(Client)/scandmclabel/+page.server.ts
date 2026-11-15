@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import prismaClient from '@/server/prisma';
 import { fail, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
@@ -202,8 +203,11 @@ export const actions = {
 				}
 			}
 
+			// One ID shared by every record of this submit; generated here, never taken from the client.
+			const payloadRecId = randomUUID();
 			const recordsToInsert = scrapPayload.map((row) => ({
 				dmc,
+				payloadRecId,
 				partGroupId: row.groupId,
 				scrapCode: row.selectedScrapCode || null,
 				scrapCodeDescription: row.selectedScrapDescription || null,
@@ -305,9 +309,12 @@ export const actions = {
 				});
 			}
 
+			// One ID shared by every record of this submit; generated here, never taken from the client.
+			const payloadRecId = randomUUID();
 			await prismaClient.scrapRecord.createMany({
 				data: scrapPayload.map((row) => ({
 					dmc,
+					payloadRecId,
 					partGroupId: row.groupId,
 					scrapCode: row.selectedScrapCode,
 					scrapCodeDescription: row.selectedScrapDescription ?? null,
