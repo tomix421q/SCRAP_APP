@@ -55,23 +55,26 @@
 					</p>
 
 					<div class="flex flex-wrap gap-2 sm:gap-4">
-						<section class="flex items-center gap-2 bg-chart-5 rounded-lg p-0.5 px-1">
-							<Label
-								for={`other-variant-${row.groupId}`}
-								class="text-sm cursor-pointer font-semibold {row.isOtherVariant
-									? 'text-secondary-foreground'
-									: 'text-muted-foreground'}"
-							>
-								Iný variant
-							</Label>
-							<Checkbox
-								id={`other-variant-${row.groupId}`}
-								checked={row.isOtherVariant}
-								onCheckedChange={(checked) =>
-									scrapManager.setOtherVariant(row.groupId, Boolean(checked))}
-								class="size-4! ring-2 ring-primary **:size-5"
-							/>
-						</section>
+						<!-- Rebuild mode targets big parts only, so small groups cannot pick another variant -->
+						{#if row.isRebuildGroup}
+							<section class="flex items-center gap-2 bg-chart-5 rounded-lg p-0.5 px-1">
+								<Label
+									for={`other-variant-${row.groupId}`}
+									class="text-sm cursor-pointer font-semibold {row.isOtherVariant
+										? 'text-secondary-foreground'
+										: 'text-muted-foreground'}"
+								>
+									Iný variant
+								</Label>
+								<Checkbox
+									id={`other-variant-${row.groupId}`}
+									checked={row.isOtherVariant}
+									onCheckedChange={(checked) =>
+										scrapManager.setOtherVariant(row.groupId, Boolean(checked))}
+									class="size-4! ring-2 ring-primary **:size-5"
+								/>
+							</section>
+						{/if}
 						<section class="flex items-center gap-2 bg-chart-5 rounded-lg p-0.5 px-1">
 							<Label
 								for={`other-comp-${row.groupId}`}

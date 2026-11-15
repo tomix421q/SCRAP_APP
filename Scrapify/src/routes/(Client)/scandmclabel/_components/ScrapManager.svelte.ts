@@ -158,11 +158,6 @@ export class ScrapManager {
 			(g) => g.isRebuildGroup && (Boolean(g.selectedScrapCode) || g.isOtherVariant)
 		);
 
-		//  not rebuild && selected scrap
-		const hasSelectedSmall = this.scrapPayload.some(
-			(g) => !g.isRebuildGroup && (Boolean(g.selectedScrapCode) || g.isOtherVariant)
-		);
-
 		if (activeBigGroup) {
 			activeBigGroup.isOtherComponent = false;
 			for (const row of this.scrapPayload) {
@@ -171,16 +166,6 @@ export class ScrapManager {
 					row.selectedScrapDescription = '';
 					row.isOtherVariant = false;
 					row.replacementPartMaterial = '';
-					row.isOtherComponent = true;
-				}
-			}
-		} else if (hasSelectedSmall) {
-			for (const row of this.scrapPayload) {
-				if (row.isRebuildGroup) {
-					row.selectedScrapCode = null;
-					row.selectedScrapDescription = null;
-					row.isOtherVariant = false;
-					row.replacementPartMaterial = null;
 					row.isOtherComponent = true;
 				}
 			}
