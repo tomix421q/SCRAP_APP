@@ -10,6 +10,7 @@ import {
 	type TrendGranularity,
 	type TrendRow
 } from './trendBuckets';
+import { buildHeatmap, type HeatmapRow } from './heatmap';
 
 export type PartTotals = {
 	/** Sum of `quantity` (parts), the main metric. */
@@ -98,6 +99,36 @@ async function loadTrend(period: Period, project: string | undefined) {
 		records: Number(row.records)
 	}));
 	return { granularity, buckets: buildTrendBuckets(dbPeriod, granularity, trendRows) };
+}
+
+/**
+ * Parts and scrap records per day of the week (Monday = 0) and hour, for the same records as
+ * `loadPartTotals`, so the cells add up to Total parts. Day and hour are read from the stored
+ * local wall-clock time, so a record at 23:59 stays in hour 23 whatever the DST.
+ */
+async function loadHeatmap(period: Period, project: string | undefined) {
+	const dbFrom = toDbDateTimeLiteral(getLocalDateTimeForDb(period.from));
+	const dbTo = toDbDateTimeLiteral(getLocalDateTimeForDb(period.to));
+	const projectJoin = project
+		? Prisma.sql`INNER JOIN PartGroup pg ON pg.id = sr.partGroupId AND pg.vProject = ${project}`
+		: Prisma.empty;
+	// 1900-01-01 is a Monday, so the day index modulo 7 counts the week from Monday = 0.
+	const rows = await prismaClient.$queryRaw<Record<keyof HeatmapRow, unknown>[]>(Prisma.sql`
+		SELECT DATEDIFF(DAY, 0, sr.createdAt) % 7 AS weekday, DATEPART(HOUR, sr.createdAt) AS hour,
+			SUM(sr.quantity) AS quantity, COUNT(*) AS records
+		FROM ScrapRecord sr
+		${projectJoin}
+		WHERE sr.createdAt >= CAST(${dbFrom} AS datetime2)
+			AND sr.createdAt < CAST(${dbTo} AS datetime2)
+		GROUP BY DATEDIFF(DAY, 0, sr.createdAt) % 7, DATEPART(HOUR, sr.createdAt)`);
+	return buildHeatmap(
+		rows.map((row) => ({
+			weekday: Number(row.weekday),
+			hour: Number(row.hour),
+			quantity: Number(row.quantity ?? 0),
+			records: Number(row.records ?? 0)
+		}))
+	);
 }
 
 /** Change of parts in %, or `null` when the previous period has no parts to compare with. */
@@ -270,14 +301,16 @@ async function loadScrapCodeRanking(
 export type DashboardStats = Awaited<ReturnType<typeof queryDashboardStats>>;
 
 async function queryDashboardStats(filters: DashboardFilters) {
-	const [projectRanking, current, previous, trend, masterData, allTime] = await Promise.all([
-		loadProjectRanking(filters.period),
-		loadPartTotals(periodWhere(filters.period, filters.project)),
-		loadPartTotals(periodWhere(filters.previousPeriod, filters.project)),
-		loadTrend(filters.period, filters.project),
-		loadMasterData(),
-		loadAllTime()
-	]);
+	const [projectRanking, current, previous, trend, heatmap, masterData, allTime] =
+		await Promise.all([
+			loadProjectRanking(filters.period),
+			loadPartTotals(periodWhere(filters.period, filters.project)),
+			loadPartTotals(periodWhere(filters.previousPeriod, filters.project)),
+			loadTrend(filters.period, filters.project),
+			loadHeatmap(filters.period, filters.project),
+			loadMasterData(),
+			loadAllTime()
+		]);
 	// The shares of part groups and scrap codes are taken from the same records as Total parts.
 	const [partGroups, scrapCodes] = await Promise.all([
 		loadPartGroupRanking(filters.period, filters.project, current.quantity),
@@ -301,6 +334,7 @@ async function queryDashboardStats(filters: DashboardFilters) {
 		rankings: { projects: projectRanking, partGroups, scrapCodes },
 		totals: { ...current, changePercent: changePercent(current.quantity, previous.quantity) },
 		trend,
+		heatmap,
 		masterData,
 		allTime
 	};

@@ -6,6 +6,7 @@
 	import TotalPartsTile from './_components/TotalPartsTile.svelte';
 	import RankingTile from './_components/RankingTile.svelte';
 	import ParetoTile from './_components/ParetoTile.svelte';
+	import HeatmapTile from './_components/HeatmapTile.svelte';
 	import TrendTile from './_components/TrendTile.svelte';
 	import MasterDataTile from './_components/MasterDataTile.svelte';
 	import AllTimeTile from './_components/AllTimeTile.svelte';
@@ -94,6 +95,7 @@
 		{@render sectionHeading('analytics-heading', 'Analytics')}
 		<div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
 			<ParetoTile ranking={data.rankings.scrapCodes} {periodLabel} />
+			<HeatmapTile heatmap={data.heatmap} {periodLabel} />
 		</div>
 	</section>
 </main>

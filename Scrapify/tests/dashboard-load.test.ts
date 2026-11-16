@@ -44,6 +44,7 @@ const twoWeeksAgo = dbTime(2026, 10, 2, 12, 30);
 /** Rows the `isRebuild` groupBy returns, by the start of the queried period. */
 let totalsByPeriodStart: Map<number, IsRebuildRow[]>;
 /** Rows the trend query returns and the distinct label count. */
+let heatmapRows: { weekday: number; hour: number; quantity: number; records: number }[];
 let trendRows: { bucket: number; isRebuild: boolean; quantity: number; records: number }[];
 let labelCount: number;
 /** Rows of the ranking queries by their GROUP BY clause. */
@@ -70,7 +71,7 @@ function rankingCall(groupBy: string) {
 }
 
 function trendCalls() {
-	return rawCalls().filter((call) => call.sql.includes('DATEDIFF'));
+	return rawCalls().filter((call) => call.sql.includes('AS bucket'));
 }
 
 function row(isRebuild: boolean, quantity: number, records: number): IsRebuildRow {
@@ -113,13 +114,15 @@ beforeEach(() => {
 	prismaMock.partGroupMaterial.count.mockResolvedValue(0);
 	prismaMock.partGroup.groupBy.mockResolvedValue([]);
 	trendRows = [];
+	heatmapRows = [];
 	labelCount = 0;
 	projectRows = [];
 	partGroupRows = [];
 	scrapCodeRows = [];
 	prismaMock.$queryRaw.mockImplementation(async (...call: RawCall) => {
 		const { sql } = rawSql(call);
-		if (sql.includes('DATEDIFF')) return trendRows;
+		if (sql.includes('AS weekday')) return heatmapRows;
+		if (sql.includes('AS bucket')) return trendRows;
 		if (sql.includes('GROUP BY pg.vProject')) return projectRows;
 		if (sql.includes('GROUP BY pg.id')) return partGroupRows;
 		if (sql.includes('GROUP BY r.code')) return scrapCodeRows;
@@ -481,5 +484,47 @@ describe('dashboard load: 60 s cache', () => {
 
 		await expect(run()).rejects.toThrow('connection lost');
 		await expect(run()).resolves.toBeDefined();
+	});
+});
+
+describe('dashboard load: Heatmap', () => {
+	function heatmapCall() {
+		const call = rawCalls().find((c) => c.sql.includes('AS weekday'));
+		if (!call) throw new Error('No heatmap query');
+		return call;
+	}
+
+	it('groups the period and project by weekday from Monday and hour of the local DB time', async () => {
+		await runLoad('project=PRJ1');
+
+		const { sql, values } = heatmapCall();
+		expect(sql).toMatch(/DATEDIFF\(DAY, 0, sr\.createdAt\) % 7 AS weekday/);
+		expect(sql).toMatch(/DATEPART\(HOUR, sr\.createdAt\) AS hour/);
+		expect(values).toEqual(['PRJ1', '2026-11-09T12:30:00.000', '2026-11-16T12:30:00.000']);
+	});
+
+	it('builds a 7 x 24 grid whose cells add up to the rows', async () => {
+		heatmapRows = [
+			{ weekday: 0, hour: 23, quantity: 5, records: 2 },
+			{ weekday: 4, hour: 8, quantity: 7, records: 3 }
+		];
+
+		const data = await runLoad('');
+		const heatmap = data.heatmap as {
+			cells: { quantity: number; records: number }[][];
+			totalQuantity: number;
+			maxQuantity: number;
+		};
+
+		expect(heatmap.cells).toHaveLength(7);
+		expect(heatmap.cells[0][23]).toEqual({ quantity: 5, records: 2 });
+		expect(heatmap.cells[4][8]).toEqual({ quantity: 7, records: 3 });
+		expect(heatmap).toMatchObject({ totalQuantity: 12, maxQuantity: 7 });
+	});
+
+	it('reads the whole period without a project join when no project is chosen', async () => {
+		await runLoad('');
+
+		expect(heatmapCall().sql).not.toMatch(/PartGroup/);
 	});
 });
