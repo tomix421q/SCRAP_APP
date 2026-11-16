@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Card from '@/components/ui/card';
 	import type { TrendGranularity } from '@/utils/trendBuckets';
-	import type { DashboardStats } from '@/server/dashboardStats';
+	import type { DashboardStats } from './server/dashboardStats.server';
 	import DetailsDialog from './DetailsDialog.svelte';
 	import TrendChart from './TrendChart.svelte';
 

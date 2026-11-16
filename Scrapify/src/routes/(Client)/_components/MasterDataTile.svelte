@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Card from '@/components/ui/card';
 	import { formatNumber } from '@/utils/index';
-	import type { DashboardStats } from '@/server/dashboardStats';
+	import type { DashboardStats } from './server/dashboardStats.server';
 
 	let { masterData }: { masterData: DashboardStats['masterData'] } = $props();
 

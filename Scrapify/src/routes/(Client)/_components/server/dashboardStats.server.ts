@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import prismaClient from '@/server/prisma';
 import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
-import { toScrapRecordsQuery, type DashboardFilters, type Period } from '@/utils/dashboardFilters';
+import { toScrapRecordsQuery, type DashboardFilters, type Period } from './dashboardFilters';
 import { createTtlCache } from '@/utils/ttlCache';
 import { getLocalDateTimeForDb } from '@/utils/index';
 import {

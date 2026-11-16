@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Card from '@/components/ui/card';
-	import type { Ranking } from '@/server/dashboardStats';
+	import type { Ranking } from './server/dashboardStats.server';
 	import DetailsDialog from './DetailsDialog.svelte';
 	import RankingList from './RankingList.svelte';
 

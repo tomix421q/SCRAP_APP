@@ -9,8 +9,8 @@
 		dashboardRanges,
 		defaultDashboardRange,
 		type DashboardRange
-	} from '@/utils/dashboardFilters';
-	import type { DashboardStats } from '@/server/dashboardStats';
+	} from './server/dashboardFilters';
+	import type { DashboardStats } from './server/dashboardStats.server';
 	import { X } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 

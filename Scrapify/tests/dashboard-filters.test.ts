@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseDashboardFilters } from '../src/lib/utils/dashboardFilters';
+import { parseDashboardFilters } from '../src/routes/(Client)/_components/server/dashboardFilters';
 
 const now = new Date(2026, 10, 16, 12, 30); // 16 Nov 2026 12:30 local time
 

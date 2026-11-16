@@ -4,7 +4,7 @@
 	import * as Chart from '@/components/ui/chart';
 	import { formatNumber } from '@/utils/index';
 	import { formatTrendBucket } from '@/utils/trendBuckets';
-	import type { DashboardStats } from '@/server/dashboardStats';
+	import type { DashboardStats } from './server/dashboardStats.server';
 
 	let {
 		trend,

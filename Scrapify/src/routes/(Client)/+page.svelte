@@ -8,7 +8,7 @@
 	import TrendTile from './_components/TrendTile.svelte';
 	import MasterDataTile from './_components/MasterDataTile.svelte';
 	import AllTimeTile from './_components/AllTimeTile.svelte';
-	import { dashboardRangeLabels } from '@/utils/dashboardFilters';
+	import { dashboardRangeLabels } from './_components/server/dashboardFilters';
 
 	let { data }: { data: PageData } = $props();
 

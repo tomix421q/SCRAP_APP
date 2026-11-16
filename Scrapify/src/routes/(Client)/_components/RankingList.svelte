@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { formatNumber } from '@/utils/index';
-	import type { RankingRow } from '@/server/dashboardStats';
+	import type { RankingRow } from './server/dashboardStats.server';
 
 	type Props = {
 		rows: RankingRow[];

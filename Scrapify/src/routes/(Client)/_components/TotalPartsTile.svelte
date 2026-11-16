@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Card from '@/components/ui/card';
 	import { formatNumber } from '@/utils/index';
-	import type { DashboardStats } from '@/server/dashboardStats';
+	import type { DashboardStats } from './server/dashboardStats.server';
 	import { ArrowDownRight, ArrowRight, ArrowUpRight } from '@lucide/svelte';
 
 	let { totals, periodLabel }: { totals: DashboardStats['totals']; periodLabel: string } =

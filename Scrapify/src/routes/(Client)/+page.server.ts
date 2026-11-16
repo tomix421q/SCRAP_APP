@@ -1,8 +1,9 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { parseDashboardFilters } from '@/utils/dashboardFilters';
-import { loadDashboardStats } from '@/server/dashboardStats';
+
 import { getCachedProjects } from '@/server/cacheVprojects';
+import { parseDashboardFilters } from './_components/server/dashboardFilters';
+import { loadDashboardStats } from './_components/server/dashboardStats.server';
 
 export const load = (async ({ url }) => {
 	const filters = parseDashboardFilters(url.searchParams, new Date());

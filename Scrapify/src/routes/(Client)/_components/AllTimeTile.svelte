@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Card from '@/components/ui/card';
 	import { dateTimePartsLocalTimeDb, formatNumber } from '@/utils/index';
-	import type { DashboardStats } from '@/server/dashboardStats';
+	import type { DashboardStats } from './server/dashboardStats.server';
 
 	let { allTime }: { allTime: DashboardStats['allTime'] } = $props();
 </script>
