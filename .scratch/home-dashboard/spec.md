@@ -1,6 +1,6 @@
 # Úvodná strana: dashboard so štatistikami scrap recordov
 
-Status: návrh (čaká na schválenie)
+Status: hotovo (presúvateľné dlaždice zrušené)
 
 Vizuálny náhľad: https://claude.ai/artifact/9Rdj3H3rteKKSrEjCK5oR1 (ukážkové dáta, orientačné rozloženie)
 
@@ -102,10 +102,7 @@ Po tikete 01 až 04 sa pod existujúcu mriežku pridáva druhá sekcia s piatimi
 
 ### Presúvateľné dlaždice
 
-- Poradie dlaždíc v sekcii Analytics si používateľ môže zmeniť presunutím; uloží sa iba v jeho prehliadači (`localStorage`), bez DB a bez zmeny schémy. Nezdieľa sa medzi ľuďmi ani zariadeniami.
-- Server vždy vykreslí východzie poradie, uložené sa použije po načítaní v prehliadači. Chýbajúce alebo neplatné uložené údaje sa ignorujú.
-- Presúvanie funguje aj z klávesnice a na dotyku. Tlačidlo „Reset layout" vráti východzie poradie.
-- Horná mriežka (dlaždice rôznej veľkosti) sa v tejto verzii nepresúva.
+Zrušené (rozhodnutie 2026-11-16): poradie dlaždíc ostáva pevné, intranetová appka to nepotrebuje.
 
 ### Nové dlaždice
 
@@ -174,4 +171,4 @@ Po tikete 01 až 04 sa pod existujúcu mriežku pridáva druhá sekcia s piatimi
 - [07 – Heatmapa deň × hodina](issues/07-heatmap.md)
 - [08 – Trend vybranej part group alebo scrap code](issues/08-trend-of-selection.md)
 - [09 – Aktivita skenovania podľa Card ID](issues/09-scanning-activity.md)
-- [10 – Presúvateľné dlaždice v sekcii Analytics](issues/10-draggable-tiles.md)
+- [10 – Presúvateľné dlaždice v sekcii Analytics](issues/10-draggable-tiles.md) (zrušené)

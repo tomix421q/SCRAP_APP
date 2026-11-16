@@ -9,7 +9,7 @@
 		{ label: 'Projects', value: masterData.projects },
 		{ label: 'Part groups', value: masterData.partGroups },
 		{ label: 'Part numbers', value: masterData.partNumbers },
-		{ label: 'Labels', value: masterData.labels }
+		{ label: 'Scanned labels', value: masterData.labels }
 	]);
 </script>
 

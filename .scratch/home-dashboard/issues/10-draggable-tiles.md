@@ -1,6 +1,6 @@
 # 10 – Presúvateľné dlaždice v sekcii Analytics
 
-Status: todo
+Status: zrušené (rozhodnutie 2026-11-16: pevné poradie dlaždíc stačí, knižnica `svelte-dnd-action` sa nepridáva)
 Rodič: [spec.md](../spec.md)
 Blokované: [06](06-pareto-scrap-codes.md), [07](07-heatmap.md), [08](08-trend-of-selection.md), [09](09-scanning-activity.md)
 
