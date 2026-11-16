@@ -25,7 +25,10 @@ export type PartTotals = {
  * so the local period bounds are shifted the same way.
  */
 function periodWhere(period: Period, project: string | undefined): Prisma.ScrapRecordWhereInput {
-	const createdAt = { gte: getLocalDateTimeForDb(period.from), lt: getLocalDateTimeForDb(period.to) };
+	const createdAt = {
+		gte: getLocalDateTimeForDb(period.from),
+		lt: getLocalDateTimeForDb(period.to)
+	};
 	const conditions: Prisma.ScrapRecordWhereInput[] = [{ createdAt }];
 	if (project) conditions.push({ partGroup: { is: { vProject: project } } });
 	return { AND: conditions };
@@ -142,33 +145,102 @@ async function loadAllTime() {
 	};
 }
 
-/** Projects with at least one scrap record in the period, plus the selected one, by name. */
-async function loadProjectsInPeriod(period: Period, selected: string | undefined) {
-	// A relation filter (EXISTS) instead of an `id IN (...)` list, which could exceed
-	// SQL Server's 2100 parameter limit on long periods.
-	const partGroups = await prismaClient.partGroup.findMany({
-		where: { scrapRecords: { some: periodWhere(period, undefined) } },
-		distinct: ['vProject'],
-		select: { vProject: true }
-	});
-	const projects = new Set(
-		partGroups.map((group) => group.vProject).filter((p): p is string => Boolean(p))
-	);
-	if (selected) projects.add(selected);
-	return [...projects].sort((a, b) => a.localeCompare(b));
+export type RankingRow = {
+	/** Stable key of the row (project name, part group id, scrap code or empty for no code). */
+	key: string;
+	label: string;
+	/** Secondary text: project of a part group, description of a scrap code. */
+	detail: string | null;
+	scrap: number;
+	rebuild: number;
+};
+
+/** Rows per top list tile. */
+const topListSize = 5;
+
+type RankingSqlRow = {
+	key: unknown;
+	label: unknown;
+	detail: unknown;
+	scrap: unknown;
+	rebuild: unknown;
+};
+
+function toRankingRows(rows: RankingSqlRow[]): RankingRow[] {
+	return rows.map((row) => ({
+		key: String(row.key ?? ''),
+		label: String(row.label ?? ''),
+		detail: row.detail ? String(row.detail) : null,
+		scrap: Number(row.scrap ?? 0),
+		rebuild: Number(row.rebuild ?? 0)
+	}));
+}
+
+const rankingSums = Prisma.sql`
+	SUM(CASE WHEN sr.isRebuild = 0 THEN sr.quantity ELSE 0 END) AS scrap,
+	SUM(CASE WHEN sr.isRebuild = 1 THEN sr.quantity ELSE 0 END) AS rebuild`;
+
+/** Records of the period (local DB time, same bounds as `periodWhere`) joined to their part group. */
+function rankingFrom(period: Period, project: string | undefined) {
+	const dbFrom = toDbDateTimeLiteral(getLocalDateTimeForDb(period.from));
+	const dbTo = toDbDateTimeLiteral(getLocalDateTimeForDb(period.to));
+	const projectCondition = project ? Prisma.sql`AND pg.vProject = ${project}` : Prisma.empty;
+	return Prisma.sql`
+		FROM ScrapRecord sr
+		INNER JOIN PartGroup pg ON pg.id = sr.partGroupId
+		WHERE sr.createdAt >= CAST(${dbFrom} AS datetime2)
+			AND sr.createdAt < CAST(${dbTo} AS datetime2)
+			${projectCondition}`;
+}
+
+/**
+ * Every project with a scrap record in the period, most parts first. Ignores the project filter
+ * (the selected project is only highlighted) and also feeds the project switcher.
+ */
+async function loadProjectRanking(period: Period): Promise<RankingRow[]> {
+	const rows = await prismaClient.$queryRaw<RankingSqlRow[]>(Prisma.sql`
+		SELECT pg.vProject AS [key], pg.vProject AS label, NULL AS detail, ${rankingSums}
+		${rankingFrom(period, undefined)} AND pg.vProject IS NOT NULL AND pg.vProject <> ''
+		GROUP BY pg.vProject
+		ORDER BY SUM(sr.quantity) DESC, pg.vProject`);
+	return toRankingRows(rows);
+}
+
+async function loadPartGroupRanking(period: Period, project: string | undefined) {
+	const rows = await prismaClient.$queryRaw<RankingSqlRow[]>(Prisma.sql`
+		SELECT TOP (${topListSize}) pg.id AS [key], pg.name AS label, pg.vProject AS detail, ${rankingSums}
+		${rankingFrom(period, project)}
+		GROUP BY pg.id, pg.name, pg.vProject
+		ORDER BY SUM(sr.quantity) DESC, pg.name`);
+	return toRankingRows(rows);
+}
+
+/** Records without a scrap code are grouped under one "No code" row (empty key). */
+async function loadScrapCodeRanking(period: Period, project: string | undefined) {
+	const rows = await prismaClient.$queryRaw<RankingSqlRow[]>(Prisma.sql`
+		SELECT TOP (${topListSize}) ISNULL(NULLIF(sr.scrapCode, ''), '') AS [key],
+			ISNULL(NULLIF(sr.scrapCode, ''), 'No code') AS label,
+			MAX(sr.scrapCodeDescription) AS detail, ${rankingSums}
+		${rankingFrom(period, project)}
+		GROUP BY ISNULL(NULLIF(sr.scrapCode, ''), '')
+		ORDER BY SUM(sr.quantity) DESC, ISNULL(NULLIF(sr.scrapCode, ''), '')`);
+	return toRankingRows(rows);
 }
 
 export type DashboardStats = Awaited<ReturnType<typeof queryDashboardStats>>;
 
 async function queryDashboardStats(filters: DashboardFilters) {
-	const [projects, current, previous, trend, masterData, allTime] = await Promise.all([
-		loadProjectsInPeriod(filters.period, filters.project),
-		loadPartTotals(periodWhere(filters.period, filters.project)),
-		loadPartTotals(periodWhere(filters.previousPeriod, filters.project)),
-		loadTrend(filters.period, filters.project),
-		loadMasterData(),
-		loadAllTime()
-	]);
+	const [projectRanking, partGroups, scrapCodes, current, previous, trend, masterData, allTime] =
+		await Promise.all([
+			loadProjectRanking(filters.period),
+			loadPartGroupRanking(filters.period, filters.project),
+			loadScrapCodeRanking(filters.period, filters.project),
+			loadPartTotals(periodWhere(filters.period, filters.project)),
+			loadPartTotals(periodWhere(filters.previousPeriod, filters.project)),
+			loadTrend(filters.period, filters.project),
+			loadMasterData(),
+			loadAllTime()
+		]);
 	return {
 		filters: {
 			range: filters.range,
@@ -176,7 +248,14 @@ async function queryDashboardStats(filters: DashboardFilters) {
 			from: filters.customDates?.from,
 			to: filters.customDates?.to
 		},
-		projects,
+		// The switcher lists the project in the URL even when it has no records in the period.
+		projects: [
+			...new Set([
+				...projectRanking.map((row) => row.label),
+				...(filters.project ? [filters.project] : [])
+			])
+		].sort((a, b) => a.localeCompare(b)),
+		rankings: { projects: projectRanking, partGroups, scrapCodes },
 		totals: { ...current, changePercent: changePercent(current.quantity, previous.quantity) },
 		trend,
 		masterData,

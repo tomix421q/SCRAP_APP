@@ -22,7 +22,11 @@ type GroupByArgs = {
 	by: string[];
 	where: { AND: Record<string, unknown>[] };
 };
-type IsRebuildRow = { isRebuild: boolean; _sum: { quantity: number | null }; _count: { _all: number } };
+type IsRebuildRow = {
+	isRebuild: boolean;
+	_sum: { quantity: number | null };
+	_count: { _all: number };
+};
 
 /**
  * The DB stores local wall-clock time (GETDATE()) that Prisma reads as UTC, so a local
@@ -42,6 +46,10 @@ let totalsByPeriodStart: Map<number, IsRebuildRow[]>;
 /** Rows the trend query returns and the distinct label count. */
 let trendRows: { bucket: number; isRebuild: boolean; quantity: number }[];
 let labelCount: number;
+/** Rows of the ranking queries by their GROUP BY clause. */
+let projectRows: unknown[];
+let partGroupRows: unknown[];
+let scrapCodeRows: unknown[];
 
 type RawCall = [{ sql: string; values: unknown[] } | TemplateStringsArray, ...unknown[]];
 
@@ -53,6 +61,12 @@ function rawSql(call: RawCall): { sql: string; values: unknown[] } {
 
 function rawCalls() {
 	return prismaMock.$queryRaw.mock.calls.map((call) => rawSql(call as RawCall));
+}
+
+function rankingCall(groupBy: string) {
+	const call = rawCalls().find((c) => c.sql.includes(groupBy));
+	if (!call) throw new Error(`No query with ${groupBy}`);
+	return call;
 }
 
 function trendCalls() {
@@ -95,15 +109,22 @@ beforeEach(() => {
 		_count: { _all: 0 },
 		_min: { createdAt: null }
 	});
-	prismaMock.partGroup.findMany.mockResolvedValue([]);
 	prismaMock.partGroup.count.mockResolvedValue(0);
 	prismaMock.partGroupMaterial.count.mockResolvedValue(0);
 	prismaMock.partGroup.groupBy.mockResolvedValue([]);
 	trendRows = [];
 	labelCount = 0;
-	prismaMock.$queryRaw.mockImplementation(async (...call: RawCall) =>
-		rawSql(call).sql.includes('DATEDIFF') ? trendRows : [{ count: labelCount }]
-	);
+	projectRows = [];
+	partGroupRows = [];
+	scrapCodeRows = [];
+	prismaMock.$queryRaw.mockImplementation(async (...call: RawCall) => {
+		const { sql } = rawSql(call);
+		if (sql.includes('DATEDIFF')) return trendRows;
+		if (sql.includes('GROUP BY pg.vProject')) return projectRows;
+		if (sql.includes('GROUP BY pg.id')) return partGroupRows;
+		if (sql.includes('GROUP BY ISNULL')) return scrapCodeRows;
+		return [{ count: labelCount }];
+	});
 });
 
 afterEach(() => {
@@ -269,34 +290,45 @@ describe('dashboard load: Master data and All-time', () => {
 	});
 });
 
-describe('dashboard load: project switcher', () => {
+describe('dashboard load: Projects tile and project switcher', () => {
 	beforeEach(() => {
-		prismaMock.partGroup.findMany.mockResolvedValue([
-			{ vProject: 'PRJ3' },
-			{ vProject: null },
-			{ vProject: 'PRJ1' }
-		]);
+		projectRows = [
+			{ key: 'PRJ3', label: 'PRJ3', detail: null, scrap: 20, rebuild: 5 },
+			{ key: 'PRJ1', label: 'PRJ1', detail: null, scrap: '8', rebuild: null }
+		];
 	});
 
-	it('offers the projects with scrap records in the period, sorted by name', async () => {
+	it('ranks projects with scrap in the period by parts, scrap and rebuild apart', async () => {
+		const data = await runLoad('range=30d');
+
+		expect((data.rankings as { projects: unknown[] }).projects).toEqual([
+			{ key: 'PRJ3', label: 'PRJ3', detail: null, scrap: 20, rebuild: 5 },
+			{ key: 'PRJ1', label: 'PRJ1', detail: null, scrap: 8, rebuild: 0 }
+		]);
+		const query = rankingCall('GROUP BY pg.vProject');
+		expect(query.sql).toMatch(/ORDER BY SUM\(sr\.quantity\) DESC/);
+		expect(query.values).toEqual(['2026-10-17T12:30:00.000', '2026-11-16T12:30:00.000']);
+	});
+
+	it('ignores the project filter, so the other projects stay comparable', async () => {
+		await runLoad('project=PRJ1');
+
+		const query = rankingCall('GROUP BY pg.vProject');
+		expect(query.sql).not.toMatch(/pg\.vProject = \?/);
+		expect(query.values).toEqual(['2026-11-09T12:30:00.000', '2026-11-16T12:30:00.000']);
+	});
+
+	it('offers the same projects in the switcher, sorted by name', async () => {
 		const data = await runLoad('range=30d');
 
 		expect(data.projects).toEqual(['PRJ1', 'PRJ3']);
-		expect(prismaMock.partGroup.findMany).toHaveBeenCalledWith({
-			where: {
-				scrapRecords: {
-					some: { AND: [{ createdAt: { gte: dbTime(2026, 9, 17, 12, 30), lt: dbNow } }] }
-				}
-			},
-			distinct: ['vProject'],
-			select: { vProject: true }
-		});
 	});
 
-	it('keeps the selected project in the list even without records in the period', async () => {
+	it('keeps the selected project in the switcher even without records in the period', async () => {
 		const data = await runLoad('project=PRJ2');
 
 		expect(data.projects).toEqual(['PRJ1', 'PRJ2', 'PRJ3']);
+		expect((data.rankings as { projects: unknown[] }).projects).toHaveLength(2);
 	});
 
 	it('returns the parsed filters for the page controls', async () => {
@@ -308,6 +340,38 @@ describe('dashboard load: project switcher', () => {
 			from: '2026-03-01',
 			to: '2026-03-10'
 		});
+	});
+});
+
+describe('dashboard load: Top part groups and Top scrap codes', () => {
+	it('takes the top 5 part groups of the period and project', async () => {
+		partGroupRows = [{ key: 7, label: 'Door', detail: 'PRJ1', scrap: 12, rebuild: 3 }];
+
+		const data = await runLoad('project=PRJ1');
+
+		expect((data.rankings as { partGroups: unknown[] }).partGroups).toEqual([
+			{ key: '7', label: 'Door', detail: 'PRJ1', scrap: 12, rebuild: 3 }
+		]);
+		const query = rankingCall('GROUP BY pg.id');
+		expect(query.sql).toMatch(/pg\.vProject = \?/);
+		expect(query.values).toEqual([5, '2026-11-09T12:30:00.000', '2026-11-16T12:30:00.000', 'PRJ1']);
+	});
+
+	it('takes the top 5 scrap codes with their description', async () => {
+		scrapCodeRows = [{ key: 'S12', label: 'S12', detail: 'Scratch', scrap: 9, rebuild: 1 }];
+
+		const data = await runLoad('');
+
+		expect((data.rankings as { scrapCodes: unknown[] }).scrapCodes).toEqual([
+			{ key: 'S12', label: 'S12', detail: 'Scratch', scrap: 9, rebuild: 1 }
+		]);
+		expect(rankingCall('GROUP BY ISNULL').values[0]).toBe(5);
+	});
+
+	it('groups records without a scrap code as "No code"', async () => {
+		await runLoad('');
+
+		expect(rankingCall('GROUP BY ISNULL').sql).toMatch(/'No code'/);
 	});
 });
 
