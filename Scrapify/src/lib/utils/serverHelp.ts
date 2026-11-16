@@ -80,9 +80,19 @@ export interface MatchResult {
 	serialNumber?: string;
 }
 
+// Opt-in flag: a mask containing this token requires a side code anywhere in the DMC.
+// The token itself is removed from the mask before matching.
+const SIDE_TOKEN_REGEX = /\{SIDE\}/gi;
+const SIDE_CODE_REGEX = /FR|FL|RR|RL/i;
+
 export function matchDmcWithMask(scannedDmc: string, mask: string): MatchResult {
 	const cleanDmc = scannedDmc.trim();
-	const cleanMask = mask.trim();
+	const requiresSide = /\{SIDE\}/i.test(mask);
+	const cleanMask = mask.replace(SIDE_TOKEN_REGEX, '').trim();
+
+	if (requiresSide && !SIDE_CODE_REGEX.test(cleanDmc)) {
+		return { isMatch: false };
+	}
 
 	if (!cleanMask.includes('*')) {
 		return {

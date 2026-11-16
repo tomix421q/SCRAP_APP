@@ -155,33 +155,35 @@
 				<div class="flex items-center gap-2">
 					<Label for="labelNumber" class="text-sm md:text-lg">Label code</Label>
 					<HelpTooltip label="Pomoc k labelom a maskám">
-						<div class="space-y-3">
+						<div class="space-y-3 [&_code]:text-warning">
 							<div>
-								<p class="font-semibold text-info">Masky labelov / label picking</p>
+								<p class="font-semibold text-info">Maska DMC</p>
 								<p>
-									Znak <code>*</code> zastupuje jeden alebo viac znakov — písmen alebo číslic. Celý naskenovaný
-									kód sa musí zhodovať s maskou; ostatné znaky sa berú doslovne. Pri porovnávaní sa nerozlišujú
-									veľké a malé písmená.
+									Naskenovaný DMC sa musí zhodovať s maskou celý. Na veľkosti písmen nezáleží.
 								</p>
 								<p class="mt-1">
-									Napríklad maska <code>ABC-*</code> zodpovedá kódu
-									<code>ABC-12345</code>. Počet hviezdičiek neurčuje maximálny počet zodpovedajúcich
-									znakov.
+									<code>*</code> = 1 a viac písmen alebo číslic. Pomlčku ani medzeru nezastúpi. Na počte
+									<code>*</code> nezáleží.
+								</p>
+								<p class="mt-1">Príklad: <code>ABC-*</code> → <code>ABC-12345</code> ✓</p>
+							</div>
+							<div>
+								<p class="font-semibold text-info">Strana dielu (nepovinné)</p>
+								<p>
+									Pridaj <code>{'{SIDE}'}</code> kamkoľvek do masky. DMC potom musí niekde obsahovať
+									<code>FR</code>, <code>FL</code>, <code>RR</code> alebo <code>RL</code>.
+								</p>
+								<p class="mt-1">
+									Príklad: <code>{'{SIDE}'}ABC-*</code> → <code>ABC-FR123</code> ✓,
+									<code>ABC-123</code> ✗
 								</p>
 							</div>
 							<div>
-								<p class="font-semibold text-info">Labely pre quantity scrap bez label pickingu</p>
+								<p class="font-semibold text-info">Quantity scrap</p>
 								<p>
-									Kód začínajúci na <code>QNT-SCRAP-</code> vytvorí možnosť quantity scrapu, nie
-									bežný pick/DMC label. Za prefix doplň označenie linky alebo projektu, napríklad
-									<code>QNT-SCRAP-540</code>
-									alebo
-									<code>QNT-SCRAP-PROJECT</code>.
-								</p>
-								<p class="mt-1">
-									Operátor si tento label vyberie po kliknutí na tlačidlo Quantity scrap. Priraď k
-									nemu skupiny dielov, ktorých množstvá sa majú evidovať. Zadané množstvá sa uložia
-									pre tieto skupiny pod týmto kódom labelu.
+									<code>QNT-SCRAP-</code> + linka alebo projekt (napr. <code>QNT-SCRAP-540</code>) nie je
+									maska DMC. Operátor ho vyberie tlačidlom Quantity scrap a zadá množstvá pre priradené
+									skupiny dielov.
 								</p>
 							</div>
 						</div>
