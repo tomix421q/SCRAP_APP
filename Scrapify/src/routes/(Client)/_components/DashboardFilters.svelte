@@ -66,14 +66,8 @@
 	}
 </script>
 
-<div class="flex flex-col gap-3">
-	<p
-		class="truncate text-center bg-gradient-to-r from-primary via-chart-1 to-chart-2 bg-clip-text font-mono text-lg font-extrabold tracking-wider text-transparent lg:text-xl"
-	>
-		Your central point for waste reduction.
-	</p>
-
-	<!-- Filters sit under the slogan, right above the tiles they filter, in their own compact box
+<div class="flex flex-col">
+	<!-- Filters sit right above the tiles they filter, in their own compact box
 	     so they don't read as a second header nav. -->
 	<div
 		class="flex flex-col gap-2 rounded-xl border border-border bg-card/40 p-2 backdrop-blur-lg sm:w-fit sm:self-center"
