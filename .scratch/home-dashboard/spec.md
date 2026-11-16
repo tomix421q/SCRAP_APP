@@ -119,7 +119,7 @@ Po tikete 01 až 04 sa pod existujúcu mriežku pridáva druhá sekcia s piatimi
 
 ### Pravidlá
 
-- **Sparkline:** počet scrap recordov za deň (nie kusy), lebo ukazuje aktivitu skenovania a dopĺňa číslo kusov. Granularita je vždy deň; pri 1 day po hodinách ako Trend. Bez osí, s tooltipom.
+- **Sparkline:** počet scrap recordov za deň (nie kusy), lebo ukazuje aktivitu skenovania a dopĺňa číslo kusov. Granularita je rovnaká ako pri Trend (hodiny / dni / týždne). Bez osí, s tooltipom.
 - **Pareto:**
   - kumulatívny podiel sa rátá z celkových kusov za obdobie a filter, nie z top 10,
   - záznamy bez scrap code sú v stĺpci „No code" ako v Top scrap codes,

@@ -43,8 +43,8 @@ describe.each(periods)('trend buckets for $name', ({ from, to }) => {
 		const rows: TrendRow[] = [];
 		for (let t = from.getTime(); t < to.getTime(); t += hourMs) {
 			const date = new Date(t);
-			rows.push({ bucket: bucketOf(date, granularity), isRebuild: false, quantity: 2 });
-			rows.push({ bucket: bucketOf(date, granularity), isRebuild: true, quantity: 1 });
+			rows.push({ bucket: bucketOf(date, granularity), isRebuild: false, quantity: 2, records: 2 });
+			rows.push({ bucket: bucketOf(date, granularity), isRebuild: true, quantity: 1, records: 1 });
 		}
 		return rows;
 	}
@@ -72,7 +72,9 @@ describe.each(periods)('trend buckets for $name', ({ from, to }) => {
 		const rows = hourlyRows();
 		const buckets = buildTrendBuckets(period, granularity, rows);
 
-		const sum = (key: 'scrap' | 'rebuild') => buckets.reduce((total, b) => total + b[key], 0);
+		const sum = (key: 'scrap' | 'rebuild' | 'records') =>
+			buckets.reduce((total, b) => total + b[key], 0);
+		expect(sum('records')).toBe(rows.reduce((t, r) => t + r.records, 0));
 		expect(sum('scrap')).toBe(rows.filter((r) => !r.isRebuild).reduce((t, r) => t + r.quantity, 0));
 		expect(sum('rebuild')).toBe(
 			rows.filter((r) => r.isRebuild).reduce((t, r) => t + r.quantity, 0)
@@ -115,7 +117,12 @@ describe('trend buckets at the edges', () => {
 
 	it('puts a record of the last minute of a day into that day, not the next one', () => {
 		const buckets = buildTrendBuckets({ from: dbTime(2026, 2, 1), to: dbTime(2026, 2, 3) }, 'day', [
-			{ bucket: bucketOf(dbTime(2026, 2, 1, 23, 59), 'day'), isRebuild: false, quantity: 1 }
+			{
+				bucket: bucketOf(dbTime(2026, 2, 1, 23, 59), 'day'),
+				isRebuild: false,
+				quantity: 1,
+				records: 1
+			}
 		]);
 
 		expect(buckets.map((b) => b.scrap)).toEqual([1, 0]);

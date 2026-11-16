@@ -27,9 +27,12 @@ export type TrendRow = {
 	bucket: number;
 	isRebuild: boolean;
 	quantity: number;
+	/** Number of scrap records behind `quantity`. */
+	records: number;
 };
 
-export type TrendBucket = { start: Date; scrap: number; rebuild: number };
+/** Parts per kind and the number of scrap records of one bucket. */
+export type TrendBucket = { start: Date; scrap: number; rebuild: number; records: number };
 
 function bucketIndex(date: Date, granularity: TrendGranularity) {
 	return Math.floor((date.getTime() - bucketEpochMs) / granularityMs[granularity]);
@@ -54,11 +57,17 @@ export function buildTrendBuckets(
 
 	const buckets: TrendBucket[] = [];
 	for (let index = first; index <= last; index++) {
-		buckets.push({ start: new Date(bucketEpochMs + index * sizeMs), scrap: 0, rebuild: 0 });
+		buckets.push({
+			start: new Date(bucketEpochMs + index * sizeMs),
+			scrap: 0,
+			rebuild: 0,
+			records: 0
+		});
 	}
 	for (const row of rows) {
 		const bucket = buckets[row.bucket - first];
 		if (!bucket) continue;
+		bucket.records += row.records;
 		if (row.isRebuild) bucket.rebuild += row.quantity;
 		else bucket.scrap += row.quantity;
 	}

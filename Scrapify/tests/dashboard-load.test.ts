@@ -44,7 +44,7 @@ const twoWeeksAgo = dbTime(2026, 10, 2, 12, 30);
 /** Rows the `isRebuild` groupBy returns, by the start of the queried period. */
 let totalsByPeriodStart: Map<number, IsRebuildRow[]>;
 /** Rows the trend query returns and the distinct label count. */
-let trendRows: { bucket: number; isRebuild: boolean; quantity: number }[];
+let trendRows: { bucket: number; isRebuild: boolean; quantity: number; records: number }[];
 let labelCount: number;
 /** Rows of the ranking queries by their GROUP BY clause. */
 let projectRows: unknown[];
@@ -178,8 +178,8 @@ describe('dashboard load: Trend', () => {
 
 	it('sums parts per local hour for 1 day, split into scrap and rebuild, with empty hours as zeros', async () => {
 		trendRows = [
-			{ bucket: hourIndex(dbTime(2026, 10, 16, 8)), isRebuild: false, quantity: 5 },
-			{ bucket: hourIndex(dbTime(2026, 10, 16, 8)), isRebuild: true, quantity: 3 }
+			{ bucket: hourIndex(dbTime(2026, 10, 16, 8)), isRebuild: false, quantity: 5, records: 2 },
+			{ bucket: hourIndex(dbTime(2026, 10, 16, 8)), isRebuild: true, quantity: 3, records: 1 }
 		];
 
 		const data = await runLoad('range=1d');
@@ -188,8 +188,18 @@ describe('dashboard load: Trend', () => {
 		expect(trend.granularity).toBe('hour');
 		// 12:00 yesterday (partial) up to 12:00 today (partial).
 		expect(trend.buckets).toHaveLength(25);
-		expect(trend.buckets[20]).toEqual({ start: dbTime(2026, 10, 16, 8), scrap: 5, rebuild: 3 });
-		expect(trend.buckets[19]).toEqual({ start: dbTime(2026, 10, 16, 7), scrap: 0, rebuild: 0 });
+		expect(trend.buckets[20]).toEqual({
+			start: dbTime(2026, 10, 16, 8),
+			scrap: 5,
+			rebuild: 3,
+			records: 3
+		});
+		expect(trend.buckets[19]).toEqual({
+			start: dbTime(2026, 10, 16, 7),
+			scrap: 0,
+			rebuild: 0,
+			records: 0
+		});
 		expect(trendCalls()[0].sql).toMatch(/DATEDIFF\(HOUR, 0, sr\.createdAt\)/);
 	});
 

@@ -2,10 +2,18 @@
 	import * as Card from '@/components/ui/card';
 	import { formatNumber } from '@/utils/index';
 	import type { DashboardStats } from './server/dashboardStats.server';
+	import RecordsSparkline from './RecordsSparkline.svelte';
 	import { ArrowDownRight, ArrowRight, ArrowUpRight } from '@lucide/svelte';
 
-	let { totals, periodLabel }: { totals: DashboardStats['totals']; periodLabel: string } =
-		$props();
+	let {
+		totals,
+		trend,
+		periodLabel
+	}: {
+		totals: DashboardStats['totals'];
+		trend: DashboardStats['trend'];
+		periodLabel: string;
+	} = $props();
 
 	const scrapShare = $derived(totals.quantity > 0 ? (totals.scrapQuantity / totals.quantity) * 100 : 0);
 	// The change is shown neutrally: more parts is not judged as good or bad here.
@@ -67,5 +75,7 @@
 				<dd class="font-semibold tabular-nums">{formatNumber(totals.records)}</dd>
 			</div>
 		</dl>
+
+		<RecordsSparkline {trend} />
 	</Card.Content>
 </Card.Root>

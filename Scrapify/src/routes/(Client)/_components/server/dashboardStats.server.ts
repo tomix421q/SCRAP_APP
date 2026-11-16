@@ -9,7 +9,7 @@ import {
 	pickTrendGranularity,
 	type TrendGranularity,
 	type TrendRow
-} from '@/utils/trendBuckets';
+} from './trendBuckets';
 
 export type PartTotals = {
 	/** Sum of `quantity` (parts), the main metric. */
@@ -84,7 +84,8 @@ async function loadTrend(period: Period, project: string | undefined) {
 		: Prisma.empty;
 	// Column types as the driver may hand them back (BIT, SUM); normalized below.
 	const rows = await prismaClient.$queryRaw<Record<keyof TrendRow, unknown>[]>(Prisma.sql`
-		SELECT ${bucket} AS bucket, sr.isRebuild AS isRebuild, SUM(sr.quantity) AS quantity
+		SELECT ${bucket} AS bucket, sr.isRebuild AS isRebuild, SUM(sr.quantity) AS quantity,
+			COUNT(*) AS records
 		FROM ScrapRecord sr
 		${projectJoin}
 		WHERE sr.createdAt >= CAST(${toDbDateTimeLiteral(dbPeriod.from)} AS datetime2)
@@ -93,7 +94,8 @@ async function loadTrend(period: Period, project: string | undefined) {
 	const trendRows: TrendRow[] = rows.map((row) => ({
 		bucket: Number(row.bucket),
 		isRebuild: Boolean(row.isRebuild),
-		quantity: Number(row.quantity)
+		quantity: Number(row.quantity),
+		records: Number(row.records)
 	}));
 	return { granularity, buckets: buildTrendBuckets(dbPeriod, granularity, trendRows) };
 }

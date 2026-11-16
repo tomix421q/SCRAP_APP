@@ -48,7 +48,7 @@
 
 	<!-- Bento grid: one column on narrow screens in the order Total → Trend → Projects → others. -->
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-		<TotalPartsTile totals={data.totals} {periodLabel} />
+		<TotalPartsTile totals={data.totals} trend={data.trend} {periodLabel} />
 		<TrendTile trend={data.trend} {periodLabel} scrapRecordsQuery={data.scrapRecordsQuery} />
 		<RankingTile
 			class="xl:col-start-4 xl:row-span-2 xl:row-start-1"

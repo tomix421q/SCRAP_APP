@@ -3,7 +3,7 @@
 	import { BarChart } from 'layerchart';
 	import * as Chart from '@/components/ui/chart';
 	import { formatNumber } from '@/utils/index';
-	import { formatTrendBucket } from '@/utils/trendBuckets';
+	import { formatTrendBucket } from './server/trendBuckets';
 	import type { DashboardStats } from './server/dashboardStats.server';
 
 	let {
