@@ -84,3 +84,10 @@ export function getLocalDateTimeForDb(date: Date = new Date()): Date {
 	const adjustedDatedInMs = dateInMs - timezoneOffsetMinutes * 60 * 1000;
 	return new Date(adjustedDatedInMs);
 }
+
+const numberFormatter = new Intl.NumberFormat('sk-SK', { maximumFractionDigits: 2 });
+
+/** Formats a count or quantity with thousands separators and at most two decimals. */
+export function formatNumber(value: number): string {
+	return numberFormatter.format(value);
+}
