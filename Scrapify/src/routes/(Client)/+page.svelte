@@ -47,52 +47,57 @@
 	<h1 class="sr-only">Scrap records dashboard</h1>
 	<DashboardFilters filters={data.filters} projects={data.projects} />
 
-	<!-- Bento grid: one column on narrow screens in the order Total → Trend → Projects → others. -->
-	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-		<TotalPartsTile totals={data.totals} trend={data.trend} {periodLabel} />
-		<TrendTile trend={data.trend} {periodLabel} scrapRecordsQuery={data.scrapRecordsQuery} />
-		<RankingTile
-			class="xl:col-start-4 xl:row-span-2 xl:row-start-1"
-			title="Projects"
-			description="{data.filters.range === 'custom'
-				? 'Custom range'
-				: dashboardRangeLabels[data.filters.range].period} · by parts"
-			ranking={data.rankings.projects}
-			{periodLabel}
-			scrapRecordsQuery={data.scrapRecordsQuery}
-			selectedKey={data.filters.project}
-			onselect={toggleProject}
-			visibleRows={6}
-		/>
-		<RankingTile
-			title="Top part groups"
-			description="{periodLabel} · top 5"
-			ranking={data.rankings.partGroups}
-			tileRows={5}
-			{periodLabel}
-			scrapRecordsQuery={data.scrapRecordsQuery}
-		/>
-		<RankingTile
-			title="Top scrap codes"
-			description="{periodLabel} · top 5"
-			ranking={data.rankings.scrapCodes}
-			tileRows={5}
-			{periodLabel}
-			scrapRecordsQuery={data.scrapRecordsQuery}
-		/>
-		<div class="flex flex-col gap-4">
-			<MasterDataTile masterData={data.masterData} />
-			<AllTimeTile allTime={data.allTime} />
+	<section aria-labelledby="overview-heading" class="flex flex-col gap-4">
+		{@render sectionHeading('overview-heading', 'Overview')}
+		<!-- Bento grid: one column on narrow screens in the order Total → Trend → Projects → others. -->
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+			<TotalPartsTile totals={data.totals} trend={data.trend} {periodLabel} />
+			<TrendTile trend={data.trend} {periodLabel} scrapRecordsQuery={data.scrapRecordsQuery} />
+			<RankingTile
+				class="xl:col-start-4 xl:row-span-2 xl:row-start-1"
+				title="Projects"
+				description="{data.filters.range === 'custom'
+					? 'Custom range'
+					: dashboardRangeLabels[data.filters.range].period} · by parts"
+				ranking={data.rankings.projects}
+				{periodLabel}
+				scrapRecordsQuery={data.scrapRecordsQuery}
+				selectedKey={data.filters.project}
+				onselect={toggleProject}
+				visibleRows={6}
+			/>
+			<RankingTile
+				title="Top part groups"
+				description="{periodLabel} · top 5"
+				ranking={data.rankings.partGroups}
+				tileRows={5}
+				{periodLabel}
+				scrapRecordsQuery={data.scrapRecordsQuery}
+			/>
+			<RankingTile
+				title="Top scrap codes"
+				description="{periodLabel} · top 5"
+				ranking={data.rankings.scrapCodes}
+				tileRows={5}
+				{periodLabel}
+				scrapRecordsQuery={data.scrapRecordsQuery}
+			/>
+			<div class="flex flex-col gap-4">
+				<MasterDataTile masterData={data.masterData} />
+				<AllTimeTile allTime={data.allTime} />
+			</div>
 		</div>
-	</div>
+	</section>
 
 	<!-- Second section below the one-screen grid; more tiles follow in later tickets. -->
 	<section aria-labelledby="analytics-heading" class="mt-4 flex flex-col gap-4">
-		<h2 id="analytics-heading" class="text-sm uppercase tracking-wider text-muted-foreground">
-			Analytics
-		</h2>
+		{@render sectionHeading('analytics-heading', 'Analytics')}
 		<div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
 			<ParetoTile ranking={data.rankings.scrapCodes} {periodLabel} />
 		</div>
 	</section>
 </main>
+
+{#snippet sectionHeading(id: string, text: string)}
+	<h2 {id} class="text-sm uppercase tracking-wider text-muted-foreground">{text}</h2>
+{/snippet}

@@ -70,7 +70,7 @@
 	<!-- Filters sit right above the tiles they filter, in their own compact box
 	     so they don't read as a second header nav. -->
 	<div
-		class="flex flex-col gap-2 rounded-xl border border-border bg-card/40 p-2 backdrop-blur-lg sm:w-fit sm:self-center"
+		class="flex flex-col gap-2 rounded-xl border border-border bg-card/40 p-2 backdrop-blur-lg sm:w-fit sm:self-start"
 	>
 		<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-2">
 			{@render segmented('Project', projectSegment)}
