@@ -7,6 +7,7 @@
 	import RankingTile from './_components/RankingTile.svelte';
 	import ParetoTile from './_components/ParetoTile.svelte';
 	import HeatmapTile from './_components/HeatmapTile.svelte';
+	import SelectionTrendTile from './_components/SelectionTrendTile.svelte';
 	import TrendTile from './_components/TrendTile.svelte';
 	import MasterDataTile from './_components/MasterDataTile.svelte';
 	import AllTimeTile from './_components/AllTimeTile.svelte';
@@ -96,6 +97,11 @@
 		<div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
 			<ParetoTile ranking={data.rankings.scrapCodes} {periodLabel} />
 			<HeatmapTile heatmap={data.heatmap} {periodLabel} />
+			<SelectionTrendTile
+				selectionTrend={data.selectionTrend}
+				{periodLabel}
+				class="xl:col-span-2"
+			/>
 		</div>
 	</section>
 </main>

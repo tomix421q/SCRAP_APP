@@ -8,7 +8,7 @@ vi.hoisted(() => {
 // Prisma is fully mocked: these tests must never touch a real database.
 const prismaMock = vi.hoisted(() => ({
 	scrapRecord: { groupBy: vi.fn(), aggregate: vi.fn() },
-	partGroup: { count: vi.fn(), findMany: vi.fn(), groupBy: vi.fn() },
+	partGroup: { count: vi.fn(), findMany: vi.fn(), findUnique: vi.fn(), groupBy: vi.fn() },
 	partGroupMaterial: { count: vi.fn() },
 	$queryRaw: vi.fn()
 }));
@@ -51,6 +51,9 @@ let labelCount: number;
 let projectRows: unknown[];
 let partGroupRows: unknown[];
 let scrapCodeRows: unknown[];
+/** Rows of the selection option queries of the Trend of selection tile. */
+let partGroupOptionRows: unknown[];
+let scrapCodeOptionRows: unknown[];
 
 type RawCall = [{ sql: string; values: unknown[] } | TemplateStringsArray, ...unknown[]];
 
@@ -119,9 +122,15 @@ beforeEach(() => {
 	projectRows = [];
 	partGroupRows = [];
 	scrapCodeRows = [];
+	partGroupOptionRows = [];
+	scrapCodeOptionRows = [];
+	prismaMock.partGroup.findUnique.mockResolvedValue(null);
 	prismaMock.$queryRaw.mockImplementation(async (...call: RawCall) => {
 		const { sql } = rawSql(call);
 		if (sql.includes('AS weekday')) return heatmapRows;
+		if (sql.includes('AS optionKey')) return partGroupOptionRows;
+		if (sql.includes('AS description') && sql.includes('GROUP BY sr.scrapCode'))
+			return scrapCodeOptionRows;
 		if (sql.includes('AS bucket')) return trendRows;
 		if (sql.includes('GROUP BY pg.vProject')) return projectRows;
 		if (sql.includes('GROUP BY pg.id')) return partGroupRows;
@@ -526,5 +535,112 @@ describe('dashboard load: Heatmap', () => {
 		await runLoad('');
 
 		expect(heatmapCall().sql).not.toMatch(/PartGroup/);
+	});
+});
+
+describe('dashboard load: Trend of selection', () => {
+	type SelectionTrend = {
+		selected: { kind: string; id: string } | null;
+		options: {
+			partGroups: { id: string; name: string }[];
+			scrapCodes: { id: string; name: string; code?: string }[];
+		};
+		trend: { buckets: unknown[] } | null;
+	};
+	const selectionTrend = (data: Record<string, unknown>) => data.selectionTrend as SelectionTrend;
+
+	it('without a selection loads no trend, only the options', async () => {
+		partGroupOptionRows = [{ optionKey: 7, name: 'Door', project: 'PRJ1' }];
+		scrapCodeOptionRows = [{ scrapCode: 'S12', description: 'Scratch' }];
+
+		const data = await runLoad('');
+
+		expect(selectionTrend(data)).toEqual({
+			selected: null,
+			trend: null,
+			options: {
+				partGroups: [{ id: '7', name: 'Door · PRJ1' }],
+				scrapCodes: [{ id: 'S12', code: 'S12', name: 'Scratch' }]
+			}
+		});
+		// Only the main trend runs.
+		expect(trendCalls()).toHaveLength(1);
+	});
+
+	it('offers only part groups and scrap codes with records in the period and project', async () => {
+		await runLoad('project=PRJ1');
+
+		const partGroups = rawCalls().find((c) => c.sql.includes('AS optionKey'))!;
+		const scrapCodes = rawCalls().find((c) => c.sql.includes('GROUP BY sr.scrapCode'))!;
+		for (const query of [partGroups, scrapCodes]) {
+			expect(query.sql).toMatch(/pg\.vProject = \?/);
+			expect(query.values).toEqual(['2026-11-09T12:30:00.000', '2026-11-16T12:30:00.000', 'PRJ1']);
+		}
+		expect(scrapCodes.sql).toMatch(/sr\.scrapCode <> ''/);
+	});
+
+	it('counts only the selected part group, in the same buckets and period as Trend', async () => {
+		const bucket = Math.round(
+			(dbTime(2026, 10, 16, 8).getTime() - Date.UTC(1900, 0, 1)) / 86_400_000
+		);
+		trendRows = [{ bucket, isRebuild: false, quantity: 5, records: 2 }];
+
+		const data = await runLoad('trend=partGroup:7&project=PRJ1');
+
+		const [main, selected] = trendCalls();
+		expect(main.sql).not.toMatch(/sr\.partGroupId = \?/);
+		expect(selected.sql).toMatch(/AND sr\.partGroupId = \?/);
+		expect(selected.values).toEqual([
+			'PRJ1',
+			'2026-11-09T12:30:00.000',
+			'2026-11-16T12:30:00.000',
+			7
+		]);
+		expect(selectionTrend(data).selected).toEqual({ kind: 'partGroup', id: '7' });
+		expect(selectionTrend(data).trend!.buckets).toHaveLength(8);
+	});
+
+	it('counts only the selected scrap code', async () => {
+		await runLoad('trend=scrapCode:S12');
+
+		const selected = trendCalls().find((c) => c.sql.includes('sr.scrapCode = ?'))!;
+		expect(selected.values).toEqual(['2026-11-09T12:30:00.000', '2026-11-16T12:30:00.000', 'S12']);
+	});
+
+	it('a selection missing in the project gives an empty chart and a named option, not an error', async () => {
+		prismaMock.partGroup.findUnique.mockResolvedValue({ name: 'Door', vProject: 'PRJ1' });
+
+		const data = await runLoad('trend=partGroup:7&project=PRJ2');
+
+		const result = selectionTrend(data);
+		expect(result.trend!.buckets).toSatisfy((buckets: { scrap: number }[]) =>
+			buckets.every((b) => b.scrap === 0)
+		);
+		expect(result.options.partGroups).toEqual([{ id: '7', name: 'Door · PRJ1' }]);
+	});
+
+	it('names an unknown part group by its id', async () => {
+		const data = await runLoad('trend=partGroup:999');
+
+		expect(selectionTrend(data).options.partGroups).toEqual([
+			{ id: '999', name: 'Part group #999' }
+		]);
+	});
+
+	it('rejects an invalid selection with 400', async () => {
+		await expect(runLoad('trend=nonsense')).rejects.toMatchObject({ status: 400 });
+	});
+
+	it('keeps the selection in the 60 s cache key', async () => {
+		const { load } = await import('../src/routes/(Client)/+page.server');
+		const run = (query: string) =>
+			load({ url: new URL(`http://localhost/?${query}`) } as never) as Promise<unknown>;
+
+		await run('trend=scrapCode:A');
+		const afterFirst = trendCalls().length;
+		await run('trend=scrapCode:A');
+		expect(trendCalls().length).toBe(afterFirst);
+		await run('trend=scrapCode:B');
+		expect(trendCalls().length).toBeGreaterThan(afterFirst);
 	});
 });

@@ -3,6 +3,7 @@ import type { PageServerLoad } from './$types';
 
 import { getCachedProjects } from '@/server/cacheVprojects';
 import { parseDashboardFilters } from './_components/server/dashboardFilters';
+import { parseTrendSelection } from './_components/server/trendSelection';
 import { loadDashboardStats } from './_components/server/dashboardStats.server';
 
 export const load = (async ({ url }) => {
@@ -10,5 +11,6 @@ export const load = (async ({ url }) => {
 	if (filters.project && !(await getCachedProjects()).includes(filters.project)) {
 		throw error(400, { message: `Unknown project "${filters.project}".` });
 	}
-	return loadDashboardStats(filters);
+	const selection = parseTrendSelection(url.searchParams.get('trend'));
+	return loadDashboardStats(filters, selection);
 }) satisfies PageServerLoad;

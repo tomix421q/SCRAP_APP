@@ -11,6 +11,7 @@ import {
 	type TrendRow
 } from './trendBuckets';
 import { buildHeatmap, type HeatmapRow } from './heatmap';
+import { formatTrendSelection, type TrendSelection } from './trendSelection';
 
 export type PartTotals = {
 	/** Sum of `quantity` (parts), the main metric. */
@@ -69,11 +70,20 @@ function toDbDateTimeLiteral(dbTime: Date) {
 	return dbTime.toISOString().slice(0, 23);
 }
 
+/** Extra `WHERE` condition on `ScrapRecord sr` (alias `sr`) for the selected part group or scrap code. */
+function selectionCondition(selection: TrendSelection | undefined) {
+	if (!selection) return Prisma.empty;
+	return selection.kind === 'partGroup'
+		? Prisma.sql`AND sr.partGroupId = ${selection.id}`
+		: Prisma.sql`AND sr.scrapCode = ${selection.code}`;
+}
+
 /**
  * Parts per time bucket, split into scrap and rebuild, for the same records as `loadPartTotals`
  * (period and project), so the buckets add up to Total parts. Empty buckets hold zeros.
+ * With a `selection` only that part group or scrap code is counted.
  */
-async function loadTrend(period: Period, project: string | undefined) {
+async function loadTrend(period: Period, project: string | undefined, selection?: TrendSelection) {
 	const dbPeriod = {
 		from: getLocalDateTimeForDb(period.from),
 		to: getLocalDateTimeForDb(period.to)
@@ -91,6 +101,7 @@ async function loadTrend(period: Period, project: string | undefined) {
 		${projectJoin}
 		WHERE sr.createdAt >= CAST(${toDbDateTimeLiteral(dbPeriod.from)} AS datetime2)
 			AND sr.createdAt < CAST(${toDbDateTimeLiteral(dbPeriod.to)} AS datetime2)
+			${selectionCondition(selection)}
 		GROUP BY ${bucket}, sr.isRebuild`);
 	const trendRows: TrendRow[] = rows.map((row) => ({
 		bucket: Number(row.bucket),
@@ -298,16 +309,103 @@ async function loadScrapCodeRanking(
 	return toTopRanking(rows, totalQuantity);
 }
 
+export type SelectionOption = {
+	/** Part group id or scrap code, as in the `trend` URL parameter. */
+	id: string;
+	name: string;
+	/** Scrap code, so the combobox shows "code - description". */
+	code?: string;
+};
+
+/** Part group name with its project, as listed in the selection combobox. */
+function partGroupLabel(name: unknown, project: unknown) {
+	return project ? `${name} · ${project}` : String(name);
+}
+
+/**
+ * Part groups and scrap codes with records in the period and project, for the selection of the
+ * "Trend of selection" tile. Records without a scrap code are left out (nothing to select).
+ */
+async function loadSelectionOptions(period: Period, project: string | undefined) {
+	const [partGroupRows, scrapCodeRows] = await Promise.all([
+		prismaClient.$queryRaw<{ optionKey: unknown; name: unknown; project: unknown }[]>(Prisma.sql`
+			SELECT DISTINCT pg.id AS optionKey, pg.name AS name, pg.vProject AS project
+			${rankingFrom(period, project)}
+			ORDER BY pg.name, pg.id`),
+		prismaClient.$queryRaw<{ scrapCode: unknown; description: unknown }[]>(Prisma.sql`
+			SELECT sr.scrapCode AS scrapCode, MAX(sr.scrapCodeDescription) AS description
+			${rankingFrom(period, project)} AND sr.scrapCode IS NOT NULL AND sr.scrapCode <> ''
+			GROUP BY sr.scrapCode
+			ORDER BY sr.scrapCode`)
+	]);
+	const partGroups: SelectionOption[] = partGroupRows.map((row) => ({
+		id: String(row.optionKey),
+		name: partGroupLabel(row.name, row.project)
+	}));
+	const scrapCodes: SelectionOption[] = scrapCodeRows.map((row) => ({
+		id: String(row.scrapCode),
+		code: String(row.scrapCode),
+		name: row.description ? String(row.description) : 'No description'
+	}));
+	return { partGroups, scrapCodes };
+}
+
+/**
+ * Trend of one part group or scrap code. The selection is not checked against the options, so
+ * switching to a project without it shows an empty chart; it is added to the options so the
+ * combobox can still name it.
+ */
+async function loadTrendOfSelection(
+	period: Period,
+	project: string | undefined,
+	selection: TrendSelection | undefined
+) {
+	const [options, trend] = await Promise.all([
+		loadSelectionOptions(period, project),
+		selection ? loadTrend(period, project, selection) : Promise.resolve(null)
+	]);
+	if (
+		selection?.kind === 'partGroup' &&
+		!options.partGroups.some((o) => o.id === String(selection.id))
+	) {
+		const group = await prismaClient.partGroup.findUnique({
+			where: { id: selection.id },
+			select: { name: true, vProject: true }
+		});
+		options.partGroups.push({
+			id: String(selection.id),
+			name: group ? partGroupLabel(group.name, group.vProject) : `Part group #${selection.id}`
+		});
+	}
+	if (selection?.kind === 'scrapCode' && !options.scrapCodes.some((o) => o.id === selection.code)) {
+		options.scrapCodes.push({ id: selection.code, code: selection.code, name: 'No records' });
+	}
+	return {
+		selected: selection
+			? {
+					kind: selection.kind,
+					id: selection.kind === 'partGroup' ? String(selection.id) : selection.code
+				}
+			: null,
+		options,
+		trend
+	};
+}
+
 export type DashboardStats = Awaited<ReturnType<typeof queryDashboardStats>>;
 
-async function queryDashboardStats(filters: DashboardFilters) {
-	const [projectRanking, current, previous, trend, heatmap, masterData, allTime] =
+async function queryDashboardStats(
+	filters: DashboardFilters,
+	selection: TrendSelection | undefined
+) {
+	const [projectRanking, current, previous, trend, heatmap, selectionTrend, masterData, allTime] =
 		await Promise.all([
 			loadProjectRanking(filters.period),
 			loadPartTotals(periodWhere(filters.period, filters.project)),
 			loadPartTotals(periodWhere(filters.previousPeriod, filters.project)),
 			loadTrend(filters.period, filters.project),
 			loadHeatmap(filters.period, filters.project),
+			loadTrendOfSelection(filters.period, filters.project, selection),
 			loadMasterData(),
 			loadAllTime()
 		]);
@@ -335,6 +433,7 @@ async function queryDashboardStats(filters: DashboardFilters) {
 		totals: { ...current, changePercent: changePercent(current.quantity, previous.quantity) },
 		trend,
 		heatmap,
+		selectionTrend,
 		masterData,
 		allTime
 	};
@@ -346,12 +445,16 @@ const statsCache = createTtlCache<DashboardStats>(60_000);
  * Dashboard numbers for the filters, kept 60 s per filter combination. Rolling ranges are keyed
  * by the range name, so within that minute they may lag behind `now` by up to 60 s.
  */
-export function loadDashboardStats(filters: DashboardFilters): Promise<DashboardStats> {
+export function loadDashboardStats(
+	filters: DashboardFilters,
+	selection?: TrendSelection
+): Promise<DashboardStats> {
 	const key = JSON.stringify([
+		selection ? formatTrendSelection(selection) : null,
 		filters.range,
 		filters.project ?? null,
 		filters.customDates?.from ?? null,
 		filters.customDates?.to ?? null
 	]);
-	return statsCache.get(key, () => queryDashboardStats(filters));
+	return statsCache.get(key, () => queryDashboardStats(filters, selection));
 }
