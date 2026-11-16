@@ -8,9 +8,9 @@ vi.hoisted(() => {
 // Prisma is fully mocked: these tests must never touch a real database.
 const prismaMock = vi.hoisted(() => ({
 	scrapRecord: { groupBy: vi.fn(), aggregate: vi.fn() },
-	partGroup: { count: vi.fn(), findMany: vi.fn() },
+	partGroup: { count: vi.fn(), findMany: vi.fn(), groupBy: vi.fn() },
 	partGroupMaterial: { count: vi.fn() },
-	labelGroup: { count: vi.fn() }
+	$queryRaw: vi.fn()
 }));
 
 vi.mock('@/server/prisma', () => ({ default: prismaMock }));
@@ -79,7 +79,8 @@ beforeEach(() => {
 	prismaMock.partGroup.findMany.mockResolvedValue([]);
 	prismaMock.partGroup.count.mockResolvedValue(0);
 	prismaMock.partGroupMaterial.count.mockResolvedValue(0);
-	prismaMock.labelGroup.count.mockResolvedValue(0);
+	prismaMock.partGroup.groupBy.mockResolvedValue([]);
+	prismaMock.$queryRaw.mockResolvedValue([{ count: 0 }]);
 });
 
 afterEach(() => {
@@ -128,9 +129,10 @@ describe('dashboard load: Total parts', () => {
 
 describe('dashboard load: Master data and All-time', () => {
 	beforeEach(() => {
+		prismaMock.partGroup.groupBy.mockResolvedValue([{ vProject: 'PRJ1' }, { vProject: 'PRJ2' }]);
 		prismaMock.partGroup.count.mockResolvedValue(42);
 		prismaMock.partGroupMaterial.count.mockResolvedValue(310);
-		prismaMock.labelGroup.count.mockResolvedValue(57);
+		prismaMock.$queryRaw.mockResolvedValue([{ count: 57 }]);
 		prismaMock.scrapRecord.aggregate.mockResolvedValue({
 			_sum: { quantity: 9800 },
 			_count: { _all: 4100 },
@@ -141,7 +143,7 @@ describe('dashboard load: Master data and All-time', () => {
 	it('counts master data and all-time records', async () => {
 		const data = await runLoad('');
 
-		expect(data.masterData).toEqual({ projects: 3, partGroups: 42, partNumbers: 310, labels: 57 });
+		expect(data.masterData).toEqual({ projects: 2, partGroups: 42, partNumbers: 310, labels: 57 });
 		expect(data.allTime).toEqual({
 			quantity: 9800,
 			records: 4100,
@@ -152,14 +154,33 @@ describe('dashboard load: Master data and All-time', () => {
 	it('ignores the project and range filters', async () => {
 		await runLoad('project=PRJ1&range=custom&from=2026-01-01&to=2026-01-31');
 
+		expect(prismaMock.partGroup.groupBy).toHaveBeenCalledWith({
+			by: ['vProject'],
+			where: { vProject: { not: null } }
+		});
 		expect(prismaMock.partGroup.count).toHaveBeenCalledWith();
 		expect(prismaMock.partGroupMaterial.count).toHaveBeenCalledWith();
-		expect(prismaMock.labelGroup.count).toHaveBeenCalledWith();
 		expect(prismaMock.scrapRecord.aggregate).toHaveBeenCalledWith({
 			_sum: { quantity: true },
 			_count: { _all: true },
 			_min: { createdAt: true }
 		});
+	});
+
+	it('counts projects that have part groups, not every project in QAD', async () => {
+		prismaMock.partGroup.groupBy.mockResolvedValue([{ vProject: 'PRJ1' }, { vProject: '' }]);
+
+		const data = await runLoad('');
+
+		expect(data.masterData).toMatchObject({ projects: 1 });
+	});
+
+	it('counts labels as distinct scanned DMC codes without quantity scrap labels', async () => {
+		await runLoad('project=PRJ1');
+
+		const [sql, ...values] = prismaMock.$queryRaw.mock.calls[0];
+		expect(sql.join('?')).toMatch(/COUNT\(DISTINCT\s+dmc\).*FROM\s+ScrapRecord.*NOT LIKE \?/s);
+		expect(values).toEqual(['QNT-SCRAP-%']);
 	});
 
 	it('an empty database has no first record and zero parts', async () => {
@@ -264,7 +285,7 @@ describe('dashboard load: 60 s cache', () => {
 	it('does not keep a failed query in the cache', async () => {
 		const { load } = await import('../src/routes/(Client)/+page.server');
 		const run = () => load({ url: new URL('http://localhost/') } as never);
-		prismaMock.labelGroup.count.mockRejectedValueOnce(new Error('connection lost'));
+		prismaMock.partGroupMaterial.count.mockRejectedValueOnce(new Error('connection lost'));
 
 		await expect(run()).rejects.toThrow('connection lost');
 		await expect(run()).resolves.toBeDefined();

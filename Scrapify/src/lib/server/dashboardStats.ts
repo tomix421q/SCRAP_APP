@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import prismaClient from '@/server/prisma';
-import { getCachedProjects } from '@/server/cacheVprojects';
+import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
 import type { DashboardFilters, Period } from '@/utils/dashboardFilters';
 import { createTtlCache } from '@/utils/ttlCache';
 import { getLocalDateTimeForDb } from '@/utils/index';
@@ -50,15 +50,31 @@ function changePercent(current: number, previous: number): number | null {
 	return ((current - previous) / previous) * 100;
 }
 
+/** Distinct scanned DMC codes; quantity scrap labels stand for no physical part, so they are left out. */
+async function countScannedLabels(): Promise<number> {
+	// COUNT(DISTINCT) runs in SQL Server; Prisma's `distinct` would deduplicate rows in memory.
+	const [row] = await prismaClient.$queryRaw<{ count: number }[]>`
+		SELECT COUNT(DISTINCT dmc) AS count
+		FROM ScrapRecord
+		WHERE dmc NOT LIKE ${`${quantityScrapLabelPrefix}%`}`;
+	return Number(row?.count ?? 0);
+}
+
 /** Counts of what the app keeps; independent of the dashboard filters. */
 async function loadMasterData() {
 	const [projects, partGroups, partNumbers, labels] = await Promise.all([
-		getCachedProjects(),
+		// Only projects with part groups can get scrap records (QAD lists many more).
+		prismaClient.partGroup.groupBy({ by: ['vProject'], where: { vProject: { not: null } } }),
 		prismaClient.partGroup.count(),
 		prismaClient.partGroupMaterial.count(),
-		prismaClient.labelGroup.count()
+		countScannedLabels()
 	]);
-	return { projects: projects.length, partGroups, partNumbers, labels };
+	return {
+		projects: projects.filter((group) => Boolean(group.vProject)).length,
+		partGroups,
+		partNumbers,
+		labels
+	};
 }
 
 /** All scrap records since the first one; independent of the dashboard filters. */
