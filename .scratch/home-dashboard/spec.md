@@ -84,6 +84,68 @@ Vizuálny náhľad: https://claude.ai/artifact/9Rdj3H3rteKKSrEjCK5oR1 (ukážkov
 10. Ako návštevník chcem vidieť, koľko dát appka eviduje (master data, all-time čísla).
 11. Ako používateľ na úzkom displeji chcem vidieť všetky dlaždice pod sebou.
 12. Ako používateľ chcem pri neplatnom filtri v URL dostať jasnú chybu 400.
+13. Ako inžinier chcem vidieť, koľko scrap recordov vzniká po dňoch, aby som videl aktivitu skenovania aj bez otvárania detailu.
+14. Ako inžinier chcem Pareto scrap codes, aby som videl, ktoré few kódy tvoria väčšinu scrapu.
+15. Ako manažér chcem heatmapu deň × hodina, aby som videl, kedy vzniká najviac scrapu.
+16. Ako inžinier chcem trend jednej part group alebo scrap code, aby som videl, či je problém nový alebo dlhodobý.
+17. Ako manažér chcem vidieť aktivitu skenovania podľa Card ID, bez mien a bez hodnotenia ľudí.
+
+## Rozšírenie: analytické dlaždice pod dashboardom
+
+Po tikete 01 až 04 sa pod existujúcu mriežku pridáva druhá sekcia s piatimi rozšíreniami. Platia pre ňu rovnaké filtre (project, obdobie), URL parametre aj 60 s cache ako pre hlavnú mriežku. Pravidlo „mriežka sa zmestí na jednu obrazovku" platí iba pre hornú sekciu; spodná sa scrolluje.
+
+### Rozloženie
+
+- Pod hornou mriežkou je nadpis „Analytics" a druhá bento mriežka (1 / 2 stĺpce, na xl 2 stĺpce).
+- Na úzkej obrazovke sa dlaždice skladajú pod seba v poradí Pareto → Heatmap → Trend of selection → Scanning activity.
+- Sparkline nie je samostatná dlaždica, je súčasťou dlaždice Total parts.
+
+### Presúvateľné dlaždice
+
+- Poradie dlaždíc v sekcii Analytics si používateľ môže zmeniť presunutím; uloží sa iba v jeho prehliadači (`localStorage`), bez DB a bez zmeny schémy. Nezdieľa sa medzi ľuďmi ani zariadeniami.
+- Server vždy vykreslí východzie poradie, uložené sa použije po načítaní v prehliadači. Chýbajúce alebo neplatné uložené údaje sa ignorujú.
+- Presúvanie funguje aj z klávesnice a na dotyku. Tlačidlo „Reset layout" vráti východzie poradie.
+- Horná mriežka (dlaždice rôznej veľkosti) sa v tejto verzii nepresúva.
+
+### Nové dlaždice
+
+| Dlaždica | Obsah | Reaguje na project | Reaguje na obdobie |
+|---|---|---|---|
+| Total parts (sparkline) | malý graf počtu scrap recordov po dňoch v dlaždici Total parts | áno | áno |
+| Pareto of scrap codes | top 10 scrap codes zostupne podľa kusov ako stĺpce + čiara kumulatívneho podielu v %, zvyšok zlúčený do jedného stĺpca „Others" | áno | áno |
+| Heatmap | kusy podľa dňa v týždni (Po–Ne) a hodiny (0–23), 7 × 24 buniek, intenzita farby podľa kusov | áno | áno |
+| Trend of selection | trend kusov (scrap + rebuild, stacked) pre jednu vybranú part group alebo jeden scrap code | áno | áno |
+| Scanning activity | top 10 Card ID podľa počtu scrap recordov, pri každom aj kusy | áno | áno |
+
+### Pravidlá
+
+- **Sparkline:** počet scrap recordov za deň (nie kusy), lebo ukazuje aktivitu skenovania a dopĺňa číslo kusov. Granularita je vždy deň; pri 1 day po hodinách ako Trend. Bez osí, s tooltipom.
+- **Pareto:**
+  - kumulatívny podiel sa rátá z celkových kusov za obdobie a filter, nie z top 10,
+  - záznamy bez scrap code sú v stĺpci „No code" ako v Top scrap codes,
+  - stĺpce majú farbu `chart-1`, čiara kumulatívneho podielu `chart-2`; os podielu 0 – 100 %.
+- **Heatmap:**
+  - len hodiny 0 – 23, žiadne pevné smeny (možné neskôr),
+  - deň v týždni sa berie z lokálneho času DB (`createdAt` je lokálny čas čítaný ako UTC), týždeň začína pondelkom,
+  - intenzita je jedna farba (`chart-1`) s priehľadnosťou škálovanou podľa maxima, prázdne bunky sú bez výplne,
+  - tooltip: deň, hodina, kusy a počet scrap recordov,
+  - pri období kratšom než týždeň je mriežka riedka, to je v poriadku.
+- **Trend of selection:**
+  - výber cez existujúci `Combobox`: najprv druh (Part group / Scrap code), potom položka; zoznam položiek sa plní z toho, čo má v období a pri filtri projektu záznamy,
+  - výber sa zapisuje do URL (`?trend=partGroup:<id>` alebo `?trend=scrapCode:<kód>`), neplatná hodnota vráti 400,
+  - bez výberu dlaždica zobrazí výzvu „Select a part group or scrap code",
+  - používa rovnaké časové koše a graf ako Trend (zdieľaný `TrendChart`), takže súčet stĺpcov sa rovná kusom danej položky v Total parts.
+- **Scanning activity:**
+  - zobrazuje sa výhradne Card ID (číslo karty, ako je v `ScrapRecord.createdBy`), mená operátorov ani userov sa nenačítavajú ani nezobrazujú,
+  - popis „Scanning activity", nie „výkon"; neutrálne farby, žiadne zeleno-červené hodnotenie ani poradie typu „najlepší / najhorší",
+  - hlavné číslo je počet scrap recordov (výnimka z pravidla „metrikou sú kusy": ide o aktivitu skenovania), vedľa je počet kusov,
+  - záznamy quantity scrapu sa počítajú ako ostatné.
+- Farby iba z existujúcich tokenov (`chart-1`, `chart-2`, `chart-warning`), žiadne nové tokeny.
+
+### Dáta a výkon
+
+- Rovnaké pravidlá ako hlavná mriežka: výhradne čítacie dotazy, 60 s cache podľa kľúča z filtrov (vrátane výberu trendu), schéma Prisma sa nemení.
+- Dotazy sa overujú aj proti reálnej DB (iba čítanie), nielen s mockovaným Prisma klientom, lebo SQL Server odmieta niektoré výrazy, ktoré mock neodhalí (skúsenosť z tiketu 03).
 
 ## Mimo rozsahu
 
@@ -91,6 +153,8 @@ Vizuálny náhľad: https://claude.ai/artifact/9Rdj3H3rteKKSrEjCK5oR1 (ukážkov
 - Other variant / Other component na dashboarde.
 - Živé obnovovanie dát.
 - Samostatné vyčlenenie quantity scrapu.
+- Zmeny, hodnotenie operátorov a mená operátorov v Scanning activity.
+- Pevné smeny v heatmape.
 - Nové univerzálne komponenty v `atoms/` (ak sa ukáže potreba spoločnej dlaždice, najprv návrh v chate).
 
 ## Testovanie
@@ -105,3 +169,9 @@ Vizuálny náhľad: https://claude.ai/artifact/9Rdj3H3rteKKSrEjCK5oR1 (ukážkov
 - [02 – Dlaždica Trend a graf knižnica](issues/02-trend-tile-chart.md)
 - [03 – Rebríčkové dlaždice Projects, Top part groups, Top scrap codes](issues/03-ranking-tiles.md)
 - [04 – Detailné dialógy a prechod na scrap records](issues/04-detail-dialogs.md)
+- [05 – Sekcia Analytics a sparkline v Total parts](issues/05-analytics-section-sparkline.md)
+- [06 – Pareto scrap codes](issues/06-pareto-scrap-codes.md)
+- [07 – Heatmapa deň × hodina](issues/07-heatmap.md)
+- [08 – Trend vybranej part group alebo scrap code](issues/08-trend-of-selection.md)
+- [09 – Aktivita skenovania podľa Card ID](issues/09-scanning-activity.md)
+- [10 – Presúvateľné dlaždice v sekcii Analytics](issues/10-draggable-tiles.md)
