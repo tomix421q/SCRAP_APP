@@ -30,8 +30,8 @@ export const GRID_COLS_CLASS: Record<GridSize, string> = {
 export const GRID_MAX_W_CLASS: Record<GridSize, string> = {
 	1: 'max-w-[900px]',
 	2: 'max-w-[1400px]',
-	3: 'max-w-none',
-	4: 'max-w-none'
+	3: 'max-w-[1950px]',
+	4: 'max-w-[2550px]'
 };
 
 class ViewStore {
