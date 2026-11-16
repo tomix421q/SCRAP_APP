@@ -123,7 +123,7 @@ Po tikete 01 až 04 sa pod existujúcu mriežku pridáva druhá sekcia s piatimi
 - **Pareto:**
   - kumulatívny podiel sa rátá z celkových kusov za obdobie a filter, nie z top 10,
   - záznamy bez scrap code sú v stĺpci „No code" ako v Top scrap codes,
-  - stĺpce majú farbu `chart-1`, čiara kumulatívneho podielu `chart-2`; os podielu 0 – 100 %.
+  - stĺpce majú farbu `chart-1`, čiara kumulatívneho podielu `chart-info`; stĺpce aj čiara zdieľajú os 0 – 100 % všetkých kusov.
 - **Heatmap:**
   - len hodiny 0 – 23, žiadne pevné smeny (možné neskôr),
   - deň v týždni sa berie z lokálneho času DB (`createdAt` je lokálny čas čítaný ako UTC), týždeň začína pondelkom,
@@ -140,7 +140,7 @@ Po tikete 01 až 04 sa pod existujúcu mriežku pridáva druhá sekcia s piatimi
   - popis „Scanning activity", nie „výkon"; neutrálne farby, žiadne zeleno-červené hodnotenie ani poradie typu „najlepší / najhorší",
   - hlavné číslo je počet scrap recordov (výnimka z pravidla „metrikou sú kusy": ide o aktivitu skenovania), vedľa je počet kusov,
   - záznamy quantity scrapu sa počítajú ako ostatné.
-- Farby iba z existujúcich tokenov (`chart-1`, `chart-2`, `chart-warning`), žiadne nové tokeny.
+- Farby iba z existujúcich tokenov (`chart-1`, `chart-info`, `chart-warning`, `muted-foreground`), žiadne nové tokeny.
 
 ### Dáta a výkon
 

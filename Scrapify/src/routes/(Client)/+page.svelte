@@ -5,6 +5,7 @@
 	import DashboardFilters from './_components/DashboardFilters.svelte';
 	import TotalPartsTile from './_components/TotalPartsTile.svelte';
 	import RankingTile from './_components/RankingTile.svelte';
+	import ParetoTile from './_components/ParetoTile.svelte';
 	import TrendTile from './_components/TrendTile.svelte';
 	import MasterDataTile from './_components/MasterDataTile.svelte';
 	import AllTimeTile from './_components/AllTimeTile.svelte';
@@ -84,4 +85,14 @@
 			<AllTimeTile allTime={data.allTime} />
 		</div>
 	</div>
+
+	<!-- Second section below the one-screen grid; more tiles follow in later tickets. -->
+	<section aria-labelledby="analytics-heading" class="mt-4 flex flex-col gap-4">
+		<h2 id="analytics-heading" class="text-sm uppercase tracking-wider text-muted-foreground">
+			Analytics
+		</h2>
+		<div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+			<ParetoTile ranking={data.rankings.scrapCodes} {periodLabel} />
+		</div>
+	</section>
 </main>
