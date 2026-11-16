@@ -32,7 +32,7 @@
 		{:else}
 			<ul class="flex flex-col gap-1">
 				{#each activity.rows as row (row.cardId)}
-					<li class="px-2 py-1">
+					<li class="px-2 py-1" title={row.operatorName ?? undefined}>
 						<div class="flex items-baseline justify-between gap-2 text-sm">
 							<span class="min-w-0 truncate font-medium">Card {row.cardId}</span>
 							<span class="shrink-0 tabular-nums">

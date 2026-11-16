@@ -8,6 +8,7 @@ vi.hoisted(() => {
 // Prisma is fully mocked: these tests must never touch a real database.
 const prismaMock = vi.hoisted(() => ({
 	scrapRecord: { groupBy: vi.fn(), aggregate: vi.fn() },
+	operator: { findMany: vi.fn() },
 	partGroup: { count: vi.fn(), findMany: vi.fn(), findUnique: vi.fn(), groupBy: vi.fn() },
 	partGroupMaterial: { count: vi.fn() },
 	$queryRaw: vi.fn()
@@ -126,6 +127,7 @@ beforeEach(() => {
 	partGroupOptionRows = [];
 	scrapCodeOptionRows = [];
 	scanningRows = [];
+	prismaMock.operator.findMany.mockResolvedValue([]);
 	prismaMock.partGroup.findUnique.mockResolvedValue(null);
 	prismaMock.$queryRaw.mockImplementation(async (...call: RawCall) => {
 		const { sql } = rawSql(call);
@@ -650,7 +652,7 @@ describe('dashboard load: Trend of selection', () => {
 
 describe('dashboard load: Scanning activity', () => {
 	type Activity = {
-		rows: { cardId: string; records: number; quantity: number }[];
+		rows: { cardId: string; operatorName: string | null; records: number; quantity: number }[];
 		itemCount: number;
 		totalRecords: number;
 	};
@@ -661,18 +663,20 @@ describe('dashboard load: Scanning activity', () => {
 		return call;
 	}
 
-	it('groups the period and project by Card ID (createdBy) without touching Operator or User', async () => {
+	it('groups the period and project by Card ID (createdBy) in a query that does not join people', async () => {
 		await runLoad('project=PRJ1');
 
 		const { sql, values } = scanningCall();
 		expect(sql).toMatch(/GROUP BY sr\.createdBy/);
 		expect(sql).toMatch(/TOP \(\?\)/);
 		expect(sql).not.toMatch(/Operator|User|fullName/i);
+		expect(prismaMock.operator.findMany).not.toHaveBeenCalled();
 		expect(values).toEqual([10, '2026-11-09T12:30:00.000', '2026-11-16T12:30:00.000', 'PRJ1']);
 	});
 
-	it('returns only Card IDs, records and parts, with the total of Total parts as the base', async () => {
+	it('returns Card IDs with the operator name (null when unknown), records and parts, with the total of Total parts as the base', async () => {
 		totalsByPeriodStart.set(weekAgo.getTime(), [row(false, 30, 12), row(true, 10, 4)]);
+		prismaMock.operator.findMany.mockResolvedValue([{ cardId: 1001, fullName: 'Jan Novak' }]);
 		scanningRows = [
 			{ cardId: '1001', records: 9, quantity: 25, itemCount: 14 },
 			{ cardId: '1002', records: 7, quantity: 15, itemCount: 14 }
@@ -683,8 +687,8 @@ describe('dashboard load: Scanning activity', () => {
 
 		expect(activity).toEqual({
 			rows: [
-				{ cardId: '1001', records: 9, quantity: 25 },
-				{ cardId: '1002', records: 7, quantity: 15 }
+				{ cardId: '1001', operatorName: 'Jan Novak', records: 9, quantity: 25 },
+				{ cardId: '1002', operatorName: null, records: 7, quantity: 15 }
 			],
 			itemCount: 14,
 			totalRecords: 16

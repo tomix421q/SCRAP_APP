@@ -88,7 +88,7 @@ Vizuálny náhľad: https://claude.ai/artifact/9Rdj3H3rteKKSrEjCK5oR1 (ukážkov
 14. Ako inžinier chcem Pareto scrap codes, aby som videl, ktoré few kódy tvoria väčšinu scrapu.
 15. Ako manažér chcem heatmapu deň × hodina, aby som videl, kedy vzniká najviac scrapu.
 16. Ako inžinier chcem trend jednej part group alebo scrap code, aby som videl, či je problém nový alebo dlhodobý.
-17. Ako manažér chcem vidieť aktivitu skenovania podľa Card ID, bez mien a bez hodnotenia ľudí.
+17. Ako manažér chcem vidieť aktivitu skenovania podľa Card ID (meno operátora iba v tooltipe) a bez hodnotenia ľudí.
 
 ## Rozšírenie: analytické dlaždice pod dashboardom
 
@@ -136,7 +136,7 @@ Po tikete 01 až 04 sa pod existujúcu mriežku pridáva druhá sekcia s piatimi
   - bez výberu dlaždica zobrazí výzvu „Select a part group or scrap code",
   - používa rovnaké časové koše a graf ako Trend (zdieľaný `TrendChart`), takže súčet stĺpcov sa rovná kusom danej položky v Total parts.
 - **Scanning activity:**
-  - zobrazuje sa výhradne Card ID (číslo karty, ako je v `ScrapRecord.createdBy`), mená operátorov ani userov sa nenačítavajú ani nezobrazujú,
+  - zobrazuje sa Card ID (číslo karty, ako je v `ScrapRecord.createdBy`); meno operátora (`Operator.fullName` podľa `cardId`) sa ukáže iba v tooltipe pri hoveri, v texte dlaždice ani v dátach pre iné účely nie je, mená userov sa nenačítavajú,
   - popis „Scanning activity", nie „výkon"; neutrálne farby, žiadne zeleno-červené hodnotenie ani poradie typu „najlepší / najhorší",
   - hlavné číslo je počet scrap recordov (výnimka z pravidla „metrikou sú kusy": ide o aktivitu skenovania), vedľa je počet kusov,
   - záznamy quantity scrapu sa počítajú ako ostatné.
@@ -153,7 +153,7 @@ Po tikete 01 až 04 sa pod existujúcu mriežku pridáva druhá sekcia s piatimi
 - Other variant / Other component na dashboarde.
 - Živé obnovovanie dát.
 - Samostatné vyčlenenie quantity scrapu.
-- Zmeny, hodnotenie operátorov a mená operátorov v Scanning activity.
+- Zmeny a hodnotenie operátorov v Scanning activity.
 - Pevné smeny v heatmape.
 - Nové univerzálne komponenty v `atoms/` (ak sa ukáže potreba spoločnej dlaždice, najprv návrh v chate).
 

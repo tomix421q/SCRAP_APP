@@ -310,8 +310,10 @@ async function loadScrapCodeRanking(
 }
 
 export type ScanningActivityRow = {
-	/** Card ID as stored in `ScrapRecord.createdBy`; never resolved to a person's name. */
+	/** Card ID as stored in `ScrapRecord.createdBy`. */
 	cardId: string;
+	/** Operator's name for the Card ID, shown only on hover; `null` when no operator has the card. */
+	operatorName: string | null;
 	records: number;
 	quantity: number;
 };
@@ -338,9 +340,18 @@ async function loadScanningActivity(
 		${rankingFrom(period, project)}
 		GROUP BY sr.createdBy
 		ORDER BY COUNT(*) DESC, SUM(sr.quantity) DESC, sr.createdBy`);
+	const cardIds = rows.map((row) => Number(row.cardId)).filter((id) => Number.isInteger(id));
+	const operators = cardIds.length
+		? await prismaClient.operator.findMany({
+				where: { cardId: { in: cardIds } },
+				select: { cardId: true, fullName: true }
+			})
+		: [];
+	const nameByCard = new Map(operators.map((op) => [String(op.cardId), op.fullName]));
 	return {
 		rows: rows.map((row) => ({
 			cardId: String(row.cardId ?? ''),
+			operatorName: nameByCard.get(String(row.cardId ?? '')) ?? null,
 			records: Number(row.records ?? 0),
 			quantity: Number(row.quantity ?? 0)
 		})),
