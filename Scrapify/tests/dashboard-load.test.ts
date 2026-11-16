@@ -122,7 +122,7 @@ beforeEach(() => {
 		if (sql.includes('DATEDIFF')) return trendRows;
 		if (sql.includes('GROUP BY pg.vProject')) return projectRows;
 		if (sql.includes('GROUP BY pg.id')) return partGroupRows;
-		if (sql.includes('GROUP BY ISNULL')) return scrapCodeRows;
+		if (sql.includes('GROUP BY r.code')) return scrapCodeRows;
 		return [{ count: labelCount }];
 	});
 });
@@ -370,13 +370,13 @@ describe('dashboard load: Top part groups and Top scrap codes', () => {
 		expect((data.rankings as { scrapCodes: { rows: unknown[] } }).scrapCodes.rows).toEqual([
 			{ key: 'S12', label: 'S12', detail: 'Scratch', scrap: 9, rebuild: 1 }
 		]);
-		expect(rankingCall('GROUP BY ISNULL').values[0]).toBe(10);
+		expect(rankingCall('GROUP BY r.code').values[0]).toBe(10);
 	});
 
 	it('groups records without a scrap code as "No code"', async () => {
 		await runLoad('');
 
-		expect(rankingCall('GROUP BY ISNULL').sql).toMatch(/'No code'/);
+		expect(rankingCall('GROUP BY r.code').sql).toMatch(/'No code'/);
 	});
 });
 

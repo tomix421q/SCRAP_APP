@@ -246,14 +246,22 @@ async function loadScrapCodeRanking(
 	project: string | undefined,
 	totalQuantity: number
 ): Promise<Ranking> {
+	// The code is normalized in a subquery: SQL Server does not match a computed select
+	// expression with the same one in GROUP BY.
 	const rows = await prismaClient.$queryRaw<RankingSqlRow[]>(Prisma.sql`
-		SELECT TOP (${topListSize}) ISNULL(NULLIF(sr.scrapCode, ''), '') AS [key],
-			ISNULL(NULLIF(sr.scrapCode, ''), 'No code') AS label,
-			MAX(sr.scrapCodeDescription) AS detail, ${rankingSums},
+		SELECT TOP (${topListSize}) r.code AS [key],
+			CASE WHEN r.code = '' THEN 'No code' ELSE r.code END AS label,
+			MAX(r.description) AS detail,
+			SUM(CASE WHEN r.isRebuild = 0 THEN r.quantity ELSE 0 END) AS scrap,
+			SUM(CASE WHEN r.isRebuild = 1 THEN r.quantity ELSE 0 END) AS rebuild,
 			COUNT(*) OVER () AS itemCount
-		${rankingFrom(period, project)}
-		GROUP BY ISNULL(NULLIF(sr.scrapCode, ''), '')
-		ORDER BY SUM(sr.quantity) DESC, ISNULL(NULLIF(sr.scrapCode, ''), '')`);
+		FROM (
+			SELECT ISNULL(NULLIF(sr.scrapCode, ''), '') AS code,
+				sr.scrapCodeDescription AS description, sr.isRebuild, sr.quantity
+			${rankingFrom(period, project)}
+		) r
+		GROUP BY r.code
+		ORDER BY SUM(r.quantity) DESC, r.code`);
 	return toTopRanking(rows, totalQuantity);
 }
 
