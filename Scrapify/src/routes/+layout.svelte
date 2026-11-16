@@ -125,9 +125,6 @@
 					<span class="mb-auto leading-3 mx-2 text-xs">{userIdCardFromLc}</span>
 				</div>
 			</div>
-			<p class="mt-1 text-[11px] tracking-wider text-muted-foreground max-sm:hidden">
-				Your central point for waste reduction.
-			</p>
 		</section>
 		<!-- Menu -->
 		<div class="flex gap-2">
