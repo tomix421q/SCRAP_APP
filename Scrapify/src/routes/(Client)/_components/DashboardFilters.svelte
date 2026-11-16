@@ -72,7 +72,7 @@
 	<div
 		class="flex flex-col gap-2 rounded-xl border border-border bg-card/40 p-2 backdrop-blur-lg sm:w-fit sm:self-center"
 	>
-		<div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+		<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-10 sm:gap-y-2">
 			{@render segmented('Project', projectSegment)}
 			{@render segmented('Period', periodSegment)}
 		</div>
