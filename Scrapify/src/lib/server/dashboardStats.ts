@@ -1,9 +1,15 @@
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import prismaClient from '@/server/prisma';
 import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
 import type { DashboardFilters, Period } from '@/utils/dashboardFilters';
 import { createTtlCache } from '@/utils/ttlCache';
 import { getLocalDateTimeForDb } from '@/utils/index';
+import {
+	buildTrendBuckets,
+	pickTrendGranularity,
+	type TrendGranularity,
+	type TrendRow
+} from '@/utils/trendBuckets';
 
 export type PartTotals = {
 	/** Sum of `quantity` (parts), the main metric. */
@@ -42,6 +48,51 @@ async function loadPartTotals(where: Prisma.ScrapRecordWhereInput): Promise<Part
 		else totals.scrapQuantity += quantity;
 	}
 	return totals;
+}
+
+/** Bucket index per granularity: whole units since 1900-01-01 00:00 (a Monday), see `TrendRow`. */
+const trendBucketSql: Record<TrendGranularity, Prisma.Sql> = {
+	hour: Prisma.sql`DATEDIFF(HOUR, 0, sr.createdAt)`,
+	day: Prisma.sql`DATEDIFF(DAY, 0, sr.createdAt)`,
+	week: Prisma.sql`DATEDIFF(DAY, 0, sr.createdAt) / 7`
+};
+
+/**
+ * DB-time bound as an ISO string without a zone, so SQL Server reads the same wall-clock time
+ * that `createdAt` holds, whatever zone the driver would convert a `Date` parameter to.
+ */
+function toDbDateTimeLiteral(dbTime: Date) {
+	return dbTime.toISOString().slice(0, 23);
+}
+
+/**
+ * Parts per time bucket, split into scrap and rebuild, for the same records as `loadPartTotals`
+ * (period and project), so the buckets add up to Total parts. Empty buckets hold zeros.
+ */
+async function loadTrend(period: Period, project: string | undefined) {
+	const dbPeriod = {
+		from: getLocalDateTimeForDb(period.from),
+		to: getLocalDateTimeForDb(period.to)
+	};
+	const granularity = pickTrendGranularity(dbPeriod);
+	const bucket = trendBucketSql[granularity];
+	const projectJoin = project
+		? Prisma.sql`INNER JOIN PartGroup pg ON pg.id = sr.partGroupId AND pg.vProject = ${project}`
+		: Prisma.empty;
+	// Column types as the driver may hand them back (BIT, SUM); normalized below.
+	const rows = await prismaClient.$queryRaw<Record<keyof TrendRow, unknown>[]>(Prisma.sql`
+		SELECT ${bucket} AS bucket, sr.isRebuild AS isRebuild, SUM(sr.quantity) AS quantity
+		FROM ScrapRecord sr
+		${projectJoin}
+		WHERE sr.createdAt >= CAST(${toDbDateTimeLiteral(dbPeriod.from)} AS datetime2)
+			AND sr.createdAt < CAST(${toDbDateTimeLiteral(dbPeriod.to)} AS datetime2)
+		GROUP BY ${bucket}, sr.isRebuild`);
+	const trendRows: TrendRow[] = rows.map((row) => ({
+		bucket: Number(row.bucket),
+		isRebuild: Boolean(row.isRebuild),
+		quantity: Number(row.quantity)
+	}));
+	return { granularity, buckets: buildTrendBuckets(dbPeriod, granularity, trendRows) };
 }
 
 /** Change of parts in %, or `null` when the previous period has no parts to compare with. */
@@ -110,10 +161,11 @@ async function loadProjectsInPeriod(period: Period, selected: string | undefined
 export type DashboardStats = Awaited<ReturnType<typeof queryDashboardStats>>;
 
 async function queryDashboardStats(filters: DashboardFilters) {
-	const [projects, current, previous, masterData, allTime] = await Promise.all([
+	const [projects, current, previous, trend, masterData, allTime] = await Promise.all([
 		loadProjectsInPeriod(filters.period, filters.project),
 		loadPartTotals(periodWhere(filters.period, filters.project)),
 		loadPartTotals(periodWhere(filters.previousPeriod, filters.project)),
+		loadTrend(filters.period, filters.project),
 		loadMasterData(),
 		loadAllTime()
 	]);
@@ -126,6 +178,7 @@ async function queryDashboardStats(filters: DashboardFilters) {
 		},
 		projects,
 		totals: { ...current, changePercent: changePercent(current.quantity, previous.quantity) },
+		trend,
 		masterData,
 		allTime
 	};

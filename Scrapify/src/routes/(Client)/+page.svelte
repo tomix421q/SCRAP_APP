@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 	import DashboardFilters from './_components/DashboardFilters.svelte';
 	import TotalPartsTile from './_components/TotalPartsTile.svelte';
+	import TrendTile from './_components/TrendTile.svelte';
 	import MasterDataTile from './_components/MasterDataTile.svelte';
 	import AllTimeTile from './_components/AllTimeTile.svelte';
 	import { dashboardRangeLabels } from '@/utils/dashboardFilters';
@@ -34,9 +35,10 @@
 	<DashboardFilters filters={data.filters} projects={data.projects} />
 
 	<!-- Bento grid: one column on narrow screens in the order Total → Trend → Projects → others.
-	     Trend (2 columns), Projects (2 rows), Top part groups and Top scrap codes join later. -->
+	     Projects (2 rows), Top part groups and Top scrap codes join later. -->
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 		<TotalPartsTile totals={data.totals} {periodLabel} />
+		<TrendTile trend={data.trend} {periodLabel} />
 		<MasterDataTile masterData={data.masterData} />
 		<AllTimeTile allTime={data.allTime} />
 	</div>

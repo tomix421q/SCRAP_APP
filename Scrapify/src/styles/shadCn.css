@@ -165,6 +165,14 @@
 	input[type='datetime-local']::-webkit-calendar-picker-indicator {
 		filter: invert(100%) brightness(50%) sepia(100%) saturate(1000%) hue-rotate(100deg);
 	}
+	/* LayerChart surfaces mapped to theme tokens; tooltips are portaled to <body>, outside the chart. */
+	.lc-root-container,
+	.lc-tooltip-root {
+		--color-surface-100: var(--color-popover);
+		--color-surface-200: var(--color-muted);
+		--color-surface-300: var(--color-popover);
+		--color-surface-content: var(--color-popover-foreground);
+	}
 }
 
 @keyframes gentle-sway {

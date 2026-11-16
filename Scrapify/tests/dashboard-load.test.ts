@@ -39,6 +39,25 @@ const twoWeeksAgo = dbTime(2026, 10, 2, 12, 30);
 
 /** Rows the `isRebuild` groupBy returns, by the start of the queried period. */
 let totalsByPeriodStart: Map<number, IsRebuildRow[]>;
+/** Rows the trend query returns and the distinct label count. */
+let trendRows: { bucket: number; isRebuild: boolean; quantity: number }[];
+let labelCount: number;
+
+type RawCall = [{ sql: string; values: unknown[] } | TemplateStringsArray, ...unknown[]];
+
+/** SQL text of a `$queryRaw` call, as a tagged template or as one `Prisma.sql` query. */
+function rawSql(call: RawCall): { sql: string; values: unknown[] } {
+	const [first, ...rest] = call;
+	return 'sql' in first ? first : { sql: first.join('?'), values: rest };
+}
+
+function rawCalls() {
+	return prismaMock.$queryRaw.mock.calls.map((call) => rawSql(call as RawCall));
+}
+
+function trendCalls() {
+	return rawCalls().filter((call) => call.sql.includes('DATEDIFF'));
+}
 
 function row(isRebuild: boolean, quantity: number, records: number): IsRebuildRow {
 	return { isRebuild, _sum: { quantity }, _count: { _all: records } };
@@ -80,7 +99,11 @@ beforeEach(() => {
 	prismaMock.partGroup.count.mockResolvedValue(0);
 	prismaMock.partGroupMaterial.count.mockResolvedValue(0);
 	prismaMock.partGroup.groupBy.mockResolvedValue([]);
-	prismaMock.$queryRaw.mockResolvedValue([{ count: 0 }]);
+	trendRows = [];
+	labelCount = 0;
+	prismaMock.$queryRaw.mockImplementation(async (...call: RawCall) =>
+		rawSql(call).sql.includes('DATEDIFF') ? trendRows : [{ count: labelCount }]
+	);
 });
 
 afterEach(() => {
@@ -127,12 +150,62 @@ describe('dashboard load: Total parts', () => {
 	});
 });
 
+describe('dashboard load: Trend', () => {
+	const hourMs = 60 * 60 * 1000;
+	/** Whole hours since 1900-01-01 00:00, the index `DATEDIFF(HOUR, 0, createdAt)` gives. */
+	const hourIndex = (date: Date) => Math.round((date.getTime() - Date.UTC(1900, 0, 1)) / hourMs);
+
+	it('sums parts per local hour for 1 day, split into scrap and rebuild, with empty hours as zeros', async () => {
+		trendRows = [
+			{ bucket: hourIndex(dbTime(2026, 10, 16, 8)), isRebuild: false, quantity: 5 },
+			{ bucket: hourIndex(dbTime(2026, 10, 16, 8)), isRebuild: true, quantity: 3 }
+		];
+
+		const data = await runLoad('range=1d');
+		const trend = data.trend as { granularity: string; buckets: unknown[] };
+
+		expect(trend.granularity).toBe('hour');
+		// 12:00 yesterday (partial) up to 12:00 today (partial).
+		expect(trend.buckets).toHaveLength(25);
+		expect(trend.buckets[20]).toEqual({ start: dbTime(2026, 10, 16, 8), scrap: 5, rebuild: 3 });
+		expect(trend.buckets[19]).toEqual({ start: dbTime(2026, 10, 16, 7), scrap: 0, rebuild: 0 });
+		expect(trendCalls()[0].sql).toMatch(/DATEDIFF\(HOUR, 0, sr\.createdAt\)/);
+	});
+
+	it('uses the same period and project as Total parts, in local DB time', async () => {
+		await runLoad('project=PRJ1');
+
+		const [query] = trendCalls();
+		expect(query.sql).toMatch(/DATEDIFF\(DAY, 0, sr\.createdAt\)/);
+		expect(query.sql).toMatch(/pg\.vProject = \?/);
+		expect(query.values).toEqual(['PRJ1', '2026-11-09T12:30:00.000', '2026-11-16T12:30:00.000']);
+	});
+
+	it('covers every project without a project filter', async () => {
+		await runLoad('');
+
+		const [query] = trendCalls();
+		expect(query.sql).not.toMatch(/vProject/);
+		expect(query.values).toEqual(['2026-11-09T12:30:00.000', '2026-11-16T12:30:00.000']);
+	});
+
+	it('uses weeks starting on Monday for a custom range over 90 days', async () => {
+		const data = await runLoad('range=custom&from=2026-01-01&to=2026-06-30');
+		const trend = data.trend as { granularity: string; buckets: { start: Date }[] };
+
+		expect(trend.granularity).toBe('week');
+		expect(trend.buckets[0].start).toEqual(dbTime(2025, 11, 29));
+		expect(trendCalls()[0].sql).toMatch(/DATEDIFF\(DAY, 0, sr\.createdAt\) \/ 7/);
+		expect(trendCalls()[0].values).toEqual(['2026-01-01T00:00:00.000', '2026-07-01T00:00:00.000']);
+	});
+});
+
 describe('dashboard load: Master data and All-time', () => {
 	beforeEach(() => {
 		prismaMock.partGroup.groupBy.mockResolvedValue([{ vProject: 'PRJ1' }, { vProject: 'PRJ2' }]);
 		prismaMock.partGroup.count.mockResolvedValue(42);
 		prismaMock.partGroupMaterial.count.mockResolvedValue(310);
-		prismaMock.$queryRaw.mockResolvedValue([{ count: 57 }]);
+		labelCount = 57;
 		prismaMock.scrapRecord.aggregate.mockResolvedValue({
 			_sum: { quantity: 9800 },
 			_count: { _all: 4100 },
@@ -178,9 +251,9 @@ describe('dashboard load: Master data and All-time', () => {
 	it('counts labels as distinct scanned DMC codes without quantity scrap labels', async () => {
 		await runLoad('project=PRJ1');
 
-		const [sql, ...values] = prismaMock.$queryRaw.mock.calls[0];
-		expect(sql.join('?')).toMatch(/COUNT\(DISTINCT\s+dmc\).*FROM\s+ScrapRecord.*NOT LIKE \?/s);
-		expect(values).toEqual(['QNT-SCRAP-%']);
+		const labels = rawCalls().find((call) => call.sql.includes('COUNT(DISTINCT'));
+		expect(labels?.sql).toMatch(/COUNT\(DISTINCT\s+dmc\).*FROM\s+ScrapRecord.*NOT LIKE \?/s);
+		expect(labels?.values).toEqual(['QNT-SCRAP-%']);
 	});
 
 	it('an empty database has no first record and zero parts', async () => {
