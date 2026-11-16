@@ -8,6 +8,7 @@
 	import ParetoTile from './_components/ParetoTile.svelte';
 	import HeatmapTile from './_components/HeatmapTile.svelte';
 	import SelectionTrendTile from './_components/SelectionTrendTile.svelte';
+	import ScanningActivityTile from './_components/ScanningActivityTile.svelte';
 	import TrendTile from './_components/TrendTile.svelte';
 	import MasterDataTile from './_components/MasterDataTile.svelte';
 	import AllTimeTile from './_components/AllTimeTile.svelte';
@@ -99,6 +100,11 @@
 			<HeatmapTile heatmap={data.heatmap} {periodLabel} />
 			<SelectionTrendTile
 				selectionTrend={data.selectionTrend}
+				{periodLabel}
+				class="xl:col-span-2"
+			/>
+			<ScanningActivityTile
+				activity={data.scanningActivity}
 				{periodLabel}
 				class="xl:col-span-2"
 			/>

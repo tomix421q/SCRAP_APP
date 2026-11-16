@@ -309,6 +309,46 @@ async function loadScrapCodeRanking(
 	return toTopRanking(rows, totalQuantity);
 }
 
+export type ScanningActivityRow = {
+	/** Card ID as stored in `ScrapRecord.createdBy`; never resolved to a person's name. */
+	cardId: string;
+	records: number;
+	quantity: number;
+};
+
+/** Top Card IDs by scrap records; `itemCount` is the number of Card IDs in the whole period. */
+export type ScanningActivity = {
+	rows: ScanningActivityRow[];
+	itemCount: number;
+	/** Scrap records of the whole period and filter (the base of the bars), as in Total parts. */
+	totalRecords: number;
+};
+
+/** Scrap records and parts per Card ID (`createdBy`) for the period and project, most records first. */
+async function loadScanningActivity(
+	period: Period,
+	project: string | undefined,
+	totalRecords: number
+): Promise<ScanningActivity> {
+	const rows = await prismaClient.$queryRaw<
+		{ cardId: unknown; records: unknown; quantity: unknown; itemCount: unknown }[]
+	>(Prisma.sql`
+		SELECT TOP (${topListSize}) sr.createdBy AS cardId, COUNT(*) AS records,
+			SUM(sr.quantity) AS quantity, COUNT(*) OVER () AS itemCount
+		${rankingFrom(period, project)}
+		GROUP BY sr.createdBy
+		ORDER BY COUNT(*) DESC, SUM(sr.quantity) DESC, sr.createdBy`);
+	return {
+		rows: rows.map((row) => ({
+			cardId: String(row.cardId ?? ''),
+			records: Number(row.records ?? 0),
+			quantity: Number(row.quantity ?? 0)
+		})),
+		itemCount: Number(rows[0]?.itemCount ?? 0),
+		totalRecords
+	};
+}
+
 export type SelectionOption = {
 	/** Part group id or scrap code, as in the `trend` URL parameter. */
 	id: string;
@@ -410,9 +450,10 @@ async function queryDashboardStats(
 			loadAllTime()
 		]);
 	// The shares of part groups and scrap codes are taken from the same records as Total parts.
-	const [partGroups, scrapCodes] = await Promise.all([
+	const [partGroups, scrapCodes, scanningActivity] = await Promise.all([
 		loadPartGroupRanking(filters.period, filters.project, current.quantity),
-		loadScrapCodeRanking(filters.period, filters.project, current.quantity)
+		loadScrapCodeRanking(filters.period, filters.project, current.quantity),
+		loadScanningActivity(filters.period, filters.project, current.records)
 	]);
 	return {
 		filters: {
@@ -434,6 +475,7 @@ async function queryDashboardStats(
 		trend,
 		heatmap,
 		selectionTrend,
+		scanningActivity,
 		masterData,
 		allTime
 	};

@@ -54,6 +54,7 @@ let scrapCodeRows: unknown[];
 /** Rows of the selection option queries of the Trend of selection tile. */
 let partGroupOptionRows: unknown[];
 let scrapCodeOptionRows: unknown[];
+let scanningRows: unknown[];
 
 type RawCall = [{ sql: string; values: unknown[] } | TemplateStringsArray, ...unknown[]];
 
@@ -124,10 +125,12 @@ beforeEach(() => {
 	scrapCodeRows = [];
 	partGroupOptionRows = [];
 	scrapCodeOptionRows = [];
+	scanningRows = [];
 	prismaMock.partGroup.findUnique.mockResolvedValue(null);
 	prismaMock.$queryRaw.mockImplementation(async (...call: RawCall) => {
 		const { sql } = rawSql(call);
 		if (sql.includes('AS weekday')) return heatmapRows;
+		if (sql.includes('AS cardId')) return scanningRows;
 		if (sql.includes('AS optionKey')) return partGroupOptionRows;
 		if (sql.includes('AS description') && sql.includes('GROUP BY sr.scrapCode'))
 			return scrapCodeOptionRows;
@@ -642,5 +645,65 @@ describe('dashboard load: Trend of selection', () => {
 		expect(trendCalls().length).toBe(afterFirst);
 		await run('trend=scrapCode:B');
 		expect(trendCalls().length).toBeGreaterThan(afterFirst);
+	});
+});
+
+describe('dashboard load: Scanning activity', () => {
+	type Activity = {
+		rows: { cardId: string; records: number; quantity: number }[];
+		itemCount: number;
+		totalRecords: number;
+	};
+
+	function scanningCall() {
+		const call = rawCalls().find((c) => c.sql.includes('AS cardId'));
+		if (!call) throw new Error('No scanning activity query');
+		return call;
+	}
+
+	it('groups the period and project by Card ID (createdBy) without touching Operator or User', async () => {
+		await runLoad('project=PRJ1');
+
+		const { sql, values } = scanningCall();
+		expect(sql).toMatch(/GROUP BY sr\.createdBy/);
+		expect(sql).toMatch(/TOP \(\?\)/);
+		expect(sql).not.toMatch(/Operator|User|fullName/i);
+		expect(values).toEqual([10, '2026-11-09T12:30:00.000', '2026-11-16T12:30:00.000', 'PRJ1']);
+	});
+
+	it('returns only Card IDs, records and parts, with the total of Total parts as the base', async () => {
+		totalsByPeriodStart.set(weekAgo.getTime(), [row(false, 30, 12), row(true, 10, 4)]);
+		scanningRows = [
+			{ cardId: '1001', records: 9, quantity: 25, itemCount: 14 },
+			{ cardId: '1002', records: 7, quantity: 15, itemCount: 14 }
+		];
+
+		const data = await runLoad('');
+		const activity = data.scanningActivity as Activity;
+
+		expect(activity).toEqual({
+			rows: [
+				{ cardId: '1001', records: 9, quantity: 25 },
+				{ cardId: '1002', records: 7, quantity: 15 }
+			],
+			itemCount: 14,
+			totalRecords: 16
+		});
+	});
+
+	it('is empty when nothing was scanned', async () => {
+		const data = await runLoad('');
+
+		expect(data.scanningActivity).toEqual({ rows: [], itemCount: 0, totalRecords: 0 });
+	});
+
+	it('reads the whole period without a project filter when no project is chosen', async () => {
+		await runLoad('');
+
+		expect(scanningCall().values).toEqual([
+			10,
+			'2026-11-09T12:30:00.000',
+			'2026-11-16T12:30:00.000'
+		]);
 	});
 });
