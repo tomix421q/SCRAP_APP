@@ -29,7 +29,7 @@
 	<title>Dashboard | Scrapify</title>
 </svelte:head>
 
-<main class="flex flex-col gap-4 lg:mt-4">
+<main class="mt-4 flex flex-col gap-4 lg:mt-12">
 	<h1 class="sr-only">Scrap records dashboard</h1>
 	<DashboardFilters filters={data.filters} projects={data.projects} />
 
