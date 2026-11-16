@@ -49,14 +49,16 @@
 	<!-- Bento grid: one column on narrow screens in the order Total → Trend → Projects → others. -->
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 		<TotalPartsTile totals={data.totals} {periodLabel} />
-		<TrendTile trend={data.trend} {periodLabel} />
+		<TrendTile trend={data.trend} {periodLabel} scrapRecordsQuery={data.scrapRecordsQuery} />
 		<RankingTile
 			class="xl:col-start-4 xl:row-span-2 xl:row-start-1"
 			title="Projects"
 			description="{data.filters.range === 'custom'
 				? 'Custom range'
 				: dashboardRangeLabels[data.filters.range].period} · by parts"
-			rows={data.rankings.projects}
+			ranking={data.rankings.projects}
+			{periodLabel}
+			scrapRecordsQuery={data.scrapRecordsQuery}
 			selectedKey={data.filters.project}
 			onselect={toggleProject}
 			visibleRows={6}
@@ -64,12 +66,18 @@
 		<RankingTile
 			title="Top part groups"
 			description="{periodLabel} · top 5"
-			rows={data.rankings.partGroups}
+			ranking={data.rankings.partGroups}
+			tileRows={5}
+			{periodLabel}
+			scrapRecordsQuery={data.scrapRecordsQuery}
 		/>
 		<RankingTile
 			title="Top scrap codes"
 			description="{periodLabel} · top 5"
-			rows={data.rankings.scrapCodes}
+			ranking={data.rankings.scrapCodes}
+			tileRows={5}
+			{periodLabel}
+			scrapRecordsQuery={data.scrapRecordsQuery}
 		/>
 		<div class="flex flex-col gap-4">
 			<MasterDataTile masterData={data.masterData} />

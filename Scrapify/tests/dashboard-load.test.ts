@@ -301,7 +301,7 @@ describe('dashboard load: Projects tile and project switcher', () => {
 	it('ranks projects with scrap in the period by parts, scrap and rebuild apart', async () => {
 		const data = await runLoad('range=30d');
 
-		expect((data.rankings as { projects: unknown[] }).projects).toEqual([
+		expect((data.rankings as { projects: { rows: unknown[] } }).projects.rows).toEqual([
 			{ key: 'PRJ3', label: 'PRJ3', detail: null, scrap: 20, rebuild: 5 },
 			{ key: 'PRJ1', label: 'PRJ1', detail: null, scrap: 8, rebuild: 0 }
 		]);
@@ -328,7 +328,7 @@ describe('dashboard load: Projects tile and project switcher', () => {
 		const data = await runLoad('project=PRJ2');
 
 		expect(data.projects).toEqual(['PRJ1', 'PRJ2', 'PRJ3']);
-		expect((data.rankings as { projects: unknown[] }).projects).toHaveLength(2);
+		expect((data.rankings as { projects: { rows: unknown[] } }).projects.rows).toHaveLength(2);
 	});
 
 	it('returns the parsed filters for the page controls', async () => {
@@ -344,34 +344,79 @@ describe('dashboard load: Projects tile and project switcher', () => {
 });
 
 describe('dashboard load: Top part groups and Top scrap codes', () => {
-	it('takes the top 5 part groups of the period and project', async () => {
+	it('takes the top 10 part groups of the period and project', async () => {
 		partGroupRows = [{ key: 7, label: 'Door', detail: 'PRJ1', scrap: 12, rebuild: 3 }];
 
 		const data = await runLoad('project=PRJ1');
 
-		expect((data.rankings as { partGroups: unknown[] }).partGroups).toEqual([
+		expect((data.rankings as { partGroups: { rows: unknown[] } }).partGroups.rows).toEqual([
 			{ key: '7', label: 'Door', detail: 'PRJ1', scrap: 12, rebuild: 3 }
 		]);
 		const query = rankingCall('GROUP BY pg.id');
 		expect(query.sql).toMatch(/pg\.vProject = \?/);
-		expect(query.values).toEqual([5, '2026-11-09T12:30:00.000', '2026-11-16T12:30:00.000', 'PRJ1']);
+		expect(query.values).toEqual([
+			10,
+			'2026-11-09T12:30:00.000',
+			'2026-11-16T12:30:00.000',
+			'PRJ1'
+		]);
 	});
 
-	it('takes the top 5 scrap codes with their description', async () => {
+	it('takes the top 10 scrap codes with their description', async () => {
 		scrapCodeRows = [{ key: 'S12', label: 'S12', detail: 'Scratch', scrap: 9, rebuild: 1 }];
 
 		const data = await runLoad('');
 
-		expect((data.rankings as { scrapCodes: unknown[] }).scrapCodes).toEqual([
+		expect((data.rankings as { scrapCodes: { rows: unknown[] } }).scrapCodes.rows).toEqual([
 			{ key: 'S12', label: 'S12', detail: 'Scratch', scrap: 9, rebuild: 1 }
 		]);
-		expect(rankingCall('GROUP BY ISNULL').values[0]).toBe(5);
+		expect(rankingCall('GROUP BY ISNULL').values[0]).toBe(10);
 	});
 
 	it('groups records without a scrap code as "No code"', async () => {
 		await runLoad('');
 
 		expect(rankingCall('GROUP BY ISNULL').sql).toMatch(/'No code'/);
+	});
+});
+
+describe('dashboard load: detail dialogs', () => {
+	type Rankings = Record<
+		'projects' | 'partGroups' | 'scrapCodes',
+		{ itemCount: number; totalQuantity: number }
+	>;
+
+	it('counts all items of a ranking and bases the shares on the whole period', async () => {
+		totalsByPeriodStart.set(weekAgo.getTime(), [row(false, 100, 10), row(true, 20, 2)]);
+		projectRows = [
+			{ key: 'PRJ1', label: 'PRJ1', detail: null, scrap: 60, rebuild: 10 },
+			{ key: 'PRJ2', label: 'PRJ2', detail: null, scrap: 40, rebuild: 10 }
+		];
+		partGroupRows = [
+			{ key: 1, label: 'Door', detail: 'PRJ1', scrap: 5, rebuild: 0, itemCount: 37 }
+		];
+		scrapCodeRows = [{ key: 'S1', label: 'S1', detail: null, scrap: 5, rebuild: 0, itemCount: 12 }];
+
+		const rankings = (await runLoad('')).rankings as Rankings;
+
+		expect(rankings.projects).toMatchObject({ itemCount: 2, totalQuantity: 120 });
+		expect(rankings.partGroups).toMatchObject({ itemCount: 37, totalQuantity: 120 });
+		expect(rankings.scrapCodes).toMatchObject({ itemCount: 12, totalQuantity: 120 });
+		expect(rankingCall('GROUP BY pg.id').sql).toMatch(/COUNT\(\*\) OVER \(\)/);
+	});
+
+	it('links to scrap records with the same period and project', async () => {
+		const data = await runLoad('project=PRJ1');
+
+		expect(data.scrapRecordsQuery).toBe(
+			'dateFrom=2026-11-09T12%3A30&dateTo=2026-11-16T12%3A29&project=PRJ1'
+		);
+	});
+
+	it('links a custom range from midnight to the last minute of the last day', async () => {
+		const data = await runLoad('range=custom&from=2026-03-01&to=2026-03-10');
+
+		expect(data.scrapRecordsQuery).toBe('dateFrom=2026-03-01T00%3A00&dateTo=2026-03-10T23%3A59');
 	});
 });
 

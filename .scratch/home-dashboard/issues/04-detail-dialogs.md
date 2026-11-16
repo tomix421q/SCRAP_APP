@@ -1,6 +1,6 @@
 # 04 – Detailné dialógy a prechod na scrap records
 
-Status: todo
+Status: done
 Rodič: [spec.md](../spec.md)
 Blokované: [02](02-trend-tile-chart.md), [03](03-ranking-tiles.md)
 
@@ -16,8 +16,17 @@ Blokované: [02](02-trend-tile-chart.md), [03](03-ranking-tiles.md)
 
 ## Akceptačné kritériá
 
-- [ ] Dialóg sa otvára iba cez „Details ›"; klik na riadok projektu naďalej filtruje.
-- [ ] Podiely v % sa rátajú z celku za obdobie a filter, nie z top 10.
-- [ ] „Open in scrap records" zobrazí na `/scrapRecords` rovnaké obdobie a projekt ako dashboard.
-- [ ] Dialóg sa dá zavrieť klávesom Esc a je použiteľný na úzkej obrazovke.
-- [ ] `bun run check` a `bun run test` prechádzajú.
+- [x] Dialóg sa otvára iba cez „Details ›"; klik na riadok projektu naďalej filtruje.
+- [x] Podiely v % sa rátajú z celku za obdobie a filter, nie z top 10.
+- [x] „Open in scrap records" zobrazí na `/scrapRecords` rovnaké obdobie a projekt ako dashboard.
+- [x] Dialóg sa dá zavrieť klávesom Esc a je použiteľný na úzkej obrazovke.
+- [x] `bun run check` a `bun run test` prechádzajú.
+
+## Comments
+
+**2026-11-16 – uzavreté.** Rozhodnutia počas implementácie:
+
+- **Top 10:** načíta sa spolu s dlaždicami; dlaždice Top part groups a Top scrap codes z neho ukazujú prvých 5. Počet položiek („Top 10 of N") ide z `COUNT(*) OVER ()` v tom istom dotaze.
+- **Podiely v %:** základ je Total parts za obdobie a filter (pri Projects súčet všetkých projektov, lebo ignoruje filter projektu).
+- **Open in scrap records:** posiela `dateFrom`, `dateTo` (posledná minúta obdobia, lebo `/scrapRecords` berie `dateTo` vrátane minúty) a `project`. Rolling obdobia sú zaokrúhlené na minúty.
+- **Dialóg Projects:** hlavička ukazuje aj vybraný projekt a odkaz ho obsahuje, hoci rebríček projektov filter projektu ignoruje.

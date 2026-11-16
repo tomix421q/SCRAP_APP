@@ -94,3 +94,24 @@ export function parseDashboardFilters(params: URLSearchParams, now: Date): Dashb
 
 	return { range, project, customDates, period, previousPeriod };
 }
+
+/** Local date and time as `YYYY-MM-DDTHH:mm`, the value format of `<input type="datetime-local">`. */
+function toDateTimeLocal(date: Date) {
+	const pad = (value: number) => String(value).padStart(2, '0');
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/**
+ * Query string for `/scrapRecords` showing the dashboard's period and project
+ * (`dateFrom`, `dateTo`, `project`, as read by `parseScrapRecordFilters`).
+ * Scrap records treat `dateTo` as inclusive to the minute, so the end is the last minute
+ * before the exclusive end of the period.
+ */
+export function toScrapRecordsQuery(filters: Pick<DashboardFilters, 'period' | 'project'>) {
+	const params = new URLSearchParams({
+		dateFrom: toDateTimeLocal(filters.period.from),
+		dateTo: toDateTimeLocal(new Date(filters.period.to.getTime() - 60_000))
+	});
+	if (filters.project) params.set('project', filters.project);
+	return params.toString();
+}

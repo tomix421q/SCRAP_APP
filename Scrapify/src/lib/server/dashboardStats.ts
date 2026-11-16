@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import prismaClient from '@/server/prisma';
 import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
-import type { DashboardFilters, Period } from '@/utils/dashboardFilters';
+import { toScrapRecordsQuery, type DashboardFilters, type Period } from '@/utils/dashboardFilters';
 import { createTtlCache } from '@/utils/ttlCache';
 import { getLocalDateTimeForDb } from '@/utils/index';
 import {
@@ -155,8 +155,17 @@ export type RankingRow = {
 	rebuild: number;
 };
 
-/** Rows per top list tile. */
-const topListSize = 5;
+/** Rows loaded per top list: the tile shows the first 5, its detail dialog all 10. */
+const topListSize = 10;
+
+/** A ranking with what the detail needs to say "Top 10 of N" and to compute shares. */
+export type Ranking = {
+	rows: RankingRow[];
+	/** Number of items in the whole ranking, not only the loaded rows. */
+	itemCount: number;
+	/** Parts of the whole period and filter, the base of the shares in %. */
+	totalQuantity: number;
+};
 
 type RankingSqlRow = {
 	key: unknown;
@@ -164,6 +173,8 @@ type RankingSqlRow = {
 	detail: unknown;
 	scrap: unknown;
 	rebuild: unknown;
+	/** `COUNT(*) OVER ()`: items of the ranking before `TOP` cuts it. */
+	itemCount?: unknown;
 };
 
 function toRankingRows(rows: RankingSqlRow[]): RankingRow[] {
@@ -174,6 +185,10 @@ function toRankingRows(rows: RankingSqlRow[]): RankingRow[] {
 		scrap: Number(row.scrap ?? 0),
 		rebuild: Number(row.rebuild ?? 0)
 	}));
+}
+
+function toTopRanking(rows: RankingSqlRow[], totalQuantity: number): Ranking {
+	return { rows: toRankingRows(rows), itemCount: Number(rows[0]?.itemCount ?? 0), totalQuantity };
 }
 
 const rankingSums = Prisma.sql`
@@ -197,50 +212,67 @@ function rankingFrom(period: Period, project: string | undefined) {
  * Every project with a scrap record in the period, most parts first. Ignores the project filter
  * (the selected project is only highlighted) and also feeds the project switcher.
  */
-async function loadProjectRanking(period: Period): Promise<RankingRow[]> {
+async function loadProjectRanking(period: Period): Promise<Ranking> {
 	const rows = await prismaClient.$queryRaw<RankingSqlRow[]>(Prisma.sql`
 		SELECT pg.vProject AS [key], pg.vProject AS label, NULL AS detail, ${rankingSums}
 		${rankingFrom(period, undefined)} AND pg.vProject IS NOT NULL AND pg.vProject <> ''
 		GROUP BY pg.vProject
 		ORDER BY SUM(sr.quantity) DESC, pg.vProject`);
-	return toRankingRows(rows);
+	const projectRows = toRankingRows(rows);
+	return {
+		rows: projectRows,
+		itemCount: projectRows.length,
+		totalQuantity: projectRows.reduce((sum, row) => sum + row.scrap + row.rebuild, 0)
+	};
 }
 
-async function loadPartGroupRanking(period: Period, project: string | undefined) {
+async function loadPartGroupRanking(
+	period: Period,
+	project: string | undefined,
+	totalQuantity: number
+): Promise<Ranking> {
 	const rows = await prismaClient.$queryRaw<RankingSqlRow[]>(Prisma.sql`
-		SELECT TOP (${topListSize}) pg.id AS [key], pg.name AS label, pg.vProject AS detail, ${rankingSums}
+		SELECT TOP (${topListSize}) pg.id AS [key], pg.name AS label, pg.vProject AS detail, ${rankingSums},
+			COUNT(*) OVER () AS itemCount
 		${rankingFrom(period, project)}
 		GROUP BY pg.id, pg.name, pg.vProject
 		ORDER BY SUM(sr.quantity) DESC, pg.name`);
-	return toRankingRows(rows);
+	return toTopRanking(rows, totalQuantity);
 }
 
 /** Records without a scrap code are grouped under one "No code" row (empty key). */
-async function loadScrapCodeRanking(period: Period, project: string | undefined) {
+async function loadScrapCodeRanking(
+	period: Period,
+	project: string | undefined,
+	totalQuantity: number
+): Promise<Ranking> {
 	const rows = await prismaClient.$queryRaw<RankingSqlRow[]>(Prisma.sql`
 		SELECT TOP (${topListSize}) ISNULL(NULLIF(sr.scrapCode, ''), '') AS [key],
 			ISNULL(NULLIF(sr.scrapCode, ''), 'No code') AS label,
-			MAX(sr.scrapCodeDescription) AS detail, ${rankingSums}
+			MAX(sr.scrapCodeDescription) AS detail, ${rankingSums},
+			COUNT(*) OVER () AS itemCount
 		${rankingFrom(period, project)}
 		GROUP BY ISNULL(NULLIF(sr.scrapCode, ''), '')
 		ORDER BY SUM(sr.quantity) DESC, ISNULL(NULLIF(sr.scrapCode, ''), '')`);
-	return toRankingRows(rows);
+	return toTopRanking(rows, totalQuantity);
 }
 
 export type DashboardStats = Awaited<ReturnType<typeof queryDashboardStats>>;
 
 async function queryDashboardStats(filters: DashboardFilters) {
-	const [projectRanking, partGroups, scrapCodes, current, previous, trend, masterData, allTime] =
-		await Promise.all([
-			loadProjectRanking(filters.period),
-			loadPartGroupRanking(filters.period, filters.project),
-			loadScrapCodeRanking(filters.period, filters.project),
-			loadPartTotals(periodWhere(filters.period, filters.project)),
-			loadPartTotals(periodWhere(filters.previousPeriod, filters.project)),
-			loadTrend(filters.period, filters.project),
-			loadMasterData(),
-			loadAllTime()
-		]);
+	const [projectRanking, current, previous, trend, masterData, allTime] = await Promise.all([
+		loadProjectRanking(filters.period),
+		loadPartTotals(periodWhere(filters.period, filters.project)),
+		loadPartTotals(periodWhere(filters.previousPeriod, filters.project)),
+		loadTrend(filters.period, filters.project),
+		loadMasterData(),
+		loadAllTime()
+	]);
+	// The shares of part groups and scrap codes are taken from the same records as Total parts.
+	const [partGroups, scrapCodes] = await Promise.all([
+		loadPartGroupRanking(filters.period, filters.project, current.quantity),
+		loadScrapCodeRanking(filters.period, filters.project, current.quantity)
+	]);
 	return {
 		filters: {
 			range: filters.range,
@@ -251,10 +283,11 @@ async function queryDashboardStats(filters: DashboardFilters) {
 		// The switcher lists the project in the URL even when it has no records in the period.
 		projects: [
 			...new Set([
-				...projectRanking.map((row) => row.label),
+				...projectRanking.rows.map((row) => row.label),
 				...(filters.project ? [filters.project] : [])
 			])
 		].sort((a, b) => a.localeCompare(b)),
+		scrapRecordsQuery: toScrapRecordsQuery(filters),
 		rankings: { projects: projectRanking, partGroups, scrapCodes },
 		totals: { ...current, changePercent: changePercent(current.quantity, previous.quantity) },
 		trend,
