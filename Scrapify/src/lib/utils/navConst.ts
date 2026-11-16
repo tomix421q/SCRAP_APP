@@ -24,11 +24,5 @@ export const navUrls = [
 	// 	title: 'Record scrap',
 	// 	shortname: 'Cr-Sc',
 	// 	url: '/createScrap'
-	// },
-	// {
-	// 	icon: Flag,
-	// 	title: 'Report',
-	// 	shortname: 'RPRT',
-	// 	url: '/report'
 	// }
 ];
