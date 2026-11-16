@@ -9,7 +9,7 @@ export const navUrls = [
 	},
 	{
 		icon: ScanBarcode,
-		title: 'Assembly scan scrap',
+		title: 'Assembly scan',
 		shortname: 'Sc-Sc',
 		url: '/scandmclabel'
 	},
@@ -25,13 +25,6 @@ export const navUrls = [
 	// 	shortname: 'Cr-Sc',
 	// 	url: '/createScrap'
 	// },
-	// {
-	// 	icon: Search,
-	// 	title: 'Search',
-	// 	shortname: 'SRCH',
-	// 	url: '/search'
-	// }
-
 	// {
 	// 	icon: Flag,
 	// 	title: 'Report',

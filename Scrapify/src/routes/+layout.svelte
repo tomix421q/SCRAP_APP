@@ -97,7 +97,7 @@
 
 	<!--  -->
 	<!-- NAV -->
-	<nav class="p-2 mb-6 flex items-center justify-between">
+	<nav class="p-1 mb-6 flex items-center justify-between">
 		<!-- Logo -->
 		<section>
 			<div class="flex items-center">
@@ -144,6 +144,9 @@
 					</Button>
 				{/each}
 			</section>
+			<!--  -->
+			<!-- Leangue -->
+			<!--  -->
 			<User user={data} />
 			<!-- Menu mobile -->
 			<section class="flex lg:hidden items-center">
@@ -154,7 +157,9 @@
 
 	<!-- ALL CONTENT RENDER -->
 	<main
-		class="{isFullWidthPage ? 'max-w-none' : 'max-w-[1750px]'} mx-auto px-2 md:px-3 lg:px-4 min-h-screen"
+		class="{isFullWidthPage
+			? 'max-w-none'
+			: 'max-w-[1750px]'} mx-auto px-2 md:px-3 lg:px-4 min-h-screen"
 	>
 		<Toaster />
 		{@render children?.()}

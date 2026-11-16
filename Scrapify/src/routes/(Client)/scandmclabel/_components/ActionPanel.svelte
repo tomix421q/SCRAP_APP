@@ -2,7 +2,7 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { GRID_OPTIONS, viewStore, type GridSize } from '@/stores/viewStore.svelte';
-	import { Columns2, Columns3, Columns4, RotateCcw, Square, ArrowUp } from '@lucide/svelte';
+	import { Columns2, Columns3, Columns4, RotateCcw, Square, ArrowUp, Maximize, Minimize } from '@lucide/svelte';
 	import type { ScrapManager, ScrapMode } from './ScrapManager.svelte';
 
 	let {
@@ -16,6 +16,26 @@
 	} = $props();
 
 	let gridOpen = $state(false);
+
+	let fullscreenSupported = $state(false);
+	let isFullscreen = $state(false);
+
+	$effect(() => {
+		fullscreenSupported = document.fullscreenEnabled;
+		const sync = () => (isFullscreen = document.fullscreenElement !== null);
+		sync();
+		document.addEventListener('fullscreenchange', sync);
+		return () => document.removeEventListener('fullscreenchange', sync);
+	});
+
+	async function toggleFullscreen() {
+		try {
+			if (document.fullscreenElement) await document.exitFullscreen();
+			else await document.documentElement.requestFullscreen();
+		} catch (error) {
+			console.error('Fullscreen toggle failed', error);
+		}
+	}
 
 	const GRID_ICONS = { 1: Square, 2: Columns2, 3: Columns3, 4: Columns4 } satisfies Record<
 		GridSize,
@@ -70,6 +90,19 @@
 		>
 			<ArrowUp />
 		</Button>
+
+		{#if fullscreenSupported}
+			<Button
+				type="button"
+				size="icon"
+				variant="outline"
+				title={isFullscreen ? 'Ukončiť celú obrazovku' : 'Celá obrazovka'}
+				class="max-sm:hidden"
+				onclick={toggleFullscreen}
+			>
+				{#if isFullscreen}<Minimize />{:else}<Maximize />{/if}
+			</Button>
+		{/if}
 
 		<Popover.Root bind:open={gridOpen}>
 			<Popover.Trigger>

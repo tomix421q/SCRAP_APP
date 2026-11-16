@@ -1,27 +1,20 @@
 import {
 	type createScrapNoteType,
 	type LabelGroupsWithRelations,
-	type PartGroupWithRelations,
-	type ScrapRecordWithRelations
+	type PartGroupWithRelations
 } from '@/utils/types';
-import type { vScrapCodes } from '@prisma/client';
+
 import { derived, writable, type Readable } from 'svelte/store';
 
 export const currentConfirmDeleteId = writable<number | string | undefined>(undefined);
 
-export const editSearchData = writable<ScrapRecordWithRelations | undefined>(undefined);
 export const editPartGroupData = writable<PartGroupWithRelations | undefined>(undefined);
 export const editLabelGroupsData = writable<LabelGroupsWithRelations | undefined>(undefined);
 
 export const isEditing: Readable<boolean> = derived(
-	[editSearchData, editPartGroupData, editLabelGroupsData],
-	([$editScrapData, $editSearchData, $editPartGroupData]: any) => {
-		return (
-			$editScrapData !== undefined ||
-			$editPartGroupData !== undefined ||
-			$editSearchData !== undefined
-		);
-	}
+	[editPartGroupData, editLabelGroupsData],
+	([$editPartGroupData, $editLabelGroupsData]) =>
+		$editPartGroupData !== undefined || $editLabelGroupsData !== undefined
 );
 
 // FAVORITE STORE
