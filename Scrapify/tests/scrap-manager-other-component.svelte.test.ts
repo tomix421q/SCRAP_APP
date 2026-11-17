@@ -127,7 +127,7 @@ describe('rebuild', () => {
 		expect(rowOf(manager, MIDDFIELD).isOtherComponent).toBe(false);
 	});
 
-	it('blocks the save with a message when the main reason group has no Other component scrap code', () => {
+	it('blocks the save and flags the cause when the main reason group has no Other component scrap code', () => {
 		const manager = managerWith(
 			[
 				{ id: MAIN_CARRIER, name: 'Main carrier', isRebuild: true },
@@ -139,9 +139,15 @@ describe('rebuild', () => {
 		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
 
 		expect(manager.canSubmit).toBe(false);
-		expect(manager.missingOtherComponentCodeMessage).toBe(
-			'Part group Main carrier nemá nastavený kód pre iný komponent, kontaktuj inžiniera.'
-		);
+		expect(manager.causeGroupIdsWithoutCode).toEqual([MAIN_CARRIER]);
+	});
+
+	it('flags no cause when the main reason group has its code', () => {
+		const manager = managerWith(rebuildLabel, 'rebuild');
+
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+
+		expect(manager.causeGroupIdsWithoutCode).toEqual([]);
 	});
 });
 

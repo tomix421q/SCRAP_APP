@@ -18,12 +18,6 @@
 	// $inspect(scrapManager.mode);
 </script>
 
-{#if scrapManager.missingOtherComponentCodeMessage}
-	<p class="mx-auto mb-4 w-full rounded-lg bg-destructive/20 p-4 font-semibold text-destructive">
-		{scrapManager.missingOtherComponentCodeMessage}
-	</p>
-{/if}
-
 <div
 	class="grid grid-cols-1 gap-4 mx-auto w-full {GRID_COLS_CLASS[
 		viewStore.grid.rebuild
@@ -43,9 +37,13 @@
 					: ''}
 
 		<div
-			class="border flex backdrop-blur-2xl shadow-2xl rounded-lg justify-between p-1 gap-3 transition-colors overflow-hidden h-full {colorOtherComponent} {colorOtherVariant} {row.isRebuildGroup
-				? 'border-warning ring-4 ring-warning'
-				: ''}"
+			class="border flex backdrop-blur-2xl shadow-2xl rounded-lg justify-between p-1 gap-3 transition-colors overflow-hidden h-full {colorOtherComponent} {colorOtherVariant} {scrapManager.causeGroupIdsWithoutCode.includes(
+				row.groupId
+			)
+				? 'border-destructive ring-4 ring-destructive'
+				: row.isRebuildGroup
+					? 'border-warning ring-4 ring-warning'
+					: ''}"
 		>
 			<div class="flex flex-col gap-2 min-w-0 flex-1">
 				<!-- TOP -->

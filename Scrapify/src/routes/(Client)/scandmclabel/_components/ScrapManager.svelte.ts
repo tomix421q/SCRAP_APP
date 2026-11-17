@@ -323,19 +323,16 @@ export class ScrapManager {
 	isMissingOtherComponentCause = $derived(
 		this.scrapPayload.some((row) => row.isOtherComponent && !this.hasValidCause(row))
 	);
-	// A cause without an Other component scrap code would save records without a code.
-	missingOtherComponentCodeMessage = $derived.by(() => {
-		const dependent = this.scrapPayload.find(
-			(row) =>
-				row.isOtherComponent &&
-				row.otherComponentCauseGroupId !== null &&
-				!this.otherComponentCodeOf(row.otherComponentCauseGroupId)
-		);
-		if (!dependent) return null;
-		const cause = this.scrapPayload.find(
-			(row) => row.groupId === dependent.otherComponentCauseGroupId
-		);
-		return `Part group ${cause?.interfaceName ?? ''} nemá nastavený kód pre iný komponent, kontaktuj inžiniera.`;
+	// Causes without an Other component scrap code would make dependent rows save without a code.
+	causeGroupIdsWithoutCode = $derived.by(() => {
+		const ids = new Set<number>();
+		for (const row of this.scrapPayload) {
+			const causeId = row.otherComponentCauseGroupId;
+			if (row.isOtherComponent && causeId !== null && !this.otherComponentCodeOf(causeId)) {
+				ids.add(causeId);
+			}
+		}
+		return [...ids];
 	});
 	// Can submit?
 	canSubmit = $derived(
@@ -346,7 +343,7 @@ export class ScrapManager {
 					this.relevantPayload.length > 0 &&
 					!this.isMissingOtherVariantPN &&
 					!this.isMissingOtherComponentCause &&
-					this.missingOtherComponentCodeMessage === null
+					this.causeGroupIdsWithoutCode.length === 0
 	);
 
 	// Clear row

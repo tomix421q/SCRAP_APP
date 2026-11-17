@@ -28,6 +28,12 @@
 			firstText="Príčina"
 		/>
 	</div>
+{:else if row.otherComponentCauseGroupId !== null && !scrapManager.otherComponentCodeOf(row.otherComponentCauseGroupId)}
+	<p
+		class="max-sm:w-full rounded-lg bg-destructive/20 px-3 py-2 text-destructive font-semibold text-sm"
+	>
+		{causeLabel(row.otherComponentCauseGroupId)} nemá nastavený kód pre iný komponent, kontaktuj inžiniera.
+	</p>
 {:else}
 	<p class="max-sm:w-full rounded-lg bg-chart-5 px-3 py-2 h-9 text-info font-semibold text-sm">
 		Iný komponent{row.otherComponentCauseGroupId !== null
