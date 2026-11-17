@@ -81,85 +81,90 @@
 
 {#if scrapManager.mode}
 	{@const ActiveIcon = GRID_ICONS[viewStore.grid[scrapManager.mode]]}
-	{#if missingCodeGroupNames.length > 0}
-		<!-- Explains why the submit button is disabled -->
-		<p
-			class="fixed bottom-20 left-4 max-sm:right-4 z-20 rounded-lg border border-destructive bg-background px-3 py-2 text-sm font-semibold text-destructive shadow-2xl"
-		>
-			Nedá sa uložiť: {missingCodeGroupNames.join(', ')} nemá kód pre iný komponent, kontaktuj inžiniera.
-		</p>
-	{/if}
-	<aside
-		class="fixed bottom-4 left-4 max-sm:right-4 z-20 flex items-center gap-2 rounded-lg border-2 border-primary/50 bg-card/95 p-2 shadow-2xl ring-4 ring-background backdrop-blur"
+	<!-- Beside the panel on desktop, above it on mobile -->
+	<div
+		class="fixed bottom-4 left-4 max-sm:right-4 z-20 flex items-center gap-2 max-sm:flex-col-reverse max-sm:items-stretch"
 	>
-		<Button
-			type="button"
-			size="icon"
-			variant="outline"
-			class="border-destructive/50 text-destructive"
-			title="Opakovať"
-			disabled={isSubmitting}
-			onclick={resetAll}
+		<aside
+			class="flex shrink-0 items-center gap-2 rounded-lg border-2 border-primary/50 bg-card/95 p-2 shadow-2xl ring-4 ring-background backdrop-blur"
 		>
-			<RotateCcw />
-		</Button>
-
-		<Button
-			type="button"
-			size="icon"
-			variant="outline"
-			title="Hore"
-			onclick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-		>
-			<ArrowUp />
-		</Button>
-
-		{#if fullscreenSupported}
 			<Button
 				type="button"
 				size="icon"
 				variant="outline"
-				title={isFullscreen ? 'Ukončiť celú obrazovku' : 'Celá obrazovka'}
-				class="max-sm:hidden"
-				onclick={toggleFullscreen}
+				class="border-destructive/50 text-destructive"
+				title="Opakovať"
+				disabled={isSubmitting}
+				onclick={resetAll}
 			>
-				{#if isFullscreen}<Minimize />{:else}<Maximize />{/if}
+				<RotateCcw />
 			</Button>
-		{/if}
 
-		<Popover.Root bind:open={gridOpen}>
-			<Popover.Trigger>
-				{#snippet child({ props })}
-					<Button
-						{...props}
-						type="button"
-						size="icon"
-						variant="outline"
-						title="Rozloženie"
-						class="max-md:hidden"
-					>
-						<ActiveIcon />
-					</Button>
-				{/snippet}
-			</Popover.Trigger>
-			<Popover.Content side="top" align="center" class="flex w-auto gap-1 p-2">
-				{@render gridSwitch(scrapManager.mode)}
-			</Popover.Content>
-		</Popover.Root>
+			<Button
+				type="button"
+				size="icon"
+				variant="outline"
+				title="Hore"
+				onclick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+			>
+				<ArrowUp />
+			</Button>
 
-		<Button
-			type="submit"
-			form="scrap"
-			class="max-sm:flex-1 max-sm:min-w-0 max-sm:whitespace-normal font-semibold disabled:border disabled:border-dashed disabled:border-border disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
-			disabled={isSubmitting || !scrapManager.canSubmit}
-		>
-			{#if isSubmitting}
-				<span>Prebieha vytvorenie scrapu...</span>
-			{:else}
-				{scrapManager.mode === 'qntScrap'
-					? 'Uložiť quantity scrap'
-					: `Vytvoriť ${scrapManager.mode === 'rebuild' ? 're-build' : 'scrap'}`}
+			{#if fullscreenSupported}
+				<Button
+					type="button"
+					size="icon"
+					variant="outline"
+					title={isFullscreen ? 'Ukončiť celú obrazovku' : 'Celá obrazovka'}
+					class="max-sm:hidden"
+					onclick={toggleFullscreen}
+				>
+					{#if isFullscreen}<Minimize />{:else}<Maximize />{/if}
+				</Button>
 			{/if}
-		</Button>
-	</aside>
+
+			<Popover.Root bind:open={gridOpen}>
+				<Popover.Trigger>
+					{#snippet child({ props })}
+						<Button
+							{...props}
+							type="button"
+							size="icon"
+							variant="outline"
+							title="Rozloženie"
+							class="max-md:hidden"
+						>
+							<ActiveIcon />
+						</Button>
+					{/snippet}
+				</Popover.Trigger>
+				<Popover.Content side="top" align="center" class="flex w-auto gap-1 p-2">
+					{@render gridSwitch(scrapManager.mode)}
+				</Popover.Content>
+			</Popover.Root>
+
+			<Button
+				type="submit"
+				form="scrap"
+				class="max-sm:flex-1 max-sm:min-w-0 max-sm:whitespace-normal font-semibold disabled:border disabled:border-dashed disabled:border-border disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+				disabled={isSubmitting || !scrapManager.canSubmit}
+			>
+				{#if isSubmitting}
+					<span>Prebieha vytvorenie scrapu...</span>
+				{:else}
+					{scrapManager.mode === 'qntScrap'
+						? 'Uložiť quantity scrap'
+						: `Vytvoriť ${scrapManager.mode === 'rebuild' ? 're-build' : 'scrap'}`}
+				{/if}
+			</Button>
+		</aside>
+		{#if missingCodeGroupNames.length > 0}
+			<!-- Explains why the submit button is disabled -->
+			<p
+				class="rounded-lg border border-destructive bg-background px-3 py-2 text-sm font-semibold text-destructive shadow-2xl"
+			>
+				Nedá sa uložiť: {missingCodeGroupNames.join(', ')} nemá kód pre iný komponent, kontaktuj inžiniera.
+			</p>
+		{/if}
+	</div>
 {/if}
