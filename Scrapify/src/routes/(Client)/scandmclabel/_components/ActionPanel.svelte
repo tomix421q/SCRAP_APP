@@ -2,7 +2,16 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { GRID_OPTIONS, viewStore, type GridSize } from '@/stores/viewStore.svelte';
-	import { Columns2, Columns3, Columns4, RotateCcw, Square, ArrowUp, Maximize, Minimize } from '@lucide/svelte';
+	import {
+		Columns2,
+		Columns3,
+		Columns4,
+		RotateCcw,
+		Square,
+		ArrowUp,
+		Maximize,
+		Minimize
+	} from '@lucide/svelte';
 	import type { ScrapManager, ScrapMode } from './ScrapManager.svelte';
 
 	let {
@@ -16,6 +25,12 @@
 	} = $props();
 
 	let gridOpen = $state(false);
+
+	let missingCodeGroupNames = $derived(
+		scrapManager.scrapPayload
+			.filter((row) => scrapManager.causeGroupIdsWithoutCode.includes(row.groupId))
+			.map((row) => row.interfaceName)
+	);
 
 	let fullscreenSupported = $state(false);
 	let isFullscreen = $state(false);
@@ -66,6 +81,14 @@
 
 {#if scrapManager.mode}
 	{@const ActiveIcon = GRID_ICONS[viewStore.grid[scrapManager.mode]]}
+	{#if missingCodeGroupNames.length > 0}
+		<!-- Explains why the submit button is disabled -->
+		<p
+			class="fixed bottom-20 left-4 max-sm:right-4 z-20 rounded-lg border border-destructive bg-background px-3 py-2 text-sm font-semibold text-destructive shadow-2xl"
+		>
+			Nedá sa uložiť: {missingCodeGroupNames.join(', ')} nemá kód pre iný komponent, kontaktuj inžiniera.
+		</p>
+	{/if}
 	<aside
 		class="fixed bottom-4 left-4 max-sm:right-4 z-20 flex items-center gap-2 rounded-lg border-2 border-primary/50 bg-card/95 p-2 shadow-2xl ring-4 ring-background backdrop-blur"
 	>
