@@ -366,6 +366,14 @@
 
 				<!-- scrap -->
 				<article class="flex flex-col gap-2 w-full">
+					<!-- Column header for the "other component" checkboxes at the end of each row -->
+					<div class="flex justify-end">
+						<span class="flex w-9 shrink-0 justify-end">
+							<span class="whitespace-nowrap text-xs text-muted-foreground"
+								>Is other component?</span
+							>
+						</span>
+					</div>
 					<ul
 						class="flex flex-col gap-2 space-y-1 max-h-[520px] overscroll-y-auto overflow-auto w-full overflow-x-hidden"
 					>
@@ -386,22 +394,6 @@
 									<span class="text-sm text-chart-info capitalize">[{index + 1}]</span>
 								</Label>
 								<div class="flex gap-1">
-									<label
-										for={`scrap-other-component-${index}`}
-										class="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer"
-										title="Is other component? This code is written to the other part groups when this group is their cause."
-									>
-										<Checkbox
-											id={`scrap-other-component-${index}`}
-											class="size-4! ring-2 ring-primary"
-											disabled={!currentScrapCode}
-											checked={Boolean(currentScrapCode) && index === otherComponentSlotIndex}
-											onCheckedChange={(checked) => {
-												otherComponentSlotIndex = checked ? index : null;
-											}}
-										/>
-										<span class="whitespace-nowrap">Is other component?</span>
-									</label>
 									<Combobox
 										dataBox={availableScrapCodes.map((scrapCodes: any) => ({
 											id: scrapCodes.Reason_Code,
@@ -425,6 +417,20 @@
 									>
 										<X />
 									</Button>
+									<!-- Flag of the Other component scrap code; labelled once in the header above -->
+									<span class="flex size-9 shrink-0 items-center justify-center">
+										<Checkbox
+											id={`scrap-other-component-${index}`}
+											aria-label="Is other component?"
+											title="This code is written to the other part groups when this group is their cause."
+											class="size-5! ring-2 ring-primary"
+											disabled={!currentScrapCode}
+											checked={Boolean(currentScrapCode) && index === otherComponentSlotIndex}
+											onCheckedChange={(checked) => {
+												otherComponentSlotIndex = checked ? index : null;
+											}}
+										/>
+									</span>
 								</div>
 							</li>
 						{/each}
