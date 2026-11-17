@@ -125,6 +125,8 @@ model PartGroupScrapCodes {
   partGroupId Int
   code        String  @db.VarChar(20)
   description String? @db.VarChar(50)
+  /// Code written to the other part groups' scrap records when this part group is their cause.
+  isOtherComponent Boolean @default(false)
   partGroup   PartGroup @relation(fields: [partGroupId], references: [id], onDelete: Cascade)
 }
 

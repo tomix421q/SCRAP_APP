@@ -170,7 +170,8 @@ export const actions = {
 					});
 				}
 
-				const hasSelectedScrapCode = Boolean(row.selectedScrapCode);
+				// An other component row's own code is ignored (it gets its cause's code below).
+				const hasSelectedScrapCode = Boolean(row.selectedScrapCode) && !row.isOtherComponent;
 				if (!hasSelectedScrapCode && !row.isOtherComponent && !row.isOtherVariant) {
 					return fail(400, {
 						success: false,
@@ -203,21 +204,51 @@ export const actions = {
 				}
 			}
 
+			// Other component rows get the Other component scrap code of their cause, read from the DB.
+			// The schema already guarantees the cause is another row of this payload with a selected reason.
+			const otherComponentCodes = new Map<number, { code: string; description: string | null }>();
+			for (const row of scrapPayload) {
+				if (!row.isOtherComponent || row.otherComponentCauseGroupId == null) continue;
+				const causeGroup = groupsById.get(row.otherComponentCauseGroupId);
+				const causeCode = causeGroup?.scrapCodes.find((scrapCode) => scrapCode.isOtherComponent);
+				// In rebuild the cause is always the main reason, which only a rebuild group can carry.
+				if (isRebuild && causeGroup && !causeGroup.isRebuild) {
+					return fail(400, {
+						success: false,
+						message: 'Neplatná príčina iného komponentu.',
+						error: 'Pri rebuilde môže byť príčinou iba rebuild skupina s hlavným dôvodom.'
+					});
+				}
+				if (!causeGroup || !causeCode) {
+					return fail(400, {
+						success: false,
+						message: 'Chýba kód pre iný komponent.',
+						error: `Part group ${causeGroup?.interfaceName ?? ''} nemá nastavený kód pre iný komponent, kontaktuj inžiniera.`
+					});
+				}
+				otherComponentCodes.set(row.groupId, causeCode);
+			}
+
 			// One ID shared by every record of this submit; generated here, never taken from the client.
 			const payloadRecId = randomUUID();
-			const recordsToInsert = scrapPayload.map((row) => ({
-				dmc,
-				payloadRecId,
-				partGroupId: row.groupId,
-				scrapCode: row.selectedScrapCode || null,
-				scrapCodeDescription: row.selectedScrapDescription || null,
-				isRebuild,
-				isOtherComponent: row.isOtherComponent,
-				replacementPartMaterial: row.isOtherVariant ? row.replacementPartMaterial : null,
-				quantity: 1,
-				description: '',
-				createdBy: operator
-			}));
+			const recordsToInsert = scrapPayload.map((row) => {
+				const otherComponentCode = otherComponentCodes.get(row.groupId);
+				return {
+					dmc,
+					payloadRecId,
+					partGroupId: row.groupId,
+					scrapCode: otherComponentCode ? otherComponentCode.code : row.selectedScrapCode || null,
+					scrapCodeDescription: otherComponentCode
+						? otherComponentCode.description
+						: row.selectedScrapDescription || null,
+					isRebuild,
+					isOtherComponent: row.isOtherComponent,
+					replacementPartMaterial: row.isOtherVariant ? row.replacementPartMaterial : null,
+					quantity: 1,
+					description: '',
+					createdBy: operator
+				};
+			});
 
 			await prismaClient.scrapRecord.createMany({
 				data: recordsToInsert

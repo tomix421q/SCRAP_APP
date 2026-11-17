@@ -5,6 +5,7 @@
 	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
 	import Label from '@/components/ui/label/label.svelte';
 	import type { ScrapManager } from './ScrapManager.svelte';
+	import OtherComponentCause from './OtherComponentCause.svelte';
 	import { GRID_COLS_CLASS, GRID_MAX_W_CLASS, viewStore } from '@/stores/viewStore.svelte';
 	import { X } from '@lucide/svelte';
 
@@ -15,7 +16,11 @@
 	} = $props();
 </script>
 
-<div class="grid grid-cols-1 gap-4 mx-auto w-full {GRID_COLS_CLASS[viewStore.grid.scrap]} {GRID_MAX_W_CLASS[viewStore.grid.scrap]}">
+<div
+	class="grid grid-cols-1 gap-4 mx-auto w-full {GRID_COLS_CLASS[
+		viewStore.grid.scrap
+	]} {GRID_MAX_W_CLASS[viewStore.grid.scrap]}"
+>
 	{#each scrapManager.scrapPayload as row (row.groupId)}
 		{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
 		{@const colorOtherComponent = row.isOtherComponent ? 'bg-red-500/50 border-warning/50' : ''}
@@ -59,23 +64,26 @@
 								class="size-4! ring-2 ring-primary **:size-5"
 							/>
 						</section>
-						<section class="flex items-center gap-2 bg-chart-5 rounded-lg p-0.5 px-1">
-							<Label
-								for={`other-comp-${row.groupId}`}
-								class="text-sm cursor-pointer font-semibold {row.isOtherComponent
-									? 'text-secondary-foreground'
-									: 'text-muted-foreground'}"
-							>
-								Iný komponent
-							</Label>
-							<Checkbox
-								id={`other-comp-${row.groupId}`}
-								checked={row.isOtherComponent}
-								onCheckedChange={(checked) =>
-									scrapManager.setOtherComponent(row.groupId, Boolean(checked))}
-								class="size-4! ring-2 ring-primary **:size-5"
-							/>
-						</section>
+						<!-- Offered only once another row can be the cause -->
+						{#if row.isOtherComponent || scrapManager.canMarkOtherComponent(row.groupId)}
+							<section class="flex items-center gap-2 bg-chart-5 rounded-lg p-0.5 px-1">
+								<Label
+									for={`other-comp-${row.groupId}`}
+									class="text-sm cursor-pointer font-semibold {row.isOtherComponent
+										? 'text-secondary-foreground'
+										: 'text-muted-foreground'}"
+								>
+									Iný komponent
+								</Label>
+								<Checkbox
+									id={`other-comp-${row.groupId}`}
+									checked={row.isOtherComponent}
+									onCheckedChange={(checked) =>
+										scrapManager.setOtherComponent(row.groupId, Boolean(checked))}
+									class="size-4! ring-2 ring-primary **:size-5"
+								/>
+							</section>
+						{/if}
 					</div>
 				</article>
 
@@ -132,11 +140,7 @@
 							{/if}
 						</div>
 					{:else}
-						<p
-							class="max-sm:w-full rounded-lg bg-chart-5 px-3 py-2 h-9 text-info font-semibold text-sm"
-						>
-							Dovod scrapu, iny komponent.
-						</p>
+						<OtherComponentCause {scrapManager} {row} />
 					{/if}
 				</article>
 			</div>

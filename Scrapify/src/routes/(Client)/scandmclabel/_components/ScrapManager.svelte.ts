@@ -30,6 +30,8 @@ export interface ScrapRowState {
 	isOtherVariant: boolean;
 	replacementPartMaterial: string | null;
 	isOtherComponent: boolean;
+	/** Part group whose Other component scrap code this row gets; set only with `isOtherComponent`. */
+	otherComponentCauseGroupId: number | null;
 }
 
 export class ScrapManager {
@@ -37,6 +39,9 @@ export class ScrapManager {
 	scrapPayload = $state<ScrapRowState[]>([]);
 	scanData = $state<MatchData | null>(null);
 	barcode = $state('');
+	// Main reason group the rebuild rows were last auto-marked for; re-marking only happens when it changes,
+	// so a row the operator unmarked stays unmarked while the main reason group stays the same.
+	private rebuildCauseGroupId: number | null = null;
 
 	init(scanDataPayload: ScanInitPayload, barcode: string) {
 		this.scanData = scanDataPayload.match;
@@ -56,6 +61,7 @@ export class ScrapManager {
 				quantity: undefined,
 				isOtherVariant: false,
 				isOtherComponent: false,
+				otherComponentCauseGroupId: null,
 				replacementPartMaterial: ''
 			}));
 		} else {
@@ -75,7 +81,7 @@ export class ScrapManager {
 			scrapRow.isOtherVariant = false;
 			scrapRow.replacementPartMaterial = '';
 
-			this.syncRebuildBigComponents();
+			this.syncOtherComponents();
 			return;
 		}
 
@@ -93,12 +99,13 @@ export class ScrapManager {
 				}
 			}
 		}
-		this.syncRebuildBigComponents();
+		this.syncOtherComponents();
 	}
 
 	// Select mode rebuild/scrap
 	setMode(newMode: ScrapMode) {
 		this.mode = newMode;
+		this.rebuildCauseGroupId = null;
 		for (const s of this.scrapPayload!) {
 			s.selectedScrapCode = null;
 			s.selectedScrapDescription = null;
@@ -106,6 +113,7 @@ export class ScrapManager {
 			s.isOtherVariant = false;
 			s.replacementPartMaterial = null;
 			s.isOtherComponent = false;
+			s.otherComponentCauseGroupId = null;
 			s.quantity = 0;
 		}
 	}
@@ -129,17 +137,23 @@ export class ScrapManager {
 			row.selectedScrapCode = null;
 			row.selectedScrapDescription = null;
 			row.isOtherComponent = false;
+			row.otherComponentCauseGroupId = null;
 		}
 
-		this.syncRebuildBigComponents();
+		this.syncOtherComponents();
 	}
 
 	// Checkbox other component
 	setOtherComponent(groupId: number, value: boolean) {
 		const row = this.scrapPayload.find((s) => s.groupId === groupId);
 		if (!row) return;
+		const candidates = this.causeCandidates(groupId);
+		if (value && candidates.length === 0) return;
 
 		row.isOtherComponent = value;
+		// A single candidate is the obvious cause; with more the operator picks one.
+		row.otherComponentCauseGroupId =
+			value && candidates.length === 1 ? candidates[0].groupId : null;
 
 		if (value) {
 			row.selectedScrapCode = null;
@@ -147,35 +161,111 @@ export class ScrapManager {
 			row.isOtherVariant = false;
 			row.replacementPartMaterial = null;
 		}
+		// The row may have been the cause of other rows.
+		this.syncOtherComponents();
 	}
 
-	// Sync
+	setOtherComponentCause(groupId: number, causeGroupId: number) {
+		const row = this.scrapPayload.find((s) => s.groupId === groupId);
+		if (!row?.isOtherComponent) return;
+		if (!this.causeCandidates(groupId).some((cause) => cause.groupId === causeGroupId)) return;
+		row.otherComponentCauseGroupId = causeGroupId;
+	}
+
+	/** Other component scrap code of a part group, or undefined when the engineer has not set one. */
+	otherComponentCodeOf(groupId: number) {
+		return this.scanData?.groups
+			.find((g) => g.id === groupId)
+			?.scrapCodes.find((scrapCode) => scrapCode.isOtherComponent);
+	}
+
+	// Rows that can be the cause of other component rows.
+	// Rebuild: the main reason group (its missing code is reported, not hidden).
+	// Scrap: every group with a selected reason that has an Other component scrap code.
+	private causeRows = $derived.by(() => {
+		if (this.mode === 'rebuild') {
+			const mainReasonRow = this.scrapPayload.find(
+				(row) => row.isRebuildGroup && Boolean(row.selectedScrapCode)
+			);
+			return mainReasonRow ? [mainReasonRow] : [];
+		}
+		if (this.mode === 'scrap') {
+			return this.scrapPayload.filter(
+				(row) =>
+					Boolean(row.selectedScrapCode) &&
+					!row.isOtherVariant &&
+					!row.isOtherComponent &&
+					Boolean(this.otherComponentCodeOf(row.groupId))
+			);
+		}
+		return [];
+	});
+
+	causeCandidates(groupId: number) {
+		return this.causeRows.filter((row) => row.groupId !== groupId);
+	}
+
+	/** The "Iný komponent" checkbox is offered only when some other row can be the cause. */
+	canMarkOtherComponent(groupId: number) {
+		return this.causeCandidates(groupId).length > 0;
+	}
+
+	private hasValidCause(row: ScrapRowState) {
+		return this.causeCandidates(row.groupId).some(
+			(cause) => cause.groupId === row.otherComponentCauseGroupId
+		);
+	}
+
+	// Sync after every change of reasons: rebuild auto-marking, then drop rows whose cause is gone.
+	private syncOtherComponents() {
+		this.syncRebuildBigComponents();
+		for (const row of this.scrapPayload) {
+			if (!row.isOtherComponent) continue;
+			const candidates = this.causeCandidates(row.groupId);
+			// A row still waiting for the operator's choice keeps waiting while candidates exist.
+			if (row.otherComponentCauseGroupId === null && candidates.length > 1) continue;
+			if (row.otherComponentCauseGroupId === null && candidates.length === 1) {
+				row.otherComponentCauseGroupId = candidates[0].groupId;
+				continue;
+			}
+			if (this.hasValidCause(row)) continue;
+			row.isOtherComponent = false;
+			row.otherComponentCauseGroupId = null;
+		}
+	}
+
 	private syncRebuildBigComponents() {
 		if (this.mode !== 'rebuild' || !this.scrapPayload) return;
 
-		// is rebuild && selected scrap
+		// Only one rebuild group may carry a reason or another variant.
 		const activeBigGroup = this.scrapPayload.find(
 			(g) => g.isRebuildGroup && (Boolean(g.selectedScrapCode) || g.isOtherVariant)
 		);
 
 		if (activeBigGroup) {
 			activeBigGroup.isOtherComponent = false;
+			activeBigGroup.otherComponentCauseGroupId = null;
 			for (const row of this.scrapPayload) {
 				if (row.isRebuildGroup && row.groupId !== activeBigGroup.groupId) {
 					row.selectedScrapCode = '';
 					row.selectedScrapDescription = '';
 					row.isOtherVariant = false;
 					row.replacementPartMaterial = '';
-					row.isOtherComponent = true;
-				}
-			}
-		} else {
-			for (const row of this.scrapPayload) {
-				if (row.isRebuildGroup) {
-					row.isOtherComponent = false;
 				}
 			}
 		}
+
+		// Another variant is not a main reason, so it causes nothing.
+		const causeGroupId = activeBigGroup?.selectedScrapCode ? activeBigGroup.groupId : null;
+		if (causeGroupId !== null && causeGroupId !== this.rebuildCauseGroupId) {
+			for (const row of this.scrapPayload) {
+				if (row.isRebuildGroup && row.groupId !== causeGroupId) {
+					row.isOtherComponent = true;
+					row.otherComponentCauseGroupId = causeGroupId;
+				}
+			}
+		}
+		this.rebuildCauseGroupId = causeGroupId;
 	}
 
 	// Quantity scrap row state: "started" = any field touched, "complete" = all three filled
@@ -229,18 +319,24 @@ export class ScrapManager {
 					o.replacementPartMaterial === 'empty')
 		)
 	);
-	isMissingOtherComponentScrap = $derived(
-		this.mode === 'scrap' &&
-			this.scrapPayload.some(
-				(row) =>
-					row.isOtherComponent &&
-					!this.scrapPayload.some(
-						(other) =>
-							other.groupId !== row.groupId &&
-							(Boolean(other.selectedScrapCode) || other.isOtherVariant)
-					)
-			)
+	// Every other component row needs a valid cause (rebuild: the main reason group; scrap: the chosen one).
+	isMissingOtherComponentCause = $derived(
+		this.scrapPayload.some((row) => row.isOtherComponent && !this.hasValidCause(row))
 	);
+	// A cause without an Other component scrap code would save records without a code.
+	missingOtherComponentCodeMessage = $derived.by(() => {
+		const dependent = this.scrapPayload.find(
+			(row) =>
+				row.isOtherComponent &&
+				row.otherComponentCauseGroupId !== null &&
+				!this.otherComponentCodeOf(row.otherComponentCauseGroupId)
+		);
+		if (!dependent) return null;
+		const cause = this.scrapPayload.find(
+			(row) => row.groupId === dependent.otherComponentCauseGroupId
+		);
+		return `Part group ${cause?.interfaceName ?? ''} nemá nastavený kód pre iný komponent, kontaktuj inžiniera.`;
+	});
 	// Can submit?
 	canSubmit = $derived(
 		this.mode === 'qntScrap'
@@ -249,7 +345,8 @@ export class ScrapManager {
 					this.hasAnySelection &&
 					this.relevantPayload.length > 0 &&
 					!this.isMissingOtherVariantPN &&
-					!this.isMissingOtherComponentScrap
+					!this.isMissingOtherComponentCause &&
+					this.missingOtherComponentCodeMessage === null
 	);
 
 	// Clear row
@@ -264,12 +361,14 @@ export class ScrapManager {
 		row.isOtherVariant = false;
 		row.replacementPartMaterial = null;
 		row.isOtherComponent = false;
-		this.syncRebuildBigComponents();
+		row.otherComponentCauseGroupId = null;
+		this.syncOtherComponents();
 	}
 
 	// Clear all
 	reset() {
 		this.mode = null;
+		this.rebuildCauseGroupId = null;
 		this.scrapPayload = [];
 		this.scanData = null;
 		this.barcode = '';

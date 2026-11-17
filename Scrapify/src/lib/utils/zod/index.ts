@@ -13,44 +13,70 @@ export const scrapRecordSchema = z.object({
 	operatorId: z.string().min(5, 'Nutne id cislo karty zamestnanca').max(10, 'Max is 10.')
 });
 
-export const partGroupSchema = z.object({
-	id: z.preprocess(
-		(val) => (val === '' || val === null || val === undefined ? undefined : val),
-		z.coerce.number().int().positive().optional()
-	),
-	groupName: z.string().trim().min(3).max(32),
-	vProject: z.string().trim().min(2).max(50),
-	interfaceName: z.string().trim().min(3).max(32),
-	qadIdentity: z.string().trim().optional(),
-	isRebuild: z.preprocess((val) => {
-		if (typeof val === 'string') {
-			return val.toLocaleLowerCase() === 'true' || val === 'on' || val === '1';
-		}
-		return Boolean(val);
-	}, z.boolean()),
-	partNumbers: z
-		.string()
-		.transform((val, ctx) => {
-			try {
-				return JSON.parse(val);
-			} catch {
-				ctx.addIssue({ code: 'custom', message: 'Bad format for parts select' });
-				return z.NEVER;
-			}
-		})
-		.pipe(z.array(z.string())),
-	scrapCodes: z
-		.string()
-		.transform((val, ctx) => {
-			try {
-				return JSON.parse(val);
-			} catch {
-				ctx.addIssue({ code: 'custom', message: 'Bad format for scrap codes select' });
-				return z.NEVER;
-			}
-		})
-		.pipe(z.array(z.string()))
+export const partGroupScrapCodeSchema = z.object({
+	code: z.string().trim().min(1),
+	isOtherComponent: z.boolean().default(false)
 });
+export type PartGroupScrapCodeInput = z.infer<typeof partGroupScrapCodeSchema>;
+
+export const partGroupSchema = z
+	.object({
+		id: z.preprocess(
+			(val) => (val === '' || val === null || val === undefined ? undefined : val),
+			z.coerce.number().int().positive().optional()
+		),
+		groupName: z.string().trim().min(3).max(32),
+		vProject: z.string().trim().min(2).max(50),
+		interfaceName: z.string().trim().min(3).max(32),
+		qadIdentity: z.string().trim().optional(),
+		isRebuild: z.preprocess((val) => {
+			if (typeof val === 'string') {
+				return val.toLocaleLowerCase() === 'true' || val === 'on' || val === '1';
+			}
+			return Boolean(val);
+		}, z.boolean()),
+		partNumbers: z
+			.string()
+			.transform((val, ctx) => {
+				try {
+					return JSON.parse(val);
+				} catch {
+					ctx.addIssue({ code: 'custom', message: 'Bad format for parts select' });
+					return z.NEVER;
+				}
+			})
+			.pipe(z.array(z.string())),
+		scrapCodes: z
+			.string()
+			.transform((val, ctx) => {
+				try {
+					return JSON.parse(val);
+				} catch {
+					ctx.addIssue({ code: 'custom', message: 'Bad format for scrap codes select' });
+					return z.NEVER;
+				}
+			})
+			.pipe(z.array(partGroupScrapCodeSchema))
+	})
+	.superRefine((data, ctx) => {
+		// Object refinements still run when a field failed without aborting, so guard the shape.
+		if (!Array.isArray(data.scrapCodes)) return;
+		const flaggedCount = data.scrapCodes.filter((sc) => sc.isOtherComponent).length;
+		if (flaggedCount > 1) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['scrapCodes'],
+				message: 'Only one scrap code can be marked as Other component scrap code.'
+			});
+		}
+		if (data.isRebuild && flaggedCount === 0) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['scrapCodes'],
+				message: 'A rebuild group must have one scrap code marked as Other component scrap code.'
+			});
+		}
+	});
 export type PartGroupInput = z.infer<typeof partGroupSchema>;
 
 export const labelGroupsSchema = z.object({
@@ -85,6 +111,8 @@ export const scrapRowSchema = z.object({
 	isOtherVariant: z.boolean().default(false),
 	replacementPartMaterial: z.string().optional().nullable(),
 	isOtherComponent: z.boolean().default(false),
+	// Part group whose Other component scrap code this row gets; only used with `isOtherComponent`.
+	otherComponentCauseGroupId: z.number().int().positive().nullable().optional(),
 	quantity: z.preprocess(
 		(value) => (value === 0 || value === '0' ? 1 : value),
 		z.coerce.number().int().positive().default(1).optional()
@@ -137,22 +165,24 @@ export const saveScrapSchema = z
 		// Zod still runs object refinements when a field failed without aborting
 		// (e.g. an empty `scrapPayload` string), so the payload may not be an array here.
 		if (!Array.isArray(data.scrapPayload)) return;
-		if (
-			!data.isRebuild &&
-			data.scrapPayload.some(
-				(row) =>
-					row.isOtherComponent &&
-					!data.scrapPayload.some(
-						(other) =>
-							other.groupId !== row.groupId &&
-							(Boolean(other.selectedScrapCode) || other.isOtherVariant)
-					)
-			)
-		) {
+		const hasInvalidCause = data.scrapPayload.some((row) => {
+			if (!row.isOtherComponent) return false;
+			const cause = data.scrapPayload.find(
+				(other) => other.groupId === row.otherComponentCauseGroupId
+			);
+			return (
+				!cause ||
+				cause.groupId === row.groupId ||
+				cause.isOtherComponent ||
+				cause.isOtherVariant ||
+				!cause.selectedScrapCode
+			);
+		});
+		if (hasInvalidCause) {
 			ctx.addIssue({
 				code: 'custom',
 				path: ['scrapPayload'],
-				message: 'Pri voľbe iný komponent musí mať iná skupina vybraný dôvod scrapu.'
+				message: 'Pri voľbe iný komponent musí byť zvolená príčina s vybraným dôvodom scrapu.'
 			});
 		}
 	});

@@ -1,7 +1,7 @@
 import { error, fail, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import prismaClient from '@/server/prisma';
-import { partGroupSchema } from '@/utils/zod';
+import { partGroupSchema, type PartGroupScrapCodeInput } from '@/utils/zod';
 import type { Prisma } from '@prisma/client';
 import { hasRoleServer, writeToLogger } from '@/utils/serverHelp';
 import {
@@ -335,8 +335,9 @@ export const actions = {
 	}
 } satisfies Actions;
 
-async function getScrapCodeRecords(vProject: string, codes: string[]) {
-	if (codes.length === 0) return [];
+async function getScrapCodeRecords(vProject: string, scrapCodeInputs: PartGroupScrapCodeInput[]) {
+	if (scrapCodeInputs.length === 0) return [];
+	const codes = scrapCodeInputs.map((scrapCode) => scrapCode.code);
 
 	const scrapCodes = await prismaClient.vScrapCodes.findMany({
 		where: {
@@ -352,8 +353,9 @@ async function getScrapCodeRecords(vProject: string, codes: string[]) {
 		scrapCodes.map((scrapCode) => [scrapCode.Reason_Code, scrapCode.Reason_Description])
 	);
 
-	return codes.map((code) => ({
+	return scrapCodeInputs.map(({ code, isOtherComponent }) => ({
 		code,
-		description: descriptions.get(code) ?? null
+		description: descriptions.get(code) ?? null,
+		isOtherComponent
 	}));
 }

@@ -36,6 +36,9 @@
 	let selectedVproject = $state(page.url.searchParams.get('vProject') ?? '');
 	let selectedPartIds = $derived(partSlots.filter((val) => val && val.trim() !== ''));
 	let selectedScrapCodes = $derived(scrapSlots.filter((val) => val && val.trim() !== ''));
+	// Slot marked as Other component scrap code; at most one per group, so a single index acts as a radio.
+	// Tied to the slot (not the code) so changing the slot's code keeps the flag.
+	let otherComponentSlotIndex = $state<number | null>(null);
 	let partGroupName = $state('');
 	let interfaceName = $state('');
 	let isRebuild = $state(false);
@@ -86,8 +89,12 @@
 	function removeScrapSlot(index: number) {
 		if (scrapSlots.length === 1) {
 			scrapSlots[0] = '';
+			otherComponentSlotIndex = null;
 		} else {
 			scrapSlots.splice(index, 1);
+			if (otherComponentSlotIndex === index) otherComponentSlotIndex = null;
+			else if (otherComponentSlotIndex !== null && otherComponentSlotIndex > index)
+				otherComponentSlotIndex -= 1;
 		}
 	}
 
@@ -127,6 +134,7 @@
 		qadSelectedItemType = '';
 		partSlots = [''];
 		scrapSlots = [''];
+		otherComponentSlotIndex = null;
 		$editPartGroupData = undefined;
 	}
 
@@ -141,6 +149,7 @@
 			if (!idEditGroup) {
 				partSlots = [''];
 				scrapSlots = [''];
+				otherComponentSlotIndex = null;
 			}
 
 			const url = new URL(page.url);
@@ -180,6 +189,8 @@
 					editData.scrapCodes && editData.scrapCodes.length > 0
 						? editData.scrapCodes.map((sc) => sc.code)
 						: [''];
+				const flaggedIndex = editData.scrapCodes?.findIndex((sc) => sc.isOtherComponent) ?? -1;
+				otherComponentSlotIndex = flaggedIndex >= 0 ? flaggedIndex : null;
 				// Group name
 				partGroupName = editData.name ?? '';
 				interfaceName = editData.interfaceName ?? '';
@@ -198,8 +209,6 @@
 		clearEditForm();
 		$currentConfirmDeleteId = undefined;
 	});
-
-	$inspect(selectedScrapCodes);
 </script>
 
 <ToNavigateBtn text="Back to admin panel" href="/admin" />
@@ -213,7 +222,17 @@
 			use:enhance={({ formData }) => {
 				formData.set('vProject', selectedVproject);
 				formData.set('partNumbers', JSON.stringify(selectedPartIds));
-				formData.set('scrapCodes', JSON.stringify(selectedScrapCodes));
+				formData.set(
+					'scrapCodes',
+					JSON.stringify(
+						scrapSlots
+							.map((code, index) => ({
+								code,
+								isOtherComponent: index === otherComponentSlotIndex
+							}))
+							.filter(({ code }) => code && code.trim() !== '')
+					)
+				);
 				formData.set('groupName', partGroupName);
 				formData.set('interfaceName', interfaceName);
 				formData.set('qadIdentity', qadSelectedItemType);
@@ -367,6 +386,22 @@
 									<span class="text-sm text-chart-info capitalize">[{index + 1}]</span>
 								</Label>
 								<div class="flex gap-1">
+									<label
+										for={`scrap-other-component-${index}`}
+										class="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer"
+										title="Is other component? This code is written to the other part groups when this group is their cause."
+									>
+										<Checkbox
+											id={`scrap-other-component-${index}`}
+											class="size-4! ring-2 ring-primary"
+											disabled={!currentScrapCode}
+											checked={Boolean(currentScrapCode) && index === otherComponentSlotIndex}
+											onCheckedChange={(checked) => {
+												otherComponentSlotIndex = checked ? index : null;
+											}}
+										/>
+										<span class="whitespace-nowrap">Is other component?</span>
+									</label>
 									<Combobox
 										dataBox={availableScrapCodes.map((scrapCodes: any) => ({
 											id: scrapCodes.Reason_Code,
