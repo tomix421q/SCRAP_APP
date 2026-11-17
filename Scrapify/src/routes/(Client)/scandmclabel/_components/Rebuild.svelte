@@ -64,6 +64,14 @@
 					</p>
 
 					<div class="flex flex-wrap gap-2 sm:gap-4">
+						<!-- Inline with the checkboxes so the card does not grow; the full text is next to the save button -->
+						{#if scrapManager.causeGroupIdsWithoutCode.includes(row.groupId)}
+							<p
+								class="rounded-lg border border-destructive bg-background px-2 py-0.5 text-xs font-semibold text-destructive"
+							>
+								Chýba kód pre iný komponent
+							</p>
+						{/if}
 						<!-- Rebuild mode targets big parts only, so small groups cannot pick another variant -->
 						{#if row.isRebuildGroup}
 							<section class="flex items-center gap-2 bg-chart-5 rounded-lg p-0.5 px-1">
@@ -172,13 +180,6 @@
 						<OtherComponentCause {scrapManager} {row} />
 					{/if}
 				</article>
-				{#if scrapManager.causeGroupIdsWithoutCode.includes(row.groupId)}
-					<p
-						class="rounded-lg border border-destructive bg-background px-3 py-2 text-destructive font-semibold text-sm"
-					>
-						Chýba kód pre iný komponent, kontaktuj inžiniera.
-					</p>
-				{/if}
 			</div>
 
 			<!-- Photo -->

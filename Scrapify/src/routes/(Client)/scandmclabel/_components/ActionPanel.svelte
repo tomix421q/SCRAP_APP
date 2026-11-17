@@ -83,7 +83,7 @@
 	{@const ActiveIcon = GRID_ICONS[viewStore.grid[scrapManager.mode]]}
 	<!-- Beside the panel on desktop, above it on mobile -->
 	<div
-		class="fixed bottom-4 left-4 max-sm:right-4 z-20 flex items-center gap-2 max-sm:flex-col-reverse max-sm:items-stretch"
+		class="fixed bottom-4 left-4 max-sm:right-4 z-20 flex items-stretch gap-2 max-sm:flex-col-reverse"
 	>
 		<aside
 			class="flex shrink-0 items-center gap-2 rounded-lg border-2 border-primary/50 bg-card/95 p-2 shadow-2xl ring-4 ring-background backdrop-blur"
@@ -161,7 +161,7 @@
 		{#if missingCodeGroupNames.length > 0}
 			<!-- Explains why the submit button is disabled -->
 			<p
-				class="rounded-lg border border-destructive bg-background px-3 py-2 text-sm font-semibold text-destructive shadow-2xl"
+				class="flex items-center rounded-lg border border-destructive bg-background px-3 py-2 text-sm font-semibold text-destructive shadow-2xl"
 			>
 				Nedá sa uložiť: {missingCodeGroupNames.join(', ')} nemá kód pre iný komponent, kontaktuj inžiniera.
 			</p>
