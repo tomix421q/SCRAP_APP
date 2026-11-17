@@ -35,6 +35,12 @@ export const partGroupSchema = z
 			}
 			return Boolean(val);
 		}, z.boolean()),
+		cannotBeMainReason: z.preprocess((val) => {
+			if (typeof val === 'string') {
+				return val.toLocaleLowerCase() === 'true' || val === 'on' || val === '1';
+			}
+			return Boolean(val);
+		}, z.boolean()),
 		partNumbers: z
 			.string()
 			.transform((val, ctx) => {
@@ -69,14 +75,16 @@ export const partGroupSchema = z
 				message: 'Only one scrap code can be marked as Other component scrap code.'
 			});
 		}
-		if (data.isRebuild && flaggedCount === 0) {
+		if (data.isRebuild && !data.cannotBeMainReason && flaggedCount === 0) {
 			ctx.addIssue({
 				code: 'custom',
 				path: ['scrapCodes'],
 				message: 'A rebuild group must have one scrap code marked as Other component scrap code.'
 			});
 		}
-	});
+	})
+	// Only a rebuild group can be flagged; the flag is always false otherwise.
+	.transform((data) => ({ ...data, cannotBeMainReason: data.isRebuild && data.cannotBeMainReason }));
 export type PartGroupInput = z.infer<typeof partGroupSchema>;
 
 export const labelGroupsSchema = z.object({

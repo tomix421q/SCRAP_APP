@@ -69,7 +69,16 @@ export class ScrapManager {
 		}
 	}
 
+	/** Rebuild group the engineer flagged as unable to be the main reason (it has no reason to pick). */
+	cannotBeMainReason(groupId: number) {
+		return (
+			this.mode === 'rebuild' &&
+			Boolean(this.scanData?.groups.find((g) => g.id === groupId)?.cannotBeMainReason)
+		);
+	}
+
 	selectScrap(groupId: number, scrapCode: string) {
+		if (this.cannotBeMainReason(groupId)) return;
 		const scrapRow = this.scrapPayload?.find((s) => s.groupId === groupId);
 		const groupDef = this.scanData?.groups.find((g) => g.id === groupId);
 		if (!scrapRow || !groupDef) return;
@@ -127,6 +136,7 @@ export class ScrapManager {
 	}
 
 	setOtherVariant(groupId: number, value: boolean) {
+		if (value && this.cannotBeMainReason(groupId)) return;
 		const row = this.scrapPayload.find((s) => s.groupId === groupId);
 		if (!row) return;
 

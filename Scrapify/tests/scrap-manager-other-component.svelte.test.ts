@@ -9,9 +9,15 @@ const MIDDFIELD = 11;
 const BELTLINE = 12;
 const MA_POCKET = 13;
 
-type GroupFixture = { id: number; name: string; isRebuild: boolean; otherCode?: string };
+type GroupFixture = {
+	id: number;
+	name: string;
+	isRebuild: boolean;
+	otherCode?: string;
+	cannotBeMainReason?: boolean;
+};
 
-function group({ id, name, isRebuild, otherCode }: GroupFixture) {
+function group({ id, name, isRebuild, otherCode, cannotBeMainReason = false }: GroupFixture) {
 	const scrapCodes = [
 		{ id: id * 10, partGroupId: id, code: `R${id}`, description: 'Reason', isOtherComponent: false }
 	];
@@ -29,6 +35,7 @@ function group({ id, name, isRebuild, otherCode }: GroupFixture) {
 		name,
 		interfaceName: name,
 		isRebuild,
+		cannotBeMainReason,
 		qadIdentity: null,
 		vProject: 'PRJ1',
 		photoFile: null,
@@ -220,5 +227,49 @@ describe('scrap', () => {
 
 		expect(rowOf(manager, MIDDFIELD).otherComponentCauseGroupId).toBe(MAIN_CARRIER);
 		expect(rowOf(manager, BELTLINE).isOtherComponent).toBe(false);
+	});
+});
+
+describe('rebuild group that cannot be the main reason', () => {
+	const label: GroupFixture[] = [
+		{ id: MAIN_CARRIER, name: 'Main carrier', isRebuild: true, otherCode: 'SA850' },
+		{ id: MIDDFIELD, name: 'Middfield', isRebuild: true, cannotBeMainReason: true }
+	];
+
+	it('cannot get a reason or another variant', () => {
+		const manager = managerWith(label, 'rebuild');
+
+		manager.selectScrap(MIDDFIELD, `R${MIDDFIELD}`);
+		manager.setOtherVariant(MIDDFIELD, true);
+
+		expect(manager.cannotBeMainReason(MIDDFIELD)).toBe(true);
+		expect(rowOf(manager, MIDDFIELD)).toMatchObject({
+			selectedScrapCode: null,
+			isOtherVariant: false
+		});
+		expect(manager.canSubmit).toBe(false);
+	});
+
+	it('is marked as other component when another group is the main reason and can be unmarked', () => {
+		const manager = managerWith(label, 'rebuild');
+
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+		expect(rowOf(manager, MIDDFIELD)).toMatchObject({
+			isOtherComponent: true,
+			otherComponentCauseGroupId: MAIN_CARRIER
+		});
+		expect(manager.canSubmit).toBe(true);
+
+		manager.setOtherComponent(MIDDFIELD, false);
+		expect(rowOf(manager, MIDDFIELD).isOtherComponent).toBe(false);
+	});
+
+	it('does not change scrap mode', () => {
+		const manager = managerWith(label, 'scrap');
+
+		manager.selectScrap(MIDDFIELD, `R${MIDDFIELD}`);
+
+		expect(manager.cannotBeMainReason(MIDDFIELD)).toBe(false);
+		expect(rowOf(manager, MIDDFIELD).selectedScrapCode).toBe(`R${MIDDFIELD}`);
 	});
 });

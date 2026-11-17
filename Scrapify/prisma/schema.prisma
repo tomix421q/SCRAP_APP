@@ -95,6 +95,8 @@ model PartGroup {
   createdAt     DateTime            @default(dbgenerated("GETDATE()"))
   updatedAt     DateTime            @updatedAt
   isRebuild     Boolean             @default(false)
+  // Rebuild group that has no Other component scrap code, so it can never be the main reason.
+  cannotBeMainReason Boolean        @default(false)
   interfaceName String
   qadIdentity   String?
   vProject      String?             @db.VarChar(20)

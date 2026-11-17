@@ -16,6 +16,7 @@ const MAIN_CARRIER = 10;
 const MIDDFIELD = 11;
 const BELTLINE = 12;
 const MA_POCKET = 13;
+const FLAGGED = 14;
 
 const code = (code: string, description: string, isOtherComponent = false) => ({
 	code,
@@ -50,6 +51,14 @@ const dmcLabel = {
 			isRebuild: false,
 			materials: [],
 			scrapCodes: [code('SA400', 'Dent')]
+		},
+		{
+			id: FLAGGED,
+			isRebuild: true,
+			cannotBeMainReason: true,
+			interfaceName: 'Flagged group',
+			materials: [{ material: 'PN1' }],
+			scrapCodes: [code('SA500', 'Chipped')]
 		}
 	]
 };
@@ -220,6 +229,44 @@ describe('an invalid cause is rejected and nothing is saved', () => {
 		]);
 
 		expect(result).toMatchObject({ status: 400 });
+		expect(prismaMock.scrapRecord.createMany).not.toHaveBeenCalled();
+	});
+});
+
+describe('rebuild group that cannot be the main reason', () => {
+	it('saves it as an other component of another main reason', async () => {
+		const result = await saveScrap(true, [
+			row(MAIN_CARRIER, { selectedScrapCode: 'SA100' }),
+			row(FLAGGED, { isOtherComponent: true, otherComponentCauseGroupId: MAIN_CARRIER })
+		]);
+
+		expect(result).toMatchObject({ success: true });
+		expect(savedRecord(FLAGGED)).toMatchObject({ scrapCode: 'SA850', isOtherComponent: true });
+	});
+
+	it('rejects a reason on it in a rebuild', async () => {
+		const result = await saveScrap(true, [row(FLAGGED, { selectedScrapCode: 'SA500' })]);
+
+		expect(result).toMatchObject({ status: 400, data: { success: false } });
+		expect(prismaMock.scrapRecord.createMany).not.toHaveBeenCalled();
+	});
+
+	it('rejects another variant on it in a rebuild', async () => {
+		const result = await saveScrap(true, [
+			row(FLAGGED, { isOtherVariant: true, replacementPartMaterial: 'PN1' })
+		]);
+
+		expect(result).toMatchObject({ status: 400, data: { success: false } });
+		expect(prismaMock.scrapRecord.createMany).not.toHaveBeenCalled();
+	});
+
+	it('rejects it as the cause of another component', async () => {
+		const result = await saveScrap(true, [
+			row(MAIN_CARRIER, { selectedScrapCode: 'SA100' }),
+			row(MIDDFIELD, { isOtherComponent: true, otherComponentCauseGroupId: FLAGGED })
+		]);
+
+		expect(result).toMatchObject({ status: 400, data: { success: false } });
 		expect(prismaMock.scrapRecord.createMany).not.toHaveBeenCalled();
 	});
 });

@@ -7,7 +7,7 @@
 	import OtherComponentCause from './OtherComponentCause.svelte';
 	import { GRID_COLS_CLASS, GRID_MAX_W_CLASS, viewStore } from '@/stores/viewStore.svelte';
 	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
-	import { X } from '@lucide/svelte';
+	import { Ban, X } from '@lucide/svelte';
 
 	let {
 		scrapManager
@@ -25,6 +25,7 @@
 >
 	{#each scrapManager.scrapPayload as row (row.groupId)}
 		{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
+		{@const cannotBeMainReason = scrapManager.cannotBeMainReason(row.groupId)}
 		{@const colorOtherComponent = row.isOtherComponent ? 'bg-red-500/50 border-warning/50' : ''}
 		{@const colorOtherVariant =
 			row.isOtherVariant &&
@@ -73,8 +74,15 @@
 							</p>
 						{/if}
 						<!-- Rebuild mode targets big parts only, so small groups cannot pick another variant -->
+						<!-- Flagged groups keep it invisible so their note lines up with the other cards' comboboxes -->
 						{#if row.isRebuildGroup}
-							<section class="flex items-center gap-2 bg-chart-5 rounded-lg p-0.5 px-1">
+							<section
+								class="flex items-center gap-2 bg-chart-5 rounded-lg p-0.5 px-1 {cannotBeMainReason
+									? 'invisible'
+									: ''}"
+								aria-hidden={cannotBeMainReason}
+								inert={cannotBeMainReason}
+							>
 								<Label
 									for={`other-variant-${row.groupId}`}
 									class="text-sm cursor-pointer font-semibold {row.isOtherVariant
@@ -125,6 +133,13 @@
 								>
 									Iný variant
 								</div> -->
+							{:else if cannotBeMainReason}
+								<div
+									class="flex flex-1 min-w-0 items-center gap-2 h-9 rounded-md border border-dashed border-border bg-card/60 px-3 text-sm font-semibold text-muted-foreground"
+								>
+									<Ban class="size-4 shrink-0 text-warning" />
+									<span class="min-w-0 wrap-break-word">Nemôže byť príčinou rebuildu</span>
+								</div>
 							{:else}
 								<!--  -->
 								{#if row.isRebuildGroup}

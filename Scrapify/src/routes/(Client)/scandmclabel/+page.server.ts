@@ -181,6 +181,15 @@ export const actions = {
 					});
 				}
 
+				// A flagged group has no Other component scrap code, so it can never be the main reason in a rebuild.
+				if (isRebuild && group.cannotBeMainReason && (hasSelectedScrapCode || row.isOtherVariant)) {
+					return fail(400, {
+						success: false,
+						message: 'Neplatný dôvod scrapu.',
+						error: `Part group ${group.interfaceName} nemôže byť príčinou rebuildu.`
+					});
+				}
+
 				const selectedScrapCode = hasSelectedScrapCode
 					? group.scrapCodes.find((scrapCode) => scrapCode.code === row.selectedScrapCode)
 					: undefined;
@@ -217,6 +226,13 @@ export const actions = {
 						success: false,
 						message: 'Neplatná príčina iného komponentu.',
 						error: 'Pri rebuilde môže byť príčinou iba rebuild skupina s hlavným dôvodom.'
+					});
+				}
+				if (isRebuild && causeGroup?.cannotBeMainReason) {
+					return fail(400, {
+						success: false,
+						message: 'Neplatná príčina iného komponentu.',
+						error: `Part group ${causeGroup.interfaceName} nemôže byť príčinou rebuildu.`
 					});
 				}
 				if (!causeGroup || !causeCode) {

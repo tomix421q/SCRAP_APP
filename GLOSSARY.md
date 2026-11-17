@@ -56,11 +56,11 @@ Príznak scrap recordu: chybný bol iný komponent, nie samotný diel z part gro
 _Avoid_: iný diel
 
 **Other component scrap code**:
-Scrap code, ktorý inžinier určil v part group ako dôvod pre ostatné part groups, keď je táto part group ich príčinou (pri rebuilde aj pri scrape); part group má najviac jeden. Scrap records pridružených part groups (s príznakom other component) nesú scrap code príčiny, nie svoj vlastný. Každá rebuild part group ho musí mať.
+Scrap code, ktorý inžinier určil v part group ako dôvod pre ostatné part groups, keď je táto part group ich príčinou (pri rebuilde aj pri scrape); part group má najviac jeden. Scrap records pridružených part groups (s príznakom other component) nesú scrap code príčiny, nie svoj vlastný. Každá rebuild part group ho musí mať, okrem tých, ktoré nemôžu byť main reason.
 _Avoid_: other component flag, kód iného komponentu
 
 **Main reason**:
-Pri rebuilde scrap code zvolený na jedinej rebuild part group, ktorá je príčinou; ostatné zaškrtnuté part groups v tom istom payloade sú other component.
+Pri rebuilde scrap code zvolený na jedinej rebuild part group, ktorá je príčinou; ostatné zaškrtnuté part groups v tom istom payloade sú other component. Inžinier môže rebuild part group označiť, že main reason mať nemôže; takú part group operator pri rebuilde nevyberá ako príčinu, ale stále sa zapisuje ako other component.
 _Avoid_: hlavný dôvod, primary reason
 
 **Other variant**:

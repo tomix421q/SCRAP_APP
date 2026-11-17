@@ -12,7 +12,7 @@ Checkbox „Iný komponent“ sa dnes navyše zobrazuje pri každej part group, 
 
 - Inžinier v admin paneli part groups označí pri part group najviac jeden scrap code ako **Other component scrap code** (príznak `isOtherComponent` na `PartGroupScrapCodes`).
 - Význam príznaku: kód **nedostane part group, ktorá ho má**, ale **ostatné part groups, keď je ona ich príčinou**. Príklad: Main carrier má označený SA850. Ak je Main carrier príčinou, záznamy Middfield, Beltline a MA pocket dostanú SA850 a jeho popis.
-- Každá rebuild part group musí mať Other component scrap code. Pri ostatných part groups je voliteľný.
+- Každá rebuild part group musí mať Other component scrap code, okrem part groups označených, že nemôžu byť main reason (pozri [tiket 04](issues/04-cannot-be-main-reason.md)). Pri ostatných part groups je voliteľný.
 - **Rebuild:** checkbox „Iný komponent“ sa zobrazí až po zvolení main reason, a to pri všetkých ostatných part groups. Rebuild part groups sa zaškrtnú automaticky, ostatné môže operator zaškrtnúť ručne. Ktorýkoľvek môže operator odškrtnúť (diel zachránil). Príčinou je part group s main reason.
 - **Scrap:** kandidát na príčinu je part group s vybraným scrap code, ktorá má Other component scrap code. Pri 0 kandidátoch sa checkbox nezobrazí, pri 1 sa príčina určí automaticky, pri 2 a viac musí operator vybrať príčinu v comboboxe „Príčina“.
 - Ak príčina prestane byť platná (dôvod zrušený alebo zmenený na iný variant), závislé riadky s other component sa odškrtnú.
@@ -88,5 +88,6 @@ Checkbox „Iný komponent“ sa dnes navyše zobrazuje pri každej part group, 
 1. [01 – Schéma a príznak v admin paneli](issues/01-schema-admin-flag.md)
 2. [02 – Rebuild: kód príčiny pre pridružené part groups](issues/02-rebuild-cause-code.md)
 3. [03 – Scrap: výber príčiny](issues/03-scrap-cause-select.md)
+4. [04 – Príznak part group: nemôže byť main reason](issues/04-cannot-be-main-reason.md) (rozšírenie, súvisí len voľne)
 
 ## Comments

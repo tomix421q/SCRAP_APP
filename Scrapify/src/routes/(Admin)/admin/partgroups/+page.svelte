@@ -42,6 +42,7 @@
 	let partGroupName = $state('');
 	let interfaceName = $state('');
 	let isRebuild = $state(false);
+	let cannotBeMainReason = $state(false);
 	let qadSelectedItemType = $state('');
 
 	// photo
@@ -131,6 +132,7 @@
 		partGroupName = '';
 		interfaceName = '';
 		isRebuild = false;
+		cannotBeMainReason = false;
 		qadSelectedItemType = '';
 		partSlots = [''];
 		scrapSlots = [''];
@@ -195,6 +197,7 @@
 				partGroupName = editData.name ?? '';
 				interfaceName = editData.interfaceName ?? '';
 				isRebuild = editData.isRebuild;
+				cannotBeMainReason = editData.isRebuild && editData.cannotBeMainReason;
 				qadSelectedItemType = editData.qadIdentity ?? '';
 
 				// applyFilter();
@@ -237,6 +240,7 @@
 				formData.set('interfaceName', interfaceName);
 				formData.set('qadIdentity', qadSelectedItemType);
 				formData.set('isRebuild', JSON.stringify(isRebuild));
+				formData.set('cannotBeMainReason', JSON.stringify(isRebuild && cannotBeMainReason));
 				if (photoFile) formData.set('photo', photoFile);
 				formData.set('removePhoto', JSON.stringify(removePhoto));
 				isSubmitting = true;
@@ -491,7 +495,28 @@
 							isRebuild = true;
 						} else {
 							isRebuild = false;
+							cannotBeMainReason = false;
 						}
+					}}
+				/>
+			</article>
+
+			<!-- Rebuild group that can never be the main reason; only available for rebuild groups -->
+			<article class="flex flex-col mt-3 justify-between w-fit lg:items-center gap-2 lg:flex-row">
+				<Label
+					for="cannotBeMainReason"
+					class="text-sm md:text-lg whitespace-nowrap lg:min-w-[200px] {isRebuild
+						? ''
+						: 'text-muted-foreground'}">Cannot be main reason</Label
+				>
+
+				<Checkbox
+					id="cannotBeMainReason"
+					class="size-5! ring-2 ring-primary **:size-5"
+					disabled={!isRebuild}
+					checked={isRebuild && cannotBeMainReason}
+					onCheckedChange={(val: any) => {
+						cannotBeMainReason = Boolean(val);
 					}}
 				/>
 			</article>

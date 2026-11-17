@@ -121,3 +121,40 @@ describe('other component scrap code on a part group', () => {
 		]);
 	});
 });
+
+describe('cannot be main reason flag on a part group', () => {
+	it('saves a flagged rebuild group without an Other component scrap code', async () => {
+		const result = await actions.createPartGroup(
+			eventWith(fields(twoCodes(null), { isRebuild: 'true', cannotBeMainReason: 'true' }))
+		);
+
+		expect(result).toMatchObject({ success: true });
+		expect(prismaMock.partGroup.create.mock.calls[0][0].data.cannotBeMainReason).toBe(true);
+	});
+
+	it('keeps the flag when editing', async () => {
+		await actions.editGroup(
+			eventWith(fields(twoCodes(null), { id: '7', isRebuild: 'true', cannotBeMainReason: 'true' }))
+		);
+
+		expect(prismaMock.partGroup.update.mock.calls[0][0].data.cannotBeMainReason).toBe(true);
+	});
+
+	it('stores false for a non-rebuild group even if the flag is sent', async () => {
+		const result = await actions.createPartGroup(
+			eventWith(fields(twoCodes(null), { isRebuild: 'false', cannotBeMainReason: 'true' }))
+		);
+
+		expect(result).toMatchObject({ success: true });
+		expect(prismaMock.partGroup.create.mock.calls[0][0].data.cannotBeMainReason).toBe(false);
+	});
+
+	it('still requires the code for an unflagged rebuild group', async () => {
+		const result = await actions.createPartGroup(
+			eventWith(fields(twoCodes(null), { isRebuild: 'true', cannotBeMainReason: 'false' }))
+		);
+
+		expect(result).toMatchObject({ status: 400, data: { success: false } });
+	});
+});
+

@@ -124,8 +124,16 @@ export const actions = {
 				values: formValues(formData)
 			});
 		}
-		const { groupName, vProject, partNumbers, scrapCodes, isRebuild, interfaceName, qadIdentity } =
-			result.data;
+		const {
+			groupName,
+			vProject,
+			partNumbers,
+			scrapCodes,
+			isRebuild,
+			cannotBeMainReason,
+			interfaceName,
+			qadIdentity
+		} = result.data;
 
 		// Validate the photo up front so a bad file never leaves a half-created group behind.
 		const upload = await checkPhotoUpload(photo, formData);
@@ -144,6 +152,7 @@ export const actions = {
 						}))
 					},
 					isRebuild: isRebuild,
+						cannotBeMainReason,
 					interfaceName,
 					qadIdentity,
 					scrapCodes: {
@@ -218,6 +227,7 @@ export const actions = {
 			partNumbers,
 			scrapCodes,
 			isRebuild,
+			cannotBeMainReason,
 			interfaceName,
 			qadIdentity
 		} = result.data;
@@ -255,6 +265,7 @@ export const actions = {
 						}))
 					},
 					isRebuild: isRebuild,
+						cannotBeMainReason,
 					interfaceName,
 					qadIdentity,
 					scrapCodes: {
