@@ -20,7 +20,7 @@ const dmcLabel = {
 			id: 10,
 			isRebuild: true,
 			materials: [{ material: 'PN-10' }],
-			scrapCodes: [{ code: 'S1' }]
+			scrapCodes: [{ code: 'S1' }, { code: 'S9', isOtherComponent: true }]
 		},
 		{
 			id: 11,
@@ -73,7 +73,7 @@ const rebuildFields = {
 	isRebuild: 'true',
 	scrapPayload: JSON.stringify([
 		row(10, { selectedScrapCode: 'S1' }),
-		row(11, { isOtherComponent: true })
+		row(11, { isOtherComponent: true, otherComponentCauseGroupId: 10 })
 	])
 };
 

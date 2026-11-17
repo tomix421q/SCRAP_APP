@@ -1,0 +1,218 @@
+import { describe, expect, it } from 'vitest';
+import {
+	ScrapManager,
+	type ScanInitPayload
+} from '../src/routes/(Client)/scandmclabel/_components/ScrapManager.svelte';
+
+const MAIN_CARRIER = 10;
+const MIDDFIELD = 11;
+const BELTLINE = 12;
+const MA_POCKET = 13;
+
+type GroupFixture = { id: number; name: string; isRebuild: boolean; otherCode?: string };
+
+function group({ id, name, isRebuild, otherCode }: GroupFixture) {
+	const scrapCodes = [
+		{ id: id * 10, partGroupId: id, code: `R${id}`, description: 'Reason', isOtherComponent: false }
+	];
+	if (otherCode) {
+		scrapCodes.push({
+			id: id * 10 + 1,
+			partGroupId: id,
+			code: otherCode,
+			description: 'Other',
+			isOtherComponent: true
+		});
+	}
+	return {
+		id,
+		name,
+		interfaceName: name,
+		isRebuild,
+		qadIdentity: null,
+		vProject: 'PRJ1',
+		photoFile: null,
+		createdAt: new Date(),
+		updatedAt: new Date(),
+		materials: [],
+		scrapCodes
+	};
+}
+
+function managerWith(groups: GroupFixture[], mode: 'rebuild' | 'scrap') {
+	const manager = new ScrapManager();
+	const payload = {
+		label: 'ABC123',
+		match: {
+			id: 1,
+			code: 'ABC*',
+			vProject: 'PRJ1',
+			createdAt: new Date(),
+			updatedAt: new Date(),
+			groups: groups.map(group)
+		}
+	} as ScanInitPayload;
+	manager.init(payload, 'ABC123');
+	manager.setMode(mode);
+	return manager;
+}
+
+const rowOf = (manager: ScrapManager, groupId: number) =>
+	manager.scrapPayload.find((row) => row.groupId === groupId)!;
+
+const rebuildLabel: GroupFixture[] = [
+	{ id: MAIN_CARRIER, name: 'Main carrier', isRebuild: true, otherCode: 'SA850' },
+	{ id: MIDDFIELD, name: 'Middfield', isRebuild: true, otherCode: 'SA860' },
+	{ id: BELTLINE, name: 'Beltline', isRebuild: false }
+];
+
+describe('rebuild', () => {
+	it('hides the other component checkbox until a main reason is chosen', () => {
+		const manager = managerWith(rebuildLabel, 'rebuild');
+
+		expect(manager.canMarkOtherComponent(MIDDFIELD)).toBe(false);
+		expect(manager.canMarkOtherComponent(BELTLINE)).toBe(false);
+	});
+
+	it('marks the other rebuild groups as other component of the main reason group', () => {
+		const manager = managerWith(rebuildLabel, 'rebuild');
+
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+
+		expect(rowOf(manager, MIDDFIELD)).toMatchObject({
+			isOtherComponent: true,
+			otherComponentCauseGroupId: MAIN_CARRIER
+		});
+		expect(rowOf(manager, BELTLINE).isOtherComponent).toBe(false);
+		expect(manager.canMarkOtherComponent(BELTLINE)).toBe(true);
+		expect(manager.canMarkOtherComponent(MAIN_CARRIER)).toBe(false);
+		expect(manager.canSubmit).toBe(true);
+	});
+
+	it('lets the operator mark a small group and unmark an auto-marked group', () => {
+		const manager = managerWith(rebuildLabel, 'rebuild');
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+
+		manager.setOtherComponent(BELTLINE, true);
+		manager.setOtherComponent(MIDDFIELD, false);
+
+		expect(rowOf(manager, BELTLINE)).toMatchObject({
+			isOtherComponent: true,
+			otherComponentCauseGroupId: MAIN_CARRIER
+		});
+		expect(rowOf(manager, MIDDFIELD)).toMatchObject({
+			isOtherComponent: false,
+			otherComponentCauseGroupId: null
+		});
+		expect(manager.relevantPayload.map((row) => row.groupId)).toEqual([MAIN_CARRIER, BELTLINE]);
+	});
+
+	it('unmarks the dependent rows when the main reason is cleared or changed to another variant', () => {
+		const manager = managerWith(rebuildLabel, 'rebuild');
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+		manager.setOtherComponent(BELTLINE, true);
+
+		manager.setOtherVariant(MAIN_CARRIER, true);
+
+		expect(rowOf(manager, MIDDFIELD).isOtherComponent).toBe(false);
+		expect(rowOf(manager, BELTLINE)).toMatchObject({
+			isOtherComponent: false,
+			otherComponentCauseGroupId: null
+		});
+
+		manager.setOtherVariant(MAIN_CARRIER, false);
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+		manager.clearScrapRow(MAIN_CARRIER);
+
+		expect(rowOf(manager, MIDDFIELD).isOtherComponent).toBe(false);
+	});
+
+	it('blocks the save with a message when the main reason group has no Other component scrap code', () => {
+		const manager = managerWith(
+			[
+				{ id: MAIN_CARRIER, name: 'Main carrier', isRebuild: true },
+				{ id: MIDDFIELD, name: 'Middfield', isRebuild: true, otherCode: 'SA860' }
+			],
+			'rebuild'
+		);
+
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+
+		expect(manager.canSubmit).toBe(false);
+		expect(manager.missingOtherComponentCodeMessage).toBe(
+			'Part group Main carrier nemá nastavený kód pre iný komponent, kontaktuj inžiniera.'
+		);
+	});
+});
+
+const scrapLabel: GroupFixture[] = [
+	{ id: MAIN_CARRIER, name: 'Main carrier', isRebuild: true, otherCode: 'SA850' },
+	{ id: MIDDFIELD, name: 'Middfield', isRebuild: true, otherCode: 'SA860' },
+	{ id: BELTLINE, name: 'Beltline', isRebuild: false },
+	{ id: MA_POCKET, name: 'MA pocket', isRebuild: false }
+];
+
+describe('scrap', () => {
+	it('offers only groups with a selected reason and an Other component scrap code as cause', () => {
+		const manager = managerWith(scrapLabel, 'scrap');
+
+		manager.selectScrap(BELTLINE, `R${BELTLINE}`);
+		expect(manager.canMarkOtherComponent(MA_POCKET)).toBe(false);
+
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+		expect(manager.causeCandidates(MA_POCKET).map((row) => row.groupId)).toEqual([MAIN_CARRIER]);
+		expect(manager.canMarkOtherComponent(MAIN_CARRIER)).toBe(false);
+	});
+
+	it('sets the cause automatically when there is a single candidate', () => {
+		const manager = managerWith(scrapLabel, 'scrap');
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+
+		manager.setOtherComponent(BELTLINE, true);
+
+		expect(rowOf(manager, BELTLINE).otherComponentCauseGroupId).toBe(MAIN_CARRIER);
+		expect(manager.canSubmit).toBe(true);
+	});
+
+	it('requires choosing the cause when there are several candidates', () => {
+		const manager = managerWith(scrapLabel, 'scrap');
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+		manager.selectScrap(MIDDFIELD, `R${MIDDFIELD}`);
+
+		manager.setOtherComponent(BELTLINE, true);
+		expect(rowOf(manager, BELTLINE).otherComponentCauseGroupId).toBeNull();
+		expect(manager.canSubmit).toBe(false);
+
+		manager.setOtherComponentCause(BELTLINE, MIDDFIELD);
+		expect(rowOf(manager, BELTLINE).otherComponentCauseGroupId).toBe(MIDDFIELD);
+		expect(manager.canSubmit).toBe(true);
+	});
+
+	it('unmarks the dependent row when its cause loses its reason', () => {
+		const manager = managerWith(scrapLabel, 'scrap');
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+		manager.selectScrap(MIDDFIELD, `R${MIDDFIELD}`);
+		manager.setOtherComponent(BELTLINE, true);
+		manager.setOtherComponentCause(BELTLINE, MIDDFIELD);
+
+		manager.clearScrapRow(MIDDFIELD);
+
+		expect(rowOf(manager, BELTLINE)).toMatchObject({
+			isOtherComponent: false,
+			otherComponentCauseGroupId: null
+		});
+	});
+
+	it('unmarks the dependent row when its cause becomes other component itself', () => {
+		const manager = managerWith(scrapLabel, 'scrap');
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+		manager.selectScrap(MIDDFIELD, `R${MIDDFIELD}`);
+		manager.setOtherComponent(BELTLINE, true);
+		manager.setOtherComponentCause(BELTLINE, MIDDFIELD);
+
+		manager.setOtherComponent(MIDDFIELD, true);
+
+		expect(rowOf(manager, MIDDFIELD).otherComponentCauseGroupId).toBe(MAIN_CARRIER);
+		expect(rowOf(manager, BELTLINE).isOtherComponent).toBe(false);
+	});
+});

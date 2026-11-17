@@ -5,7 +5,26 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
 	plugins: [sveltekit()],
 	test: {
-		include: ['tests/**/*.test.ts'],
-		environment: 'node'
+		projects: [
+			{
+				extends: true,
+				test: {
+					name: 'server',
+					include: ['tests/**/*.test.ts'],
+					exclude: ['tests/**/*.svelte.test.ts'],
+					environment: 'node'
+				}
+			},
+			{
+				// Client-side state classes (`*.svelte.ts`) need client-compiled runes to be reactive.
+				extends: true,
+				resolve: { conditions: ['browser'] },
+				test: {
+					name: 'client',
+					include: ['tests/**/*.svelte.test.ts'],
+					environment: './tests/env/svelte-client.ts'
+				}
+			}
+		]
 	}
 });
