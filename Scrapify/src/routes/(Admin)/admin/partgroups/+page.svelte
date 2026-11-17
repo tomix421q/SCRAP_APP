@@ -368,10 +368,8 @@
 				<article class="flex flex-col gap-2 w-full">
 					<!-- Column header for the "other component" checkboxes at the end of each row -->
 					<div class="flex justify-end">
-						<span class="flex w-9 shrink-0 justify-end">
-							<span class="whitespace-nowrap text-xs text-muted-foreground"
-								>Is other component?</span
-							>
+						<span class="w-20 shrink-0 text-center text-xs leading-tight text-muted-foreground">
+							Is other component?
 						</span>
 					</div>
 					<ul
@@ -418,7 +416,7 @@
 										<X />
 									</Button>
 									<!-- Flag of the Other component scrap code; labelled once in the header above -->
-									<span class="flex size-9 shrink-0 items-center justify-center">
+									<span class="flex h-9 w-20 shrink-0 items-center justify-center">
 										<Checkbox
 											id={`scrap-other-component-${index}`}
 											aria-label="Is other component?"
