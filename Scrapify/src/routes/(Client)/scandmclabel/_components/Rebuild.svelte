@@ -172,6 +172,13 @@
 						<OtherComponentCause {scrapManager} {row} />
 					{/if}
 				</article>
+				{#if scrapManager.causeGroupIdsWithoutCode.includes(row.groupId)}
+					<p
+						class="rounded-lg border border-destructive bg-background px-3 py-2 text-destructive font-semibold text-sm"
+					>
+						Chýba kód pre iný komponent, kontaktuj inžiniera.
+					</p>
+				{/if}
 			</div>
 
 			<!-- Photo -->

@@ -29,10 +29,11 @@
 		/>
 	</div>
 {:else if row.otherComponentCauseGroupId !== null && !scrapManager.otherComponentCodeOf(row.otherComponentCauseGroupId)}
+	<!-- Solid background: the card behind is red, so red text alone would be unreadable -->
 	<p
-		class="max-sm:w-full rounded-lg bg-destructive/20 px-3 py-2 text-destructive font-semibold text-sm"
+		class="max-sm:w-full rounded-lg border border-destructive bg-background px-3 py-2 text-destructive font-semibold text-sm"
 	>
-		{causeLabel(row.otherComponentCauseGroupId)} nemá nastavený kód pre iný komponent, kontaktuj inžiniera.
+		Príčina {causeLabel(row.otherComponentCauseGroupId)} nemá kód pre iný komponent.
 	</p>
 {:else}
 	<p class="max-sm:w-full rounded-lg bg-chart-5 px-3 py-2 h-9 text-info font-semibold text-sm">
