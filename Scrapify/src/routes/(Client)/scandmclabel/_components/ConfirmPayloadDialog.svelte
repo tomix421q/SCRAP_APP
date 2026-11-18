@@ -22,26 +22,36 @@
 
 	const MODE_TEXT: Record<
 		ScrapMode,
-		{ title: string; confirm: string; stripe: string; badge: BadgeVariant; action: string }
+		{
+			title: string;
+			confirm: string;
+			stripe: string;
+			badge: BadgeVariant;
+			action: string;
+			glow: string;
+		}
 	> = {
 		scrap: {
 			title: 'Scrap',
-			confirm: 'Potvrdiť scrap',
+			confirm: 'Odoslať scrap',
 			stripe: 'bg-destructive',
+			glow: 'var(--color-destructive)',
 			action: 'bg-destructive! text-destructive-foreground! hover:bg-destructive/90!',
 			badge: scrapRecordTypeBadgeVariant.Scrap
 		},
 		rebuild: {
 			title: 'Re-build',
-			confirm: 'Potvrdiť re-build',
+			confirm: 'Odoslať re-build',
 			stripe: 'bg-chart-warning',
+			glow: 'var(--color-chart-warning)',
 			action: 'bg-chart-warning! text-background! hover:bg-chart-warning/90!',
 			badge: scrapRecordTypeBadgeVariant.Rebuild
 		},
 		qntScrap: {
 			title: 'Quantity scrap',
-			confirm: 'Potvrdiť quantity scrap',
+			confirm: 'Odoslať quantity scrap',
 			stripe: 'bg-chart-2',
+			glow: 'var(--color-chart-2)',
 			action: 'bg-chart-2! text-foreground! hover:bg-chart-2/90!',
 			badge: scrapRecordTypeBadgeVariant['Quantity scrap']
 		}
@@ -97,7 +107,7 @@
 	}}
 >
 	<AlertDialog.Content
-		class="cardNormalize flex max-h-[90dvh] flex-col gap-6 p-8 max-sm:p-5 sm:max-w-2xl"
+		class="cardNormalize flex max-h-[90dvh] flex-col gap-6 bg-background/90! p-8 backdrop-blur-md max-sm:p-5 sm:max-w-2xl"
 		interactOutsideBehavior="close"
 		onOpenAutoFocus={(event) => {
 			// Focus "Späť", so a scanner Enter can never confirm
@@ -210,7 +220,8 @@
 					<AlertDialog.Cancel bind:ref={cancelButton} disabled={isSubmitting}>Späť</AlertDialog.Cancel>
 					<AlertDialog.Action
 						type="button"
-						class={MODE_TEXT[mode].action}
+						class="{MODE_TEXT[mode].action} {isSubmitting ? '' : 'confirm-pulse'}"
+						style="--glow: {MODE_TEXT[mode].glow}"
 						disabled={isSubmitting}
 						onclick={(event) => {
 							// Stay open until the server answers
@@ -232,3 +243,24 @@
 		<span class="font-semibold text-foreground break-all {mono ? 'font-mono' : ''}">{value}</span>
 	</span>
 {/snippet}
+
+<style>
+	/* Soft glow that invites the click without distracting; off for reduced motion */
+	:global(.confirm-pulse) {
+		animation: confirm-pulse 2.4s ease-in-out infinite;
+	}
+	@keyframes confirm-pulse {
+		0%,
+		100% {
+			box-shadow: 0 0 0 0 color-mix(in srgb, var(--glow) 0%, transparent);
+		}
+		50% {
+			box-shadow: 0 0 0 6px color-mix(in srgb, var(--glow) 28%, transparent);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		:global(.confirm-pulse) {
+			animation: none;
+		}
+	}
+</style>
