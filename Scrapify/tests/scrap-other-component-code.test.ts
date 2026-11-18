@@ -5,7 +5,7 @@ const prismaMock = vi.hoisted(() => ({
 	labelGroup: { findMany: vi.fn() },
 	operator: { findUnique: vi.fn() },
 	user: { findUnique: vi.fn() },
-	scrapRecord: { createMany: vi.fn() }
+	scrapRecord: { createMany: vi.fn(), findFirst: vi.fn() }
 }));
 
 vi.mock('@/server/prisma', () => ({ default: prismaMock }));
@@ -95,6 +95,8 @@ beforeEach(() => {
 	prismaMock.operator.findUnique.mockResolvedValue({ fullName: 'Test Operator' });
 	prismaMock.user.findUnique.mockResolvedValue(null);
 	prismaMock.scrapRecord.createMany.mockResolvedValue({ count: 1 });
+	// No earlier rebuild saved under the scanned DMC
+	prismaMock.scrapRecord.findFirst.mockResolvedValue(null);
 });
 
 describe('rebuild with a main reason', () => {
