@@ -43,6 +43,7 @@
 	let interfaceName = $state('');
 	let isRebuild = $state(false);
 	let cannotBeMainReason = $state(false);
+	let hiddenInScrap = $state(false);
 	let qadSelectedItemType = $state('');
 
 	// photo
@@ -133,6 +134,7 @@
 		interfaceName = '';
 		isRebuild = false;
 		cannotBeMainReason = false;
+		hiddenInScrap = false;
 		qadSelectedItemType = '';
 		partSlots = [''];
 		scrapSlots = [''];
@@ -198,6 +200,7 @@
 				interfaceName = editData.interfaceName ?? '';
 				isRebuild = editData.isRebuild;
 				cannotBeMainReason = editData.isRebuild && editData.cannotBeMainReason;
+				hiddenInScrap = editData.hiddenInScrap;
 				qadSelectedItemType = editData.qadIdentity ?? '';
 
 				// applyFilter();
@@ -241,6 +244,7 @@
 				formData.set('qadIdentity', qadSelectedItemType);
 				formData.set('isRebuild', JSON.stringify(isRebuild));
 				formData.set('cannotBeMainReason', JSON.stringify(isRebuild && cannotBeMainReason));
+				formData.set('hiddenInScrap', JSON.stringify(hiddenInScrap));
 				if (photoFile) formData.set('photo', photoFile);
 				formData.set('removePhoto', JSON.stringify(removePhoto));
 				isSubmitting = true;
@@ -482,44 +486,75 @@
 				</article>
 			</div>
 
-			<!-- Is rebuild??? -->
-			<article class="flex flex-col mt-3 justify-between w-fit lg:items-center gap-2 lg:flex-row">
-				<Label for="isrebuild" class="text-sm md:text-lg lg:w-[200px]">Rebuild group</Label>
+			<!-- Mode options: two bordered boxes, independent of each other -->
+			<div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+				<fieldset class="rounded-md border border-border px-3 pb-3">
+					<legend class="px-2 text-sm text-muted-foreground">Re-build mode options</legend>
+					<!-- Is rebuild??? -->
+					<article
+						class="flex flex-col mt-3 justify-between w-fit lg:items-center gap-2 lg:flex-row"
+					>
+						<Label for="isrebuild" class="text-sm md:text-lg lg:w-[200px]">Rebuild group</Label>
 
-				<Checkbox
-					id="isrebuild"
-					class="size-5! ring-2 ring-primary **:size-5"
-					checked={isRebuild}
-					onCheckedChange={(val: any) => {
-						if (val) {
-							isRebuild = true;
-						} else {
-							isRebuild = false;
-							cannotBeMainReason = false;
-						}
-					}}
-				/>
-			</article>
+						<Checkbox
+							id="isrebuild"
+							class="size-5! ring-2 ring-primary **:size-5"
+							checked={isRebuild}
+							onCheckedChange={(val: any) => {
+								if (val) {
+									isRebuild = true;
+								} else {
+									isRebuild = false;
+									cannotBeMainReason = false;
+								}
+							}}
+						/>
+					</article>
 
-			<!-- Rebuild group that can never be the main reason; only available for rebuild groups -->
-			<article class="flex flex-col mt-3 justify-between w-fit lg:items-center gap-2 lg:flex-row">
-				<Label
-					for="cannotBeMainReason"
-					class="text-sm md:text-lg whitespace-nowrap lg:min-w-[200px] {isRebuild
-						? ''
-						: 'text-muted-foreground'}">Cannot be main reason</Label
-				>
+					<!-- Rebuild group that can never be the main reason; only available for rebuild groups -->
+					<article
+						class="flex flex-col mt-3 justify-between w-fit lg:items-center gap-2 lg:flex-row"
+					>
+						<Label
+							for="cannotBeMainReason"
+							class="text-sm md:text-lg whitespace-nowrap lg:min-w-[200px] {isRebuild
+								? ''
+								: 'text-muted-foreground'}">Cannot be main reason</Label
+						>
 
-				<Checkbox
-					id="cannotBeMainReason"
-					class="size-5! ring-2 ring-primary **:size-5"
-					disabled={!isRebuild}
-					checked={isRebuild && cannotBeMainReason}
-					onCheckedChange={(val: any) => {
-						cannotBeMainReason = Boolean(val);
-					}}
-				/>
-			</article>
+						<Checkbox
+							id="cannotBeMainReason"
+							class="size-5! ring-2 ring-primary **:size-5"
+							disabled={!isRebuild}
+							checked={isRebuild && cannotBeMainReason}
+							onCheckedChange={(val: any) => {
+								cannotBeMainReason = Boolean(val);
+							}}
+						/>
+					</article>
+				</fieldset>
+
+				<fieldset class="rounded-md border border-border px-3 pb-3">
+					<legend class="px-2 text-sm text-muted-foreground">Scrap mode options</legend>
+					<!-- Hidden in scrap: operator does not see this group in scrap mode -->
+					<article
+						class="flex flex-col mt-3 justify-between w-fit lg:items-center gap-2 lg:flex-row"
+					>
+						<Label for="hiddenInScrap" class="text-sm md:text-lg whitespace-nowrap lg:min-w-[200px]"
+							>Hide in scrap mode</Label
+						>
+
+						<Checkbox
+							id="hiddenInScrap"
+							class="size-5! ring-2 ring-primary **:size-5"
+							checked={hiddenInScrap}
+							onCheckedChange={(val: any) => {
+								hiddenInScrap = Boolean(val);
+							}}
+						/>
+					</article>
+				</fieldset>
+			</div>
 
 			<!--  -->
 			<!-- Photo (optional) -->

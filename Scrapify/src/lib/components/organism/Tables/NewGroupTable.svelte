@@ -47,6 +47,7 @@
 						<Table.Head class="min-w-20 max-w-30">Scrap codes</Table.Head>
 						<Table.Head class="w-30">Qad identity</Table.Head>
 						<Table.Head class="w-30">Rebuild g.</Table.Head>
+						<Table.Head class="w-30">Hidden in scrap</Table.Head>
 
 						<Table.Head class="text-end">Actions</Table.Head>
 					</Table.Row>
@@ -125,6 +126,7 @@
 							>
 							<Table.Cell class="">{item.qadIdentity?.slice(0, 1)}</Table.Cell>
 							<Table.Cell class="">{item.isRebuild}</Table.Cell>
+							<Table.Cell class="">{item.hiddenInScrap}</Table.Cell>
 
 							<Table.Cell class="">
 								<div class="flex justify-end gap-2">

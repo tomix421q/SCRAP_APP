@@ -189,6 +189,15 @@ export class ScrapManager {
 			?.scrapCodes.find((scrapCode) => scrapCode.isOtherComponent);
 	}
 
+	/** Rows the operator works with: scrap mode leaves out part groups hidden in scrap, other modes keep all. */
+	visibleRows = $derived(
+		this.mode === 'scrap'
+			? this.scrapPayload.filter(
+					(row) => !this.scanData?.groups.find((g) => g.id === row.groupId)?.hiddenInScrap
+				)
+			: this.scrapPayload
+	);
+
 	// Rows that can be the cause of other component rows.
 	// Rebuild: the main reason group (its missing code is reported, not hidden).
 	// Scrap: every group with a selected reason that has an Other component scrap code.
@@ -200,7 +209,7 @@ export class ScrapManager {
 			return mainReasonRow ? [mainReasonRow] : [];
 		}
 		if (this.mode === 'scrap') {
-			return this.scrapPayload.filter(
+			return this.visibleRows.filter(
 				(row) =>
 					Boolean(row.selectedScrapCode) &&
 					!row.isOtherVariant &&
@@ -298,7 +307,7 @@ export class ScrapManager {
 
 	// Future payload only selected scraps
 	relevantPayload = $derived.by(() => {
-		return this.scrapPayload.filter((row) => {
+		return this.visibleRows.filter((row) => {
 			if (this.mode === 'qntScrap') {
 				return this.isQntRowComplete(row);
 			}
@@ -349,6 +358,7 @@ export class ScrapManager {
 		this.mode === 'qntScrap'
 			? this.relevantPayload.length > 0 && !this.hasIncompleteQntRow
 			: this.mode !== null &&
+					this.visibleRows.length > 0 &&
 					this.hasAnySelection &&
 					this.relevantPayload.length > 0 &&
 					!this.isMissingOtherVariantPN &&

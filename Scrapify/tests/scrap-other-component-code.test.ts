@@ -270,3 +270,57 @@ describe('rebuild group that cannot be the main reason', () => {
 		expect(prismaMock.scrapRecord.createMany).not.toHaveBeenCalled();
 	});
 });
+
+describe('part group hidden in scrap', () => {
+	const HIDDEN = 15;
+	const hiddenLabel = {
+		...dmcLabel,
+		groups: [
+			...dmcLabel.groups,
+			{
+				id: HIDDEN,
+				isRebuild: false,
+				hiddenInScrap: true,
+				interfaceName: 'Hidden group',
+				materials: [],
+				scrapCodes: [code('SA600', 'Cracked'), code('SA870', 'Hidden damaged', true)]
+			}
+		]
+	};
+
+	beforeEach(() => {
+		prismaMock.labelGroup.findMany.mockResolvedValue([hiddenLabel]);
+	});
+
+	it('rejects a scrap payload with a hidden group row', async () => {
+		const result = await saveScrap(false, [row(HIDDEN, { selectedScrapCode: 'SA600' })]);
+
+		expect(result).toMatchObject({ status: 400, data: { success: false } });
+		expect(prismaMock.scrapRecord.createMany).not.toHaveBeenCalled();
+	});
+
+	it('rejects a hidden group used as the cause of an other component row', async () => {
+		const result = await saveScrap(false, [
+			row(HIDDEN, { selectedScrapCode: 'SA600' }),
+			row(BELTLINE, { isOtherComponent: true, otherComponentCauseGroupId: HIDDEN })
+		]);
+
+		expect(result).toMatchObject({ status: 400, data: { success: false } });
+		expect(prismaMock.scrapRecord.createMany).not.toHaveBeenCalled();
+	});
+
+	it('still saves a rebuild that contains the hidden group', async () => {
+		const result = await saveScrap(true, [
+			row(MAIN_CARRIER, { selectedScrapCode: 'SA100' }),
+			row(HIDDEN, { isOtherComponent: true, otherComponentCauseGroupId: MAIN_CARRIER })
+		]);
+
+		expect(result).toMatchObject({ success: true });
+	});
+
+	it('saves a scrap payload without the hidden group', async () => {
+		const result = await saveScrap(false, [row(BELTLINE, { selectedScrapCode: 'SA300' })]);
+
+		expect(result).toMatchObject({ success: true });
+	});
+});

@@ -41,6 +41,12 @@ export const partGroupSchema = z
 			}
 			return Boolean(val);
 		}, z.boolean()),
+		hiddenInScrap: z.preprocess((val) => {
+			if (typeof val === 'string') {
+				return val.toLocaleLowerCase() === 'true' || val === 'on' || val === '1';
+			}
+			return Boolean(val);
+		}, z.boolean()),
 		partNumbers: z
 			.string()
 			.transform((val, ctx) => {

@@ -41,6 +41,10 @@ _Avoid_: vProject, program
 Skupina dielov v rámci projektu, ku ktorej sa scrap record viaže; určuje, ktoré part numbers a scrap codes sú pre ňu povolené.
 _Avoid_: skupina, group (bez upresnenia)
 
+**Hidden in scrap**:
+Nastavenie part group, ktorým ju inžinier skryje v scrap móde: operator ju pri scrape nevidí a nemôže byť ani príčinou other component. Rebuild a quantity scrap neovplyvňuje. Predvolene je každá part group v scrap móde viditeľná.
+_Avoid_: show in scrap, scrap group, vypnutá group
+
 **Part number**:
 Číslo materiálu konkrétnej varianty dielu.
 _Avoid_: PN, materiál (bez upresnenia)

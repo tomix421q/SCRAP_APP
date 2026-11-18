@@ -15,9 +15,17 @@ type GroupFixture = {
 	isRebuild: boolean;
 	otherCode?: string;
 	cannotBeMainReason?: boolean;
+	hiddenInScrap?: boolean;
 };
 
-function group({ id, name, isRebuild, otherCode, cannotBeMainReason = false }: GroupFixture) {
+function group({
+	id,
+	name,
+	isRebuild,
+	otherCode,
+	cannotBeMainReason = false,
+	hiddenInScrap = false
+}: GroupFixture) {
 	const scrapCodes = [
 		{ id: id * 10, partGroupId: id, code: `R${id}`, description: 'Reason', isOtherComponent: false }
 	];
@@ -36,6 +44,7 @@ function group({ id, name, isRebuild, otherCode, cannotBeMainReason = false }: G
 		interfaceName: name,
 		isRebuild,
 		cannotBeMainReason,
+		hiddenInScrap,
 		qadIdentity: null,
 		vProject: 'PRJ1',
 		photoFile: null,
@@ -46,7 +55,7 @@ function group({ id, name, isRebuild, otherCode, cannotBeMainReason = false }: G
 	};
 }
 
-function managerWith(groups: GroupFixture[], mode: 'rebuild' | 'scrap') {
+function managerWith(groups: GroupFixture[], mode: 'rebuild' | 'scrap' | 'qntScrap') {
 	const manager = new ScrapManager();
 	const payload = {
 		label: 'ABC123',
@@ -271,5 +280,42 @@ describe('rebuild group that cannot be the main reason', () => {
 
 		expect(manager.cannotBeMainReason(MIDDFIELD)).toBe(false);
 		expect(rowOf(manager, MIDDFIELD).selectedScrapCode).toBe(`R${MIDDFIELD}`);
+	});
+});
+
+describe('part group hidden in scrap', () => {
+	const label: GroupFixture[] = [
+		{ id: MAIN_CARRIER, name: 'Main carrier', isRebuild: false, otherCode: 'SA850' },
+		{ id: MIDDFIELD, name: 'Middfield', isRebuild: false, otherCode: 'SA860', hiddenInScrap: true },
+		{ id: BELTLINE, name: 'Beltline', isRebuild: false }
+	];
+	const ids = (manager: ScrapManager) => manager.visibleRows.map((row) => row.groupId);
+
+	it('leaves the hidden group out of the scrap form', () => {
+		expect(ids(managerWith(label, 'scrap'))).toEqual([MAIN_CARRIER, BELTLINE]);
+	});
+
+	it('keeps every group in rebuild and quantity scrap', () => {
+		const all = [MAIN_CARRIER, MIDDFIELD, BELTLINE];
+		expect(ids(managerWith(label, 'rebuild'))).toEqual(all);
+		expect(ids(managerWith(label, 'qntScrap'))).toEqual(all);
+	});
+
+	it('never offers the hidden group as the cause of an other component row', () => {
+		const manager = managerWith(label, 'scrap');
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+		manager.selectScrap(MIDDFIELD, `R${MIDDFIELD}`);
+
+		expect(manager.causeCandidates(BELTLINE).map((row) => row.groupId)).toEqual([MAIN_CARRIER]);
+	});
+
+	it('cannot submit when every group is hidden', () => {
+		const manager = managerWith(
+			label.map((g) => ({ ...g, hiddenInScrap: true })),
+			'scrap'
+		);
+
+		expect(manager.visibleRows).toEqual([]);
+		expect(manager.canSubmit).toBe(false);
 	});
 });

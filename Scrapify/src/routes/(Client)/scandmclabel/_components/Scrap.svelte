@@ -21,7 +21,7 @@
 		viewStore.grid.scrap
 	]} {GRID_MAX_W_CLASS[viewStore.grid.scrap]}"
 >
-	{#each scrapManager.scrapPayload as row (row.groupId)}
+	{#each scrapManager.visibleRows as row (row.groupId)}
 		{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
 		{@const colorOtherComponent = row.isOtherComponent ? 'bg-red-500/50 border-warning/50' : ''}
 		{@const colorOtherVariant =
@@ -150,5 +150,9 @@
 				<GroupPhoto group={groupDef} />
 			</div>
 		</div>
+	{:else}
+		<p class="col-span-full text-center text-muted-foreground py-6">
+			Žiadna part group nie je v scrap móde zapnutá.
+		</p>
 	{/each}
 </div>

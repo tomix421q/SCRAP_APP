@@ -170,6 +170,15 @@ export const actions = {
 					});
 				}
 
+				// A group the engineer hid in scrap mode can neither be scrapped nor be a cause there.
+				if (!isRebuild && group.hiddenInScrap) {
+					return fail(400, {
+						success: false,
+						message: 'Neplatná skupina dielov.',
+						error: `Part group ${group.interfaceName} nie je v scrap móde zapnutá.`
+					});
+				}
+
 				// An other component row's own code is ignored (it gets its cause's code below).
 				const hasSelectedScrapCode = Boolean(row.selectedScrapCode) && !row.isOtherComponent;
 				if (!hasSelectedScrapCode && !row.isOtherComponent && !row.isOtherVariant) {
@@ -220,6 +229,13 @@ export const actions = {
 				if (!row.isOtherComponent || row.otherComponentCauseGroupId == null) continue;
 				const causeGroup = groupsById.get(row.otherComponentCauseGroupId);
 				const causeCode = causeGroup?.scrapCodes.find((scrapCode) => scrapCode.isOtherComponent);
+				if (!isRebuild && causeGroup?.hiddenInScrap) {
+					return fail(400, {
+						success: false,
+						message: 'Neplatná príčina iného komponentu.',
+						error: `Part group ${causeGroup.interfaceName} nie je v scrap móde zapnutá.`
+					});
+				}
 				// In rebuild the cause is always the main reason, which only a rebuild group can carry.
 				if (isRebuild && causeGroup && !causeGroup.isRebuild) {
 					return fail(400, {
