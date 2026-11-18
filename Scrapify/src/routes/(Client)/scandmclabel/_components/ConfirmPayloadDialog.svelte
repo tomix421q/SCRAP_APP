@@ -106,14 +106,14 @@
 		}}
 	>
 		{#if mode}
-			<AlertDialog.Header class="flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+			<AlertDialog.Header class="gap-4">
 				<AlertDialog.Title class="flex flex-wrap items-center gap-3 text-xl">
 					<Badge variant={MODE_TEXT[mode].badge} class="px-3 py-1 text-base"
 						>{MODE_TEXT[mode].title}</Badge
 					>
 					<span>Skontroluj pred uložením</span>
 				</AlertDialog.Title>
-				<AlertDialog.Description class="flex flex-wrap gap-x-6 gap-y-2 rounded-lg bg-muted/40 px-4 py-2">
+				<AlertDialog.Description class="flex flex-wrap gap-x-8 gap-y-1 rounded-lg bg-muted/40 px-4 py-3">
 					{@render metaItem('Label', scrapManager.barcode, true)}
 					{#if scrapManager.scanData?.vProject}
 						{@render metaItem('Project', scrapManager.scanData.vProject)}
@@ -227,8 +227,8 @@
 </AlertDialog.Root>
 
 {#snippet metaItem(label: string, value: string, mono = false)}
-	<span class="flex flex-col gap-0.5">
-		<span class="text-xs tracking-wide text-muted-foreground uppercase">{label}</span>
+	<span class="flex items-baseline gap-2">
+		<span class="text-sm text-muted-foreground">{label}:</span>
 		<span class="font-semibold text-foreground break-all {mono ? 'font-mono' : ''}">{value}</span>
 	</span>
 {/snippet}
