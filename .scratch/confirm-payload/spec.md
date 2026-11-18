@@ -1,6 +1,6 @@
 # Potvrdenie payloadu pred uložením (scandmclabel)
 
-Status: ready
+Status: done
 
 ## Problém
 
@@ -57,12 +57,14 @@ Pri `rebuild` je **main reason** zobrazený ako prvý so štítkom „Main reaso
 ## Tlačidlá a správanie
 
 - **„Späť“** (aj Esc a klik mimo modalu) – iba zatvorí modal, formulár ostane bez zmeny.
-- **„Potvrdiť scrap / re-build / quantity scrap“** – farebne podľa módu; odošle formulár.
+- **„Odoslať scrap / re-build / quantity scrap“** – farebne podľa módu, s jemným pulzom (vypnutý počas ukladania a pri `prefers-reduced-motion`); odošle formulár.
 - Texty tlačidla v `ActionPanel` ostávajú („Vytvoriť scrap / re-build / Uložiť quantity scrap“); jeho `disabled` logika (`canSubmit`, `isSubmitting`) sa nemení.
 - **Skener:** čítačka DMC posiela `Enter`. Potvrdenie len kliknutím/ťuknutím – predvolený fokus na „Späť“, `Enter` nesmie uložiť.
 - **Počas ukladania:** modal ostáva otvorený, zobrazí „Ukladá sa…“, obe tlačidlá a zatvorenie modalu sú neaktívne.
 - **Úspech:** modal sa zatvorí a stránka sa resetuje ako dnes (`resetAll`).
 - **Chyba:** modal sa zatvorí, chyba sa zobrazí tak ako dnes, výber operátora ostane zachovaný.
+
+- **Okraj modalu** je tenký nepohyblivý pruh vo farbe módu; modal je poloprehľadný (`bg-background/90` + `backdrop-blur-md`).
 
 ## Technické rozhodnutia
 
@@ -77,3 +79,5 @@ Pri `rebuild` je **main reason** zobrazený ako prvý so štítkom „Main reaso
 - Zmeny validácie a server actions.
 - Potvrdenie pri iných akciách (reset, sken).
 - Nový pojem v `GLOSSARY.md` – modal je náhľad **payloadu**.
+
+- Farba okraja musí byť inline s `!important`: `shadCn.css` nastavuje `* { border-chart-1/10! }`, takže bežné triedy okraj neprebijú.
