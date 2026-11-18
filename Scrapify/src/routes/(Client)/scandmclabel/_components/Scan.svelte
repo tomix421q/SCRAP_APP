@@ -182,9 +182,22 @@
 							class="inputNormalize transition-all text-2xl! text-center text-warning font-extrabold! max-w-lg mx-auto"
 						/>
 						<Button
+							type="button"
+							class="absolute -top-2 right-4"
+							variant="destructive"
+							size="icon"
+							title="Opakovať"
+							aria-label="Opakovať"
+							onclick={resetAll}
+							disabled={!barcodeValue}
+							><RotateCcw
+								class="size-6 {!barcodeValue ? 'animate-move duration-500' : ''}"
+							/></Button
+						>
+						<Button
 							type="submit"
-							class="absolute -top-2 right-13 text-chart-1"
-							variant="ghost"
+							class="absolute -top-2 right-17"
+							variant="default"
 							size="icon"><SendHorizontalIcon class="size-6" /></Button
 						>
 					</div>
@@ -195,7 +208,9 @@
 					<div class="flex flex-wrap justify-center gap-2 md:gap-4 *:text-lg *:font-bold">
 						<Button
 							size="lg"
-							class={scrapManager.mode === 'rebuild' ? 'ring-2 ring-warning' : ''}
+							class="bg-chart-warning! text-background! hover:bg-chart-warning/90! {scrapManager.mode === 'rebuild'
+								? 'ring-2 ring-foreground'
+								: ''}"
 							onclick={() => {
 								scrapManager.setMode('rebuild');
 							}}
@@ -207,7 +222,9 @@
 						>
 						<Button
 							size="lg"
-							class={scrapManager.mode === 'scrap' ? 'ring-2 ring-warning' : ''}
+							class="bg-destructive! text-destructive-foreground! hover:bg-destructive/90! {scrapManager.mode === 'scrap'
+								? 'ring-2 ring-foreground'
+								: ''}"
 							onclick={() => {
 								scrapManager.setMode('scrap');
 							}}
@@ -218,9 +235,8 @@
 						<!-- Quantity scrap second row -->
 						<Button
 							size="lg"
-							variant="secondary"
-							class="{scrapManager.mode === 'qntScrap'
-								? 'ring-2 ring-warning '
+							class="bg-chart-2! text-foreground! hover:bg-chart-2/90! {scrapManager.mode === 'qntScrap'
+								? 'ring-2 ring-foreground'
 								: ''} relative text-lg"
 							onclick={startQuantityScrap}
 							disabled={!$operatorCardId || isScanning}
@@ -229,16 +245,6 @@
 								class="absolute text-xs uppercase bg-background text-chart-1 p-0.5 rotate-45 -top-0 -right-5 rounded-lg"
 								>Trial</span
 							></Button
-						>
-						<Button
-							size="lg"
-							variant="destructive"
-							class=""
-							onclick={resetAll}
-							disabled={!barcodeValue}
-							><RotateCcw
-								class="size-6 {!barcodeValue ? 'animate-move duration-500' : ''}"
-							/>Opakovat</Button
 						>
 					</div>
 				</section>
