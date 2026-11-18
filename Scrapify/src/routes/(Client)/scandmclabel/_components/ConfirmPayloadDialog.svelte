@@ -116,11 +116,11 @@
 		}}
 	>
 		{#if mode}
-			<!-- Mode-colored outline as its own layer: shadcn/cardNormalize border styles cannot override it -->
+			<!-- Mode-colored outline; !important is needed because shadCn.css sets every border color with !important -->
 			<span
 				aria-hidden="true"
 				class="pointer-events-none absolute inset-0 rounded-[inherit] border-2"
-				style="border-color: {MODE_TEXT[mode].glow}"
+				style="border-color: {MODE_TEXT[mode].glow} !important"
 			></span>
 			<AlertDialog.Header class="gap-4">
 				<AlertDialog.Title class="flex flex-wrap items-center gap-3 text-xl">
