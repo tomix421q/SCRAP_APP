@@ -126,21 +126,21 @@
 				{#each mainRows as row (row.groupId)}
 					{@const replacement = replacementOf(row)}
 					<div
-						class="relative flex items-center justify-between gap-4 overflow-hidden rounded-xl border border-border bg-card py-4 pr-4 pl-6"
+						class="relative flex items-center justify-between gap-6 overflow-hidden rounded-xl border border-border bg-card py-6 pr-6 pl-8"
 					>
-						<span class="absolute inset-y-0 left-0 w-1.5 {MODE_TEXT[mode].stripe}"></span>
-						<div class="flex min-w-0 flex-1 flex-col gap-2">
-							<p class="flex flex-wrap items-center gap-2 text-lg leading-tight font-extrabold">
+						<span class="absolute inset-y-0 left-0 w-2 {MODE_TEXT[mode].stripe}"></span>
+						<div class="flex min-w-0 flex-1 flex-col gap-3">
+							<p class="flex flex-wrap items-center gap-2 text-2xl leading-tight font-extrabold">
 								<span class="wrap-break-word min-w-0">{row.interfaceName}</span>
 								{#if isMainReason(row)}
-									<Badge variant="chart-warning">Main reason</Badge>
+									<Badge variant="chart-warning" class="px-3 py-1 text-sm">Main reason</Badge>
 								{/if}
 								{#if mode === 'qntScrap' && row.quantity}
 									<Badge variant="chart-2" class="tabular-nums">{row.quantity} ks</Badge>
 								{/if}
 							</p>
 							{#if row.selectedScrapCode}
-								<p class="text-sm leading-snug">
+								<p class="text-base leading-snug">
 									<span class="font-semibold">{row.selectedScrapCode}</span>
 									{#if row.selectedScrapDescription}
 										<span class="text-muted-foreground"> – {row.selectedScrapDescription}</span>
@@ -148,13 +148,13 @@
 								</p>
 							{/if}
 							{#if replacement}
-								<p class="text-sm">
+								<p class="text-base">
 									<span class="text-muted-foreground">Iný variant:</span>
 									<span class="font-semibold">{replacement}</span>
 								</p>
 							{/if}
 						</div>
-						<div class="aspect-4/3 w-32 shrink-0 max-sm:w-24">
+						<div class="aspect-4/3 w-52 shrink-0 max-sm:w-28">
 							<GroupPhoto group={groupOf(row.groupId)} />
 						</div>
 					</div>
