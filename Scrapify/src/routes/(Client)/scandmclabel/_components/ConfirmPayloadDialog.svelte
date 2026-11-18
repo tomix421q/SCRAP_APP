@@ -185,7 +185,7 @@
 									<div class="flex min-w-0 flex-1 flex-col gap-0.5">
 										<span class="wrap-break-word font-semibold">{row.interfaceName}</span>
 										<span class="text-xs text-muted-foreground">
-											príčina: {causeNameOf(row)}
+											Other component · príčina: {causeNameOf(row)}
 										</span>
 									</div>
 									{#if causeCode}
