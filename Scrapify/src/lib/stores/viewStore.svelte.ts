@@ -9,7 +9,7 @@ const STORAGE_KEY = 'gridByMode';
 export const GRID_OPTIONS: Record<ScrapMode, readonly GridSize[]> = {
 	rebuild: [1, 2, 3, 4],
 	scrap: [1, 2, 3, 4],
-	qntScrap: [1, 2]
+	qntScrap: [1, 2, 3]
 };
 
 const DEFAULT_GRID: Record<ScrapMode, GridSize> = {

@@ -25,7 +25,7 @@
 			width="sm"
 			value={row.otherComponentCauseGroupId?.toString() ?? ''}
 			onchange={(val) => scrapManager.setOtherComponentCause(row.groupId, Number(val))}
-			firstText="Príčina"
+			firstText="Zvolte príčinu"
 		/>
 	</div>
 {:else}
