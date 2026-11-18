@@ -97,7 +97,7 @@
 	}}
 >
 	<AlertDialog.Content
-		class="cardNormalize flex max-h-[90dvh] flex-col gap-5 p-6 sm:max-w-2xl"
+		class="cardNormalize flex max-h-[90dvh] flex-col gap-6 p-8 max-sm:p-5 sm:max-w-2xl"
 		interactOutsideBehavior="close"
 		onOpenAutoFocus={(event) => {
 			// Focus "Späť", so a scanner Enter can never confirm
@@ -126,11 +126,11 @@
 				{#each mainRows as row (row.groupId)}
 					{@const replacement = replacementOf(row)}
 					<div
-						class="relative flex items-center justify-between gap-6 overflow-hidden rounded-xl border border-border bg-card py-6 pr-6 pl-8"
+						class="relative flex items-center justify-between gap-4 overflow-hidden rounded-xl border border-border bg-card py-4 pr-4 pl-6"
 					>
-						<span class="absolute inset-y-0 left-0 w-2 {MODE_TEXT[mode].stripe}"></span>
-						<div class="flex min-w-0 flex-1 flex-col gap-3">
-							<p class="flex flex-wrap items-center gap-2 text-2xl leading-tight font-extrabold">
+						<span class="absolute inset-y-0 left-0 w-1.5 {MODE_TEXT[mode].stripe}"></span>
+						<div class="flex min-w-0 flex-1 flex-col gap-2">
+							<p class="flex flex-wrap items-center gap-2 text-xl leading-tight font-extrabold">
 								<span class="wrap-break-word min-w-0">{row.interfaceName}</span>
 								{#if isMainReason(row)}
 									<Badge variant="chart-warning" class="px-3 py-1 text-sm">Main reason</Badge>
@@ -154,7 +154,7 @@
 								</p>
 							{/if}
 						</div>
-						<div class="aspect-4/3 w-52 shrink-0 max-sm:w-28">
+						<div class="aspect-4/3 w-36 shrink-0 max-sm:w-24">
 							<GroupPhoto group={groupOf(row.groupId)} />
 						</div>
 					</div>
