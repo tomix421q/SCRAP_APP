@@ -27,22 +27,22 @@
 		scrap: {
 			title: 'Scrap',
 			confirm: 'Potvrdiť scrap',
-			stripe: 'border-l-destructive',
-			action: 'bg-destructive text-white hover:bg-destructive/90',
+			stripe: 'bg-destructive',
+			action: 'bg-destructive! text-destructive-foreground! hover:bg-destructive/90!',
 			badge: scrapRecordTypeBadgeVariant.Scrap
 		},
 		rebuild: {
 			title: 'Re-build',
 			confirm: 'Potvrdiť re-build',
-			stripe: 'border-l-chart-warning',
-			action: 'bg-chart-warning text-background hover:bg-chart-warning/90',
+			stripe: 'bg-chart-warning',
+			action: 'bg-chart-warning! text-background! hover:bg-chart-warning/90!',
 			badge: scrapRecordTypeBadgeVariant.Rebuild
 		},
 		qntScrap: {
 			title: 'Quantity scrap',
 			confirm: 'Potvrdiť quantity scrap',
-			stripe: 'border-l-chart-2',
-			action: 'bg-chart-2 text-foreground hover:bg-chart-2/90',
+			stripe: 'bg-chart-2',
+			action: 'bg-chart-2! text-foreground! hover:bg-chart-2/90!',
 			badge: scrapRecordTypeBadgeVariant['Quantity scrap']
 		}
 	};
@@ -97,7 +97,7 @@
 	}}
 >
 	<AlertDialog.Content
-		class="cardNormalize flex max-h-[90dvh] flex-col sm:max-w-2xl"
+		class="cardNormalize flex max-h-[90dvh] flex-col gap-5 p-6 sm:max-w-2xl"
 		interactOutsideBehavior="close"
 		onOpenAutoFocus={(event) => {
 			// Focus "Späť", so a scanner Enter can never confirm
@@ -106,64 +106,56 @@
 		}}
 	>
 		{#if mode}
-			<AlertDialog.Header>
-				<AlertDialog.Title class="flex flex-wrap items-center gap-2">
-					<Badge variant={MODE_TEXT[mode].badge} class="text-base">{MODE_TEXT[mode].title}</Badge>
+			<AlertDialog.Header class="gap-4">
+				<AlertDialog.Title class="flex flex-wrap items-center gap-3 text-xl">
+					<Badge variant={MODE_TEXT[mode].badge} class="px-3 py-1 text-base"
+						>{MODE_TEXT[mode].title}</Badge
+					>
 					<span>Skontroluj pred uložením</span>
 				</AlertDialog.Title>
-				<AlertDialog.Description class="flex flex-wrap gap-x-4 gap-y-1">
-					<span
-						>Label: <span class="font-mono font-semibold text-foreground break-all"
-							>{scrapManager.barcode}</span
-						></span
-					>
+				<AlertDialog.Description class="flex flex-wrap gap-x-8 gap-y-2 rounded-lg bg-muted/40 px-4 py-3">
+					{@render metaItem('Label', scrapManager.barcode, true)}
 					{#if scrapManager.scanData?.vProject}
-						<span
-							>Project: <span class="font-semibold text-foreground"
-								>{scrapManager.scanData.vProject}</span
-							></span
-						>
+						{@render metaItem('Project', scrapManager.scanData.vProject)}
 					{/if}
-					<span>Karta: <span class="font-semibold text-foreground">{$operatorCardId}</span></span>
+					{@render metaItem('Karta', String($operatorCardId))}
 				</AlertDialog.Description>
 			</AlertDialog.Header>
 
-			<div class="-mx-2 flex min-h-0 flex-col gap-2 overflow-y-auto px-2">
+			<div class="-mx-2 flex min-h-0 flex-col gap-3 overflow-y-auto px-2 py-1">
 				{#each mainRows as row (row.groupId)}
-					{@const groupDef = groupOf(row.groupId)}
 					{@const replacement = replacementOf(row)}
 					<div
-						class="flex items-center justify-between gap-3 rounded-lg border border-l-4 bg-card p-1.5 {MODE_TEXT[
-							mode
-						].stripe}"
+						class="relative flex items-center justify-between gap-4 overflow-hidden rounded-xl border border-border bg-card py-4 pr-4 pl-6"
 					>
-						<div class="flex min-w-0 flex-1 flex-col gap-0.5">
-							<p class="flex flex-wrap items-center gap-1.5 text-lg font-extrabold">
+						<span class="absolute inset-y-0 left-0 w-1.5 {MODE_TEXT[mode].stripe}"></span>
+						<div class="flex min-w-0 flex-1 flex-col gap-2">
+							<p class="flex flex-wrap items-center gap-2 text-lg leading-tight font-extrabold">
 								<span class="wrap-break-word min-w-0">{row.interfaceName}</span>
 								{#if isMainReason(row)}
 									<Badge variant="chart-warning">Main reason</Badge>
 								{/if}
 								{#if mode === 'qntScrap' && row.quantity}
-									<span class="tabular-nums">{row.quantity} ks</span>
+									<Badge variant="chart-2" class="tabular-nums">{row.quantity} ks</Badge>
 								{/if}
 							</p>
 							{#if row.selectedScrapCode}
-								<p class="text-sm">
+								<p class="text-sm leading-snug">
 									<span class="font-semibold">{row.selectedScrapCode}</span>
 									{#if row.selectedScrapDescription}
-										<span class="text-muted-foreground"> - {row.selectedScrapDescription}</span>
+										<span class="text-muted-foreground"> – {row.selectedScrapDescription}</span>
 									{/if}
 								</p>
 							{/if}
 							{#if replacement}
 								<p class="text-sm">
-									<span class="text-muted-foreground">Iný variant: </span>
+									<span class="text-muted-foreground">Iný variant:</span>
 									<span class="font-semibold">{replacement}</span>
 								</p>
 							{/if}
 						</div>
-						<div class="aspect-4/3 w-28 shrink-0 max-sm:w-20">
-							<GroupPhoto group={groupDef} />
+						<div class="aspect-4/3 w-32 shrink-0 max-sm:w-24">
+							<GroupPhoto group={groupOf(row.groupId)} />
 						</div>
 					</div>
 				{/each}
@@ -173,7 +165,7 @@
 						type="button"
 						variant="ghost"
 						size="sm"
-						class="-ml-2 w-fit text-muted-foreground"
+						class="w-fit text-muted-foreground"
 						aria-expanded={showOtherComponents}
 						onclick={() => (showOtherComponents = !showOtherComponents)}
 					>
@@ -183,22 +175,24 @@
 						{showOtherComponents ? 'Skryť' : `+${otherComponentRows.length}`} other component
 					</Button>
 					{#if showOtherComponents}
-						<ul class="ml-2 flex flex-col gap-1 border-l-2 border-border pl-3">
+						<ul class="ml-3 flex flex-col gap-2 border-l-2 border-border pl-4">
 							{#each otherComponentRows as row (row.groupId)}
 								{@const causeCode = causeCodeOf(row)}
-								<li class="flex items-center gap-2 text-sm">
+								<li class="flex items-center gap-3 rounded-lg bg-muted/30 p-2 text-sm">
 									<div class="size-10 shrink-0">
 										<GroupPhoto group={groupOf(row.groupId)} />
 									</div>
-									<div class="flex min-w-0 flex-col">
+									<div class="flex min-w-0 flex-1 flex-col gap-0.5">
 										<span class="wrap-break-word font-semibold">{row.interfaceName}</span>
 										<span class="text-xs text-muted-foreground">
-											Other component · príčina: {causeNameOf(row)}
+											príčina: {causeNameOf(row)}
 										</span>
-										{#if causeCode}
-											<span class="text-xs font-semibold text-muted-foreground">{causeCode.code}</span>
-										{/if}
 									</div>
+									{#if causeCode}
+										<span class="shrink-0 text-xs font-semibold text-muted-foreground"
+											>{causeCode.code}</span
+										>
+									{/if}
 								</li>
 							{/each}
 						</ul>
@@ -206,27 +200,35 @@
 				{/if}
 			</div>
 
-			<p class="text-sm font-semibold">
-				Vytvorí sa {scrapManager.relevantPayload.length} scrap records{mode === 'qntScrap'
-					? `, spolu ${totalQuantity} ks`
-					: ''}.
-			</p>
-
-			<AlertDialog.Footer>
-				<AlertDialog.Cancel bind:ref={cancelButton} disabled={isSubmitting}>Späť</AlertDialog.Cancel>
-				<AlertDialog.Action
-					type="button"
-					class={MODE_TEXT[mode].action}
-					disabled={isSubmitting}
-					onclick={(event) => {
-						// Stay open until the server answers
-						event.preventDefault();
-						onconfirm();
-					}}
-				>
-					{isSubmitting ? 'Ukladá sa...' : MODE_TEXT[mode].confirm}
-				</AlertDialog.Action>
+			<AlertDialog.Footer class="items-center gap-4 sm:justify-between">
+				<p class="text-sm text-muted-foreground">
+					Vytvorí sa <span class="font-bold text-foreground"
+						>{scrapManager.relevantPayload.length} scrap records</span
+					>{mode === 'qntScrap' ? `, spolu ${totalQuantity} ks` : ''}
+				</p>
+				<div class="flex flex-col-reverse gap-2 sm:flex-row">
+					<AlertDialog.Cancel bind:ref={cancelButton} disabled={isSubmitting}>Späť</AlertDialog.Cancel>
+					<AlertDialog.Action
+						type="button"
+						class={MODE_TEXT[mode].action}
+						disabled={isSubmitting}
+						onclick={(event) => {
+							// Stay open until the server answers
+							event.preventDefault();
+							onconfirm();
+						}}
+					>
+						{isSubmitting ? 'Ukladá sa...' : MODE_TEXT[mode].confirm}
+					</AlertDialog.Action>
+				</div>
 			</AlertDialog.Footer>
 		{/if}
 	</AlertDialog.Content>
 </AlertDialog.Root>
+
+{#snippet metaItem(label: string, value: string, mono = false)}
+	<span class="flex flex-col gap-0.5">
+		<span class="text-xs tracking-wide text-muted-foreground uppercase">{label}</span>
+		<span class="font-semibold text-foreground break-all {mono ? 'font-mono' : ''}">{value}</span>
+	</span>
+{/snippet}
