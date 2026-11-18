@@ -9,6 +9,8 @@
 		success: boolean;
 		message: string;
 		error?: FormError;
+		/** Shown on a successful result that still needs the operator's attention. */
+		warning?: string;
 	}
 
 	let { data }: { data: ResultInfoData | undefined | null } = $props();
@@ -20,7 +22,12 @@
 
 {#if data}
 	<section class="w-full mx-auto flex relative" transition:slide>
-		{#if data?.success}
+		{#if data?.success && data.warning}
+			<div class="w-full p-4 mb-1 bg-warning/20 backdrop-blur-2xl text-warning rounded-lg space-y-1">
+				<p>{data.message}</p>
+				<p class="font-semibold">{data.warning}</p>
+			</div>
+		{:else if data?.success}
 			<div
 				class="w-full p-4 mb-1 bg-chart-success/20 backdrop-blur-2xl  text-chart-success rounded-lg"
 			>

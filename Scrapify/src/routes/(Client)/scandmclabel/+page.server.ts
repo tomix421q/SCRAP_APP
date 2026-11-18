@@ -7,6 +7,8 @@ import { saveQuantityScrapSchema, saveScrapSchema } from '@/utils/zod';
 import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
 import { loadOperatorHistory } from './_components/utils/history.server';
 import { findCardHolder } from '@/server/cardHolder';
+import { dateTimeLocalTimeDb } from '@/utils/index';
+import type { ExistingRebuild } from './_components/ScrapManager.svelte';
 
 async function findMatchingLabels(barcode: string) {
 	const labelGroups = await prismaClient.labelGroup.findMany({
@@ -15,6 +17,18 @@ async function findMatchingLabels(barcode: string) {
 		}
 	});
 	return labelGroups.filter((labelGroup) => matchDmcWithMask(barcode, labelGroup.code).isMatch);
+}
+
+/** Latest rebuild saved under this exact DMC; a DMC can be rebuilt only once. */
+async function findExistingRebuild(dmc: string): Promise<ExistingRebuild | null> {
+	const record = await prismaClient.scrapRecord.findFirst({
+		where: { dmc, isRebuild: true },
+		select: { createdAt: true, createdBy: true },
+		orderBy: { createdAt: 'desc' }
+	});
+	return record
+		? { createdAt: dateTimeLocalTimeDb(record.createdAt), createdBy: record.createdBy }
+		: null;
 }
 
 export const load = (async () => {
@@ -85,10 +99,15 @@ export const actions = {
 				});
 			}
 
+			const existingRebuild = await findExistingRebuild(barcode);
+
 			return {
 				success: true,
 				message: `Dmc ${barcode} bol úspešne nájdený.`,
-				data: { label: barcode, match: matchedLabels[0] }
+				warning: existingRebuild
+					? `Tento DMC už bol rebuildovaný (${existingRebuild.createdAt}, operátor ${existingRebuild.createdBy}). Ďalší rebuild nie je možný.`
+					: undefined,
+				data: { label: barcode, match: matchedLabels[0], existingRebuild }
 			};
 		} catch (err) {
 			console.error('Failed to scan DMC label:', err);
@@ -123,9 +142,10 @@ export const actions = {
 				});
 			}
 
-			const [matchedLabels, cardHolder] = await Promise.all([
+			const [matchedLabels, cardHolder, existingRebuild] = await Promise.all([
 				findMatchingLabels(dmc),
-				findCardHolder(operatorCardId)
+				findCardHolder(operatorCardId),
+				isRebuild ? findExistingRebuild(dmc) : null
 			]);
 
 			if (!cardHolder) {
@@ -146,6 +166,15 @@ export const actions = {
 							: `Kód "${dmc}" zodpovedá viacerým projektom. Kontaktujte správcu.`
 				});
 			}
+			// Re-checked on save: the scan may be stale, or the form submitted twice.
+			if (existingRebuild) {
+				return fail(409, {
+					success: false,
+					message: 'Rebuild už existuje.',
+					error: `DMC ${dmc} už bol rebuildovaný (${existingRebuild.createdAt}, operátor ${existingRebuild.createdBy}). Ďalší rebuild nie je povolený.`
+				});
+			}
+
 			const groupsById = new Map(matchedLabels[0].groups.map((group) => [group.id, group]));
 			// if (
 			// 	isRebuild &&

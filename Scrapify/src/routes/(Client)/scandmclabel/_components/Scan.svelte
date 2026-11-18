@@ -201,7 +201,9 @@
 							}}
 							disabled={!scrapManager.scanData ||
 								!$operatorCardId ||
-								scrapManager.mode === 'qntScrap'}><DrillIcon class="size-6" /> Re-Build</Button
+								scrapManager.mode === 'qntScrap' ||
+								Boolean(scrapManager.existingRebuild)}
+							><DrillIcon class="size-6" /> Re-Build</Button
 						>
 						<Button
 							size="lg"

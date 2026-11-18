@@ -12,9 +12,16 @@ type MatchData = Prisma.LabelGroupGetPayload<{
 	};
 }>;
 
+/** Rebuild already saved under the scanned DMC (formatted local DB time, operator card ID). */
+export interface ExistingRebuild {
+	createdAt: string;
+	createdBy: string;
+}
+
 export interface ScanInitPayload {
 	label: string;
 	match: MatchData;
+	existingRebuild?: ExistingRebuild | null;
 }
 
 export interface ScrapRowState {
@@ -39,6 +46,7 @@ export class ScrapManager {
 	scrapPayload = $state<ScrapRowState[]>([]);
 	scanData = $state<MatchData | null>(null);
 	barcode = $state('');
+	existingRebuild = $state<ExistingRebuild | null>(null);
 	// Main reason group the rebuild rows were last auto-marked for; re-marking only happens when it changes,
 	// so a row the operator unmarked stays unmarked while the main reason group stays the same.
 	private rebuildCauseGroupId: number | null = null;
@@ -46,6 +54,7 @@ export class ScrapManager {
 	init(scanDataPayload: ScanInitPayload, barcode: string) {
 		this.scanData = scanDataPayload.match;
 		this.barcode = barcode;
+		this.existingRebuild = scanDataPayload.existingRebuild ?? null;
 		this.mode = null;
 
 		if (this.scanData?.groups) {
@@ -113,6 +122,8 @@ export class ScrapManager {
 
 	// Select mode rebuild/scrap
 	setMode(newMode: ScrapMode) {
+		// A DMC can be rebuilt only once.
+		if (newMode === 'rebuild' && this.existingRebuild) return;
 		this.mode = newMode;
 		this.rebuildCauseGroupId = null;
 		for (const s of this.scrapPayload!) {
@@ -389,5 +400,6 @@ export class ScrapManager {
 		this.scrapPayload = [];
 		this.scanData = null;
 		this.barcode = '';
+		this.existingRebuild = null;
 	}
 }
