@@ -35,7 +35,7 @@
 			title: 'Scrap',
 			confirm: 'Odoslať scrap',
 			stripe: 'bg-destructive',
-			glow: 'var(--color-destructive)',
+			glow: 'hsl(var(--destructive))',
 			action: 'bg-destructive! text-destructive-foreground! hover:bg-destructive/90!',
 			badge: scrapRecordTypeBadgeVariant.Scrap
 		},
@@ -43,7 +43,7 @@
 			title: 'Re-build',
 			confirm: 'Odoslať re-build',
 			stripe: 'bg-chart-warning',
-			glow: 'var(--color-chart-warning)',
+			glow: 'hsl(var(--chart-warning))',
 			action: 'bg-chart-warning! text-background! hover:bg-chart-warning/90!',
 			badge: scrapRecordTypeBadgeVariant.Rebuild
 		},
@@ -51,7 +51,7 @@
 			title: 'Quantity scrap',
 			confirm: 'Odoslať quantity scrap',
 			stripe: 'bg-chart-2',
-			glow: 'var(--color-chart-2)',
+			glow: 'hsl(var(--chart-2))',
 			action: 'bg-chart-2! text-foreground! hover:bg-chart-2/90!',
 			badge: scrapRecordTypeBadgeVariant['Quantity scrap']
 		}
