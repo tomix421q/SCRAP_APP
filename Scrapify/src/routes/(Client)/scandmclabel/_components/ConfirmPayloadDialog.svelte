@@ -107,7 +107,6 @@
 	}}
 >
 	<AlertDialog.Content
-		style={mode ? `border: 2px solid ${MODE_TEXT[mode].glow}` : undefined}
 		class="cardNormalize flex max-h-[90dvh] flex-col gap-6 bg-background/90! p-8 backdrop-blur-md max-sm:p-5 sm:max-w-2xl"
 		interactOutsideBehavior="close"
 		onOpenAutoFocus={(event) => {
@@ -117,6 +116,12 @@
 		}}
 	>
 		{#if mode}
+			<!-- Mode-colored outline as its own layer: shadcn/cardNormalize border styles cannot override it -->
+			<span
+				aria-hidden="true"
+				class="pointer-events-none absolute inset-0 rounded-[inherit] border-2"
+				style="border-color: {MODE_TEXT[mode].glow}"
+			></span>
 			<AlertDialog.Header class="gap-4">
 				<AlertDialog.Title class="flex flex-wrap items-center gap-3 text-xl">
 					<Badge variant={MODE_TEXT[mode].badge} class="px-3 py-1 text-base"
