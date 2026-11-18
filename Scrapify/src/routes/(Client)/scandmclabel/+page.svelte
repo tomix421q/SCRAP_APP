@@ -8,6 +8,7 @@
 	import Scrap from './_components/Scrap.svelte';
 	import QuantityScrap from './_components/QuantityScrap.svelte';
 	import Scan from './_components/Scan.svelte';
+	import ConfirmPayloadDialog from './_components/ConfirmPayloadDialog.svelte';
 
 	let { form, data }: PageProps = $props();
 
@@ -17,6 +18,7 @@
 	// Vars
 	const scrapManager = new ScrapManager();
 	let isSubmitting = $state(false);
+	let isConfirmOpen = $state(false);
 	let barcodeValue = $state('');
 	let selectedQuantityScrapLabelId = $state<number | null>(null);
 	let status = $state<'idle' | 'success' | 'error'>('idle');
@@ -68,6 +70,7 @@
 				return async ({ update, result }) => {
 					await update({ reset: false });
 					isSubmitting = false;
+					isConfirmOpen = false;
 					if (result.type === 'success') {
 						resetAll();
 					}
@@ -85,6 +88,17 @@
 			{/if}
 		</form>
 
-		<ActionPanel {scrapManager} {isSubmitting} {resetAll} />
+		<ActionPanel
+			{scrapManager}
+			{isSubmitting}
+			{resetAll}
+			onrequestconfirm={() => (isConfirmOpen = true)}
+		/>
+		<ConfirmPayloadDialog
+			bind:open={isConfirmOpen}
+			{scrapManager}
+			{isSubmitting}
+			onconfirm={() => document.querySelector<HTMLFormElement>('#scrap')?.requestSubmit()}
+		/>
 	{/if}
 </main>

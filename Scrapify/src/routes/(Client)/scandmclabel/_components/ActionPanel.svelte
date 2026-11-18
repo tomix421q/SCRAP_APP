@@ -17,11 +17,13 @@
 	let {
 		scrapManager,
 		isSubmitting,
-		resetAll
+		resetAll,
+		onrequestconfirm
 	}: {
 		scrapManager: ScrapManager;
 		isSubmitting: boolean;
 		resetAll: () => void;
+		onrequestconfirm: () => void;
 	} = $props();
 
 	let gridOpen = $state(false);
@@ -144,8 +146,8 @@
 			</Popover.Root>
 
 			<Button
-				type="submit"
-				form="scrap"
+				type="button"
+				onclick={onrequestconfirm}
 				class="max-sm:flex-1 max-sm:min-w-0 max-sm:whitespace-normal font-semibold disabled:border disabled:border-dashed disabled:border-border disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
 				disabled={isSubmitting || !scrapManager.canSubmit}
 			>
