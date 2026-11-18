@@ -29,6 +29,7 @@
 			badge: BadgeVariant;
 			action: string;
 			glow: string;
+			edge: string;
 		}
 	> = {
 		scrap: {
@@ -36,6 +37,7 @@
 			confirm: 'Odoslať scrap',
 			stripe: 'bg-destructive',
 			glow: 'var(--color-destructive)',
+			edge: 'border-destructive!',
 			action: 'bg-destructive! text-destructive-foreground! hover:bg-destructive/90!',
 			badge: scrapRecordTypeBadgeVariant.Scrap
 		},
@@ -44,6 +46,7 @@
 			confirm: 'Odoslať re-build',
 			stripe: 'bg-chart-warning',
 			glow: 'var(--color-chart-warning)',
+			edge: 'border-chart-warning!',
 			action: 'bg-chart-warning! text-background! hover:bg-chart-warning/90!',
 			badge: scrapRecordTypeBadgeVariant.Rebuild
 		},
@@ -52,6 +55,7 @@
 			confirm: 'Odoslať quantity scrap',
 			stripe: 'bg-chart-2',
 			glow: 'var(--color-chart-2)',
+			edge: 'border-chart-2!',
 			action: 'bg-chart-2! text-foreground! hover:bg-chart-2/90!',
 			badge: scrapRecordTypeBadgeVariant['Quantity scrap']
 		}
@@ -107,7 +111,7 @@
 	}}
 >
 	<AlertDialog.Content
-		class="cardNormalize flex max-h-[90dvh] flex-col gap-6 bg-background/90! p-8 backdrop-blur-md max-sm:p-5 sm:max-w-2xl"
+		class="cardNormalize border-2! {mode ? MODE_TEXT[mode].edge : ''} flex max-h-[90dvh] flex-col gap-6 bg-background/90! p-8 backdrop-blur-md max-sm:p-5 sm:max-w-2xl"
 		interactOutsideBehavior="close"
 		onOpenAutoFocus={(event) => {
 			// Focus "Späť", so a scanner Enter can never confirm
