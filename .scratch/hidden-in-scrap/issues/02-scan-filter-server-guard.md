@@ -1,6 +1,6 @@
 # 02 – Filter v scrap móde a serverová kontrola
 
-Status: todo
+Status: done
 Rodič: [spec.md](../spec.md)
 Blokované: [01](01-schema-admin-boxes.md)
 
@@ -16,11 +16,11 @@ Blokované: [01](01-schema-admin-boxes.md)
 
 ## Akceptačné kritériá
 
-- [ ] Skrytá part group sa v scrap móde nezobrazí a nie je v ponuke príčin.
-- [ ] V rebuild móde sa skrytá part group zobrazí ako doteraz.
-- [ ] Label bez viditeľných part groups ukáže v scrap móde hlášku a nedá sa uložiť.
-- [ ] Server vráti 400 pre skrytú part group ako riadok aj ako príčinu, a rebuild so skrytou part group uloží.
-- [ ] Testy `saveScrap` s mockovaným Prisma klientom a testy `ScrapManager` (bez DOM).
-- [ ] `npm run check` a `npm run test` prechádzajú.
+- [x] Skrytá part group sa v scrap móde nezobrazí a nie je v ponuke príčin.
+- [x] V rebuild móde sa skrytá part group zobrazí ako doteraz.
+- [x] Label bez viditeľných part groups ukáže v scrap móde hlášku a nedá sa uložiť.
+- [x] Server vráti 400 pre skrytú part group ako riadok aj ako príčinu, a rebuild so skrytou part group uloží.
+- [x] Testy `saveScrap` s mockovaným Prisma klientom a testy `ScrapManager` (bez DOM).
+- [x] `npm run check` a `npm run test` prechádzajú.
 
 ## Comments

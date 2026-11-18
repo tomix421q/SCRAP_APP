@@ -1,6 +1,6 @@
 # Hidden in scrap – skrytie part group v scrap móde
 
-Status: todo
+Status: done
 
 ## Problém
 

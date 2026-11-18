@@ -1,6 +1,6 @@
 # 01 – Schéma, admin checkbox a ohraničené boxy
 
-Status: todo
+Status: done
 Rodič: [spec.md](../spec.md)
 Blokované: —
 
@@ -17,13 +17,13 @@ Blokované: —
 
 ## Akceptačné kritériá
 
-- [ ] Nová part group má `hiddenInScrap = false`, ak checkbox nikto nezaškrtol.
-- [ ] Zaškrtnutý checkbox sa uloží pri create aj update a pri edite sa načíta.
-- [ ] Zmena „Rebuild group“ neovplyvní „Hide in scrap mode“ a naopak.
-- [ ] Oba boxy sú ohraničené, majú legendu a na mobile sú pod sebou.
-- [ ] Tabuľka part groups zobrazuje stĺpec „Hidden in scrap“.
-- [ ] Iba sémantické tokeny, žiadne priame farby.
-- [ ] Testy admin akcií s mockovaným Prisma klientom.
-- [ ] `npm run check` a `npm run test` prechádzajú.
+- [x] Nová part group má `hiddenInScrap = false`, ak checkbox nikto nezaškrtol.
+- [x] Zaškrtnutý checkbox sa uloží pri create aj update a pri edite sa načíta.
+- [x] Zmena „Rebuild group“ neovplyvní „Hide in scrap mode“ a naopak.
+- [x] Oba boxy sú ohraničené, majú legendu a na mobile sú pod sebou.
+- [x] Tabuľka part groups zobrazuje stĺpec „Hidden in scrap“.
+- [x] Iba sémantické tokeny, žiadne priame farby.
+- [x] Testy admin akcií s mockovaným Prisma klientom.
+- [x] `npm run check` a `npm run test` prechádzajú.
 
 ## Comments

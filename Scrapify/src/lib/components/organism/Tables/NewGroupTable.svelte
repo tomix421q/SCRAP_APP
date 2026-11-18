@@ -47,9 +47,9 @@
 						<Table.Head class="min-w-20 max-w-30">Scrap codes</Table.Head>
 						<Table.Head class="w-30">Qad identity</Table.Head>
 						<Table.Head class="w-30">Rebuild g.</Table.Head>
-						<Table.Head class="w-30">Hidden in scrap</Table.Head>
+						<Table.Head class="w-44">Hidden in scrap</Table.Head>
 
-						<Table.Head class="text-end">Actions</Table.Head>
+						<Table.Head class="w-28 text-end">Actions</Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body class="">
