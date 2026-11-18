@@ -488,8 +488,8 @@
 
 			<!-- Mode options: two bordered boxes, independent of each other -->
 			<div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
-				<fieldset class="rounded-md border border-border px-3 pb-3">
-					<legend class="px-2 text-sm text-muted-foreground">Re-build mode options</legend>
+				<fieldset class="rounded-md border-2 border-chart-warning px-3 pb-3">
+					<legend class="px-2 text-sm text-chart-warning">Re-build mode options</legend>
 					<!-- Is rebuild??? -->
 					<article
 						class="flex flex-col mt-3 justify-between w-fit lg:items-center gap-2 lg:flex-row"
@@ -519,7 +519,7 @@
 							for="cannotBeMainReason"
 							class="text-sm md:text-lg whitespace-nowrap lg:min-w-[200px] {isRebuild
 								? ''
-								: 'text-muted-foreground'}">Cannot be main reason</Label
+								: 'text-muted-foreground'}">Cannot be reason</Label
 						>
 
 						<Checkbox
@@ -534,8 +534,8 @@
 					</article>
 				</fieldset>
 
-				<fieldset class="rounded-md border border-border px-3 pb-3">
-					<legend class="px-2 text-sm text-muted-foreground">Scrap mode options</legend>
+				<fieldset class="rounded-md border-2 border-destructive px-3 pb-3">
+					<legend class="px-2 text-sm text-destructive">Scrap mode options</legend>
 					<!-- Hidden in scrap: operator does not see this group in scrap mode -->
 					<article
 						class="flex flex-col mt-3 justify-between w-fit lg:items-center gap-2 lg:flex-row"
