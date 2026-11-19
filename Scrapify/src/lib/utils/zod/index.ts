@@ -237,8 +237,8 @@ export type SaveScrapInput = z.infer<typeof saveScrapSchema>;
 /** Upper bound of a SQL Server `Int` column (e.g. `Operator.cardId`). */
 const SQL_INT_MAX = 2_147_483_647;
 
-export const updateOperatorSchema = z.object({
-	id: z.coerce.number().int().positive(),
+/** Shared by creating and editing an operator, so both accept the same values. */
+export const createOperatorSchema = z.object({
 	fullName: z
 		.string()
 		.trim()
@@ -256,5 +256,10 @@ export const updateOperatorSchema = z.object({
 				.positive('Card ID must be a positive number.')
 				.max(SQL_INT_MAX, `Card ID can be at most ${SQL_INT_MAX}.`)
 		)
+});
+export type CreateOperatorInput = z.infer<typeof createOperatorSchema>;
+
+export const updateOperatorSchema = createOperatorSchema.extend({
+	id: z.coerce.number().int().positive()
 });
 export type UpdateOperatorInput = z.infer<typeof updateOperatorSchema>;

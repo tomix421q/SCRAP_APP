@@ -87,13 +87,50 @@ describe('createOperator action', () => {
 		expect(prismaMock.operator.create).not.toHaveBeenCalled();
 	});
 
-	it('returns a failure when the DB rejects the create', async () => {
+	it.each([
+		['a short name', { ...createFields, fullName: 'Jo' }, 'fullName'],
+		['a non-numeric card ID', { ...createFields, cardId: '12a45' }, 'cardId'],
+		['a missing card ID', { fullName: 'John Smith' }, 'cardId']
+	])('returns 400 for %s', async (_label, fields, field) => {
+		const result = await actions.createOperator(postEvent('createOperator', fields));
+
+		expect(result).toMatchObject({ status: 400, data: { success: false } });
+		expect(result).toHaveProperty(['data', 'error', field]);
+		expect(prismaMock.operator.create).not.toHaveBeenCalled();
+	});
+
+	it('accepts a card ID shorter than 5 digits, like the edit dialog', async () => {
+		const result = await actions.createOperator(
+			postEvent('createOperator', { ...createFields, cardId: '42' })
+		);
+
+		expect(result).toMatchObject({ success: true });
+		expect(prismaMock.operator.create).toHaveBeenCalledWith({
+			data: { cardId: 42, fullName: 'John Smith', createdBy: 'eng@yanfeng.com' }
+		});
+	});
+
+	it('returns 409 with a readable message for a duplicate card ID', async () => {
 		prismaMock.operator.create.mockRejectedValue(
 			Object.assign(new Error('Unique constraint'), { code: 'P2002' })
 		);
 		const result = await actions.createOperator(postEvent('createOperator', createFields));
 
-		expect(result).toMatchObject({ success: false, error: 'Unique constraint P2002' });
+		expect(result).toMatchObject({
+			status: 409,
+			data: { success: false, message: 'Card ID 123456 is already used by another operator.' }
+		});
+		expect(prismaMock.activityLogs.create).not.toHaveBeenCalled();
+	});
+
+	it('returns 500 for an unexpected DB error', async () => {
+		prismaMock.operator.create.mockRejectedValue(new Error('Connection lost'));
+		const result = await actions.createOperator(postEvent('createOperator', createFields));
+
+		expect(result).toMatchObject({
+			status: 500,
+			data: { success: false, error: 'Connection lost' }
+		});
 	});
 });
 

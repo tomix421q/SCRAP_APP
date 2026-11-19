@@ -5,7 +5,8 @@ import prismaClient from '@/server/prisma';
 import { requireRole, writeToLogger } from '@/utils/serverHelp';
 import { OPERATOR_MANAGE_ROLES } from '@/utils/adminAccess';
 import { describeError, errorCode } from '@/utils/describeError';
-import { updateOperatorSchema } from '@/utils/zod';
+import { createOperatorSchema, updateOperatorSchema } from '@/utils/zod';
+import type { ZodError } from 'zod';
 
 export const load = (async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
@@ -30,54 +31,53 @@ export const load = (async (event) => {
 	}
 }) satisfies PageServerLoad;
 
+const validationFailure = (error: ZodError) =>
+	fail(400, {
+		success: false,
+		message: 'Validation error',
+		error: error.flatten((issue) => issue.message).fieldErrors
+	});
+
+const duplicateCardId = (cardId: number) =>
+	fail(409, {
+		success: false,
+		message: `Card ID ${cardId} is already used by another operator.`
+	});
+
+const unexpectedFailure = (err: unknown) =>
+	fail(500, {
+		success: false,
+		message: 'Something is wrong, Please try again later.',
+		error: describeError(err)
+	});
+
 export const actions: Actions = {
 	createOperator: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
 		const access = await requireRole(event, OPERATOR_MANAGE_ROLES);
 		if (!access.ok) return access.failure;
 
 		const formData = await event.request.formData();
-		const opName = String(formData.get('fullName') ?? '');
-		const cardId = String(formData.get('cardId') ?? '');
-
-		if (cardId.length < 5 || opName.length < 5) {
-			return fail(400, {
-				success: false,
-				message: 'Validate errro',
-				error: 'Min length for operator id and name is 5 characters.'
-			});
-		}
-		if (cardId.length > 255 || opName.length > 255) {
-			return fail(400, {
-				success: false,
-				message: 'Validate errro',
-				error: 'Max length for operator id and name is 255 characters.'
-			});
-		}
+		const parsed = createOperatorSchema.safeParse(Object.fromEntries(formData));
+		if (!parsed.success) return validationFailure(parsed.error);
+		const { fullName, cardId } = parsed.data;
 
 		try {
-			const createOperatorInDb = await prismaClient.operator.create({
-				data: {
-					cardId: Number(cardId),
-					fullName: opName,
-					createdBy: access.user.email
-				}
+			const created = await prismaClient.operator.create({
+				data: { cardId, fullName, createdBy: access.user.email }
 			});
 			await writeToLogger({
 				request: event.request,
 				action: 'CREATE',
 				entityType: 'Operator',
-				entityId: createOperatorInDb.id
+				entityId: created.id
 			});
 			return {
 				success: true,
-				message: `Operator named: ${createOperatorInDb.fullName} with card id ${createOperatorInDb.cardId} was created successfully.`
+				message: `Operator named: ${created.fullName} with card id ${created.cardId} was created successfully.`
 			};
 		} catch (err: unknown) {
-			return {
-				success: false,
-				message: `Something is wrong :( Please try again later.`,
-				error: describeError(err)
-			};
+			if (errorCode(err) === 'P2002') return duplicateCardId(cardId);
+			return unexpectedFailure(err);
 		}
 	},
 	updateOperator: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
@@ -86,13 +86,7 @@ export const actions: Actions = {
 
 		const formData = await event.request.formData();
 		const parsed = updateOperatorSchema.safeParse(Object.fromEntries(formData));
-		if (!parsed.success) {
-			return fail(400, {
-				success: false,
-				message: 'Validation error',
-				error: parsed.error.flatten((issue) => issue.message).fieldErrors
-			});
-		}
+		if (!parsed.success) return validationFailure(parsed.error);
 		const { id, fullName, cardId } = parsed.data;
 
 		try {
@@ -112,12 +106,7 @@ export const actions: Actions = {
 			};
 		} catch (err: unknown) {
 			const code = errorCode(err);
-			if (code === 'P2002') {
-				return fail(409, {
-					success: false,
-					message: `Card ID ${cardId} is already used by another operator.`
-				});
-			}
+			if (code === 'P2002') return duplicateCardId(cardId);
 			// `update` throws P2025 when no operator has this id.
 			if (code === 'P2025') {
 				return fail(404, {
@@ -126,11 +115,7 @@ export const actions: Actions = {
 					error: `Operator id ${id} not found in db.`
 				});
 			}
-			return fail(500, {
-				success: false,
-				message: 'Something is wrong, Please try again later.',
-				error: describeError(err)
-			});
+			return unexpectedFailure(err);
 		}
 	},
 	deleteOperator: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
