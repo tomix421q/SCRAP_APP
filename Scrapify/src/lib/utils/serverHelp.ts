@@ -2,6 +2,7 @@ import { auth } from '@/auth/auth';
 import prismaClient from '@/server/prisma';
 import { fail, type ActionFailure } from '@sveltejs/kit';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
+import { describeError } from './describeError';
 import type { LoggerActionType, LoggerEntityType, Role } from './types';
 
 export const toFuzzyPattern = (str: string) => {
@@ -116,11 +117,11 @@ export async function writeToLogger({
 				}
 			});
 		}
-	} catch (error: any) {
+	} catch (err: unknown) {
 		return {
 			success: false,
 			message: `Something is wrong :( Please try again later.`,
-			error: error.message + ' ' + error.code || 'Unknown error'
+			error: describeError(err)
 		};
 	}
 }

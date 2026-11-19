@@ -31,3 +31,13 @@ export function resolveAdminRedirect(role: string | null, pathname: string): str
 
 	return '/';
 }
+
+/**
+ * Entry link to the admin area for a user with `role`, or `null` when the role has no access.
+ * Derived from `resolveAdminRedirect`, so the menu link and the layout guard never disagree.
+ */
+export function adminPanelHref(role: string | null): string | null {
+	const target = resolveAdminRedirect(role, '/admin');
+	if (target === null) return '/admin';
+	return target.startsWith('/admin') ? target : null;
+}

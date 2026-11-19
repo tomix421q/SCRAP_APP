@@ -6,6 +6,7 @@
 	import { User, UserCircle } from '@lucide/svelte';
 	import type { LayoutData } from '../../../routes/$types';
 	import Separator from '../ui/separator/separator.svelte';
+	import { adminPanelHref } from '$lib/utils/adminAccess';
 
 	let { user }: { user: LayoutData } = $props();
 	const userDb = $derived(user.user);
@@ -20,9 +21,7 @@
 		await invalidateAll();
 	}
 
-	const isAdmin = (user: typeof userDb | null): boolean => {
-		return user?.role === 'ADMIN' || user?.role === 'MODERATOR';
-	};
+	const adminHref = $derived(adminPanelHref(userDb?.role ?? null));
 
 	afterNavigate(() => {
 		open = false;
@@ -53,8 +52,12 @@
 					><a href="/userprofile/favorite" class="w-full">Favorite</a></DropdownMenu.Item
 				> -->
 
-				{#if isAdmin(userDb)}
-					<DropdownMenu.Item><a href="/admin" class="w-full">Admin Panel</a></DropdownMenu.Item>
+				{#if adminHref}
+					<DropdownMenu.Item
+						><a href={adminHref} class="w-full"
+							>{adminHref === '/admin' ? 'Admin Panel' : 'Operator Register'}</a
+						></DropdownMenu.Item
+					>
 				{/if}
 
 				<Separator />

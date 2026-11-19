@@ -4,13 +4,7 @@ import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import prismaClient from '@/server/prisma';
 import { requireRole, writeToLogger } from '@/utils/serverHelp';
 import { OPERATOR_MANAGE_ROLES } from '@/utils/adminAccess';
-
-/** Readable message for an unknown error, including the Prisma error code when present. */
-function describeError(err: unknown): string {
-	if (!(err instanceof Error)) return 'Unknown error';
-	const code = 'code' in err && typeof err.code === 'string' ? ` ${err.code}` : '';
-	return `${err.message}${code}`;
-}
+import { describeError } from '@/utils/describeError';
 
 export const load = (async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
