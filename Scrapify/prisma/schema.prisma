@@ -100,6 +100,10 @@ model PartGroup {
   isRebuild          Boolean               @default(false)
   cannotBeMainReason Boolean               @default(false)
   hiddenInScrap      Boolean               @default(false)
+  hiddenInRebuildFR  Boolean?              @default(false)
+  hiddenInRebuildFL  Boolean?              @default(false)
+  hiddenInRebuildRR  Boolean?              @default(false)
+  hiddenInRebuildRL  Boolean?              @default(false)
   interfaceName      String
   qadIdentity        String?
   vProject           String?               @db.VarChar(20)
