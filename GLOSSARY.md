@@ -45,6 +45,14 @@ _Avoid_: skupina, group (bez upresnenia)
 Nastavenie part group, ktorým ju inžinier skryje v scrap móde: operator ju pri scrape nevidí a nemôže byť ani príčinou other component. Rebuild a quantity scrap neovplyvňuje. Predvolene je každá part group v scrap móde viditeľná.
 _Avoid_: show in scrap, scrap group, vypnutá group
 
+**Hidden in rebuild for side**:
+Nastavenie part group, ktorým ju inžinier skryje v rebuild móde pre vybrané strany dielu (FR, FL, RR, RL). Ak naskenovaný DMC obsahuje práve jednu z týchto strán, operator part group pri rebuilde nevidí a nemôže byť ani main reason, ani other component, ani jeho príčinou. DMC bez strany alebo s viacerými rôznymi stranami neskrýva nič. Scrap a quantity scrap neovplyvňuje.
+_Avoid_: side filter, hidden side, skrytá strana
+
+**QAD identity**:
+Identifikátor part group v systéme QAD. Part group bez QAD identity je určená iba pre quantity scrap: v scrap ani rebuild móde sa nezobrazuje.
+_Avoid_: qad id, QAD kód
+
 **Part number**:
 Číslo materiálu konkrétnej varianty dielu.
 _Avoid_: PN, materiál (bez upresnenia)
