@@ -135,8 +135,8 @@
 							<Table.Cell class="">
 								{item.qadIdentity?.slice(0, 1)}
 								{#if !item.qadIdentity?.trim()}
-									<span class="text-xs text-chart-warning" title="Zobrazí sa iba v quantity scrape"
-										>Iba QNT</span
+									<span class="text-xs text-chart-warning" title="Shown only in quantity scrap"
+										>QNT only</span
 									>
 								{/if}
 							</Table.Cell>

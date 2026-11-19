@@ -692,7 +692,7 @@
 					</div>
 				</section>
 				<p class="mt-2 text-sm text-chart-warning lg:ml-[208px]">
-					Bez QAD identity sa part group zobrazí iba v quantity scrape.
+					Without a QAD identity, the part group is shown only in quantity scrap.
 				</p>
 			</article>
 
