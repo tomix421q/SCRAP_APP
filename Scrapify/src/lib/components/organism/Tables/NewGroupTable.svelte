@@ -6,6 +6,7 @@
 	import * as HoverCard from '$lib/components/ui/hover-card/index.js';
 	import EditDeleteBtns from '../../molecules/DeleteBtn.svelte';
 	import { editPartGroupData } from '@/stores/stores';
+	import { PART_SIDES } from '@/utils/partGroupVisibility';
 
 	let {
 		groups,
@@ -21,7 +22,13 @@
 		editPartGroupData.set(item);
 		window.scrollTo({ top: 0, behavior: 'instant' });
 	}
-	// $inspect(groups);
+
+	/** Sides hidden in rebuild, e.g. "FR, RR", or "–" when none. */
+	function hiddenSides(item: PartGroupWithRelations): string {
+		const sides = PART_SIDES.filter((side) => item[`hiddenInRebuild${side}`]);
+		return sides.length > 0 ? sides.join(', ') : '–';
+	}
+
 </script>
 
 <main>
@@ -48,6 +55,7 @@
 						<Table.Head class="w-30">Qad identity</Table.Head>
 						<Table.Head class="w-30">Rebuild g.</Table.Head>
 						<Table.Head class="w-44">Hidden in scrap</Table.Head>
+						<Table.Head class="w-44">Hidden in rebuild</Table.Head>
 
 						<Table.Head class="w-28 text-end">Actions</Table.Head>
 					</Table.Row>
@@ -124,9 +132,17 @@
 									{/if}
 								</p></Table.Cell
 							>
-							<Table.Cell class="">{item.qadIdentity?.slice(0, 1)}</Table.Cell>
+							<Table.Cell class="">
+								{item.qadIdentity?.slice(0, 1)}
+								{#if !item.qadIdentity?.trim()}
+									<span class="text-xs text-chart-warning" title="Zobrazí sa iba v quantity scrape"
+										>Iba QNT</span
+									>
+								{/if}
+							</Table.Cell>
 							<Table.Cell class="">{item.isRebuild}</Table.Cell>
 							<Table.Cell class="">{item.hiddenInScrap}</Table.Cell>
+							<Table.Cell class="">{hiddenSides(item)}</Table.Cell>
 
 							<Table.Cell class="">
 								<div class="flex justify-end gap-2">

@@ -19,6 +19,14 @@ export const partGroupScrapCodeSchema = z.object({
 });
 export type PartGroupScrapCodeInput = z.infer<typeof partGroupScrapCodeSchema>;
 
+/** Checkbox value from form data ('true' / 'on' / '1' → true, everything else → false). */
+const formBoolean = z.preprocess((val) => {
+	if (typeof val === 'string') {
+		return val.toLocaleLowerCase() === 'true' || val === 'on' || val === '1';
+	}
+	return Boolean(val);
+}, z.boolean());
+
 export const partGroupSchema = z
 	.object({
 		id: z.preprocess(
@@ -47,6 +55,10 @@ export const partGroupSchema = z
 			}
 			return Boolean(val);
 		}, z.boolean()),
+		hiddenInRebuildFR: formBoolean,
+		hiddenInRebuildFL: formBoolean,
+		hiddenInRebuildRR: formBoolean,
+		hiddenInRebuildRL: formBoolean,
 		partNumbers: z
 			.string()
 			.transform((val, ctx) => {

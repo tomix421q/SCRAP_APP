@@ -19,6 +19,11 @@
 	import { currentConfirmDeleteId, editPartGroupData } from '@/stores/stores';
 	import Separator from '@/components/ui/separator/separator.svelte';
 	import { resizeImageToJpeg } from '@/utils/frontHelp';
+	import { PART_SIDES, type PartSide } from '@/utils/partGroupVisibility';
+
+	function emptyHiddenSides(): Record<PartSide, boolean> {
+		return { FR: false, FL: false, RR: false, RL: false };
+	}
 
 	let { data, form }: PageProps = $props();
 	let { groups, groupsCount, parts, scrapCodes, totalPages } = $derived(data.data);
@@ -44,6 +49,7 @@
 	let isRebuild = $state(false);
 	let cannotBeMainReason = $state(false);
 	let hiddenInScrap = $state(false);
+	let hiddenInRebuild = $state<Record<PartSide, boolean>>(emptyHiddenSides());
 	let qadSelectedItemType = $state('');
 
 	// photo
@@ -135,6 +141,7 @@
 		isRebuild = false;
 		cannotBeMainReason = false;
 		hiddenInScrap = false;
+		hiddenInRebuild = emptyHiddenSides();
 		qadSelectedItemType = '';
 		partSlots = [''];
 		scrapSlots = [''];
@@ -201,6 +208,12 @@
 				isRebuild = editData.isRebuild;
 				cannotBeMainReason = editData.isRebuild && editData.cannotBeMainReason;
 				hiddenInScrap = editData.hiddenInScrap;
+				hiddenInRebuild = {
+					FR: editData.hiddenInRebuildFR ?? false,
+					FL: editData.hiddenInRebuildFL ?? false,
+					RR: editData.hiddenInRebuildRR ?? false,
+					RL: editData.hiddenInRebuildRL ?? false
+				};
 				qadSelectedItemType = editData.qadIdentity ?? '';
 
 				// applyFilter();
@@ -245,6 +258,9 @@
 				formData.set('isRebuild', JSON.stringify(isRebuild));
 				formData.set('cannotBeMainReason', JSON.stringify(isRebuild && cannotBeMainReason));
 				formData.set('hiddenInScrap', JSON.stringify(hiddenInScrap));
+				for (const side of PART_SIDES) {
+					formData.set(`hiddenInRebuild${side}`, JSON.stringify(hiddenInRebuild[side]));
+				}
 				if (photoFile) formData.set('photo', photoFile);
 				formData.set('removePhoto', JSON.stringify(removePhoto));
 				isSubmitting = true;
@@ -532,6 +548,30 @@
 							}}
 						/>
 					</article>
+
+					<!-- Sides (from the DMC) for which this group is hidden in rebuild mode -->
+					<article
+						class="flex flex-col mt-3 justify-between w-fit lg:items-center gap-2 lg:flex-row"
+					>
+						<Label class="text-sm md:text-lg whitespace-nowrap lg:min-w-[200px]"
+							>Hide in rebuild for:</Label
+						>
+						<div class="flex gap-4">
+							{#each PART_SIDES as side (side)}
+								<div class="flex items-center gap-1.5">
+									<Checkbox
+										id="hiddenInRebuild{side}"
+										class="size-5! ring-2 ring-primary **:size-5"
+										checked={hiddenInRebuild[side]}
+										onCheckedChange={(val: any) => {
+											hiddenInRebuild[side] = Boolean(val);
+										}}
+									/>
+									<Label for="hiddenInRebuild{side}" class="text-sm md:text-lg">{side}</Label>
+								</div>
+							{/each}
+						</div>
+					</article>
 				</fieldset>
 
 				<fieldset class="rounded-md border-2 border-destructive px-3 pb-3">
@@ -655,6 +695,9 @@
 						</Button>
 					</div>
 				</section>
+				<p class="mt-2 text-sm text-muted-foreground lg:ml-[208px]">
+					Bez QAD identity sa part group zobrazí iba v quantity scrape.
+				</p>
 			</article>
 
 			<section class="flex *:flex-1 gap-6 mt-12">

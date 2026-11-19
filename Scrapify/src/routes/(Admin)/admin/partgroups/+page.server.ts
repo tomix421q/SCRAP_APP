@@ -132,6 +132,10 @@ export const actions = {
 			isRebuild,
 			cannotBeMainReason,
 			hiddenInScrap,
+			hiddenInRebuildFR,
+			hiddenInRebuildFL,
+			hiddenInRebuildRR,
+			hiddenInRebuildRL,
 			interfaceName,
 			qadIdentity
 		} = result.data;
@@ -155,6 +159,10 @@ export const actions = {
 					isRebuild: isRebuild,
 						cannotBeMainReason,
 					hiddenInScrap,
+					hiddenInRebuildFR,
+					hiddenInRebuildFL,
+					hiddenInRebuildRR,
+					hiddenInRebuildRL,
 					interfaceName,
 					qadIdentity,
 					scrapCodes: {
@@ -231,6 +239,10 @@ export const actions = {
 			isRebuild,
 			cannotBeMainReason,
 			hiddenInScrap,
+			hiddenInRebuildFR,
+			hiddenInRebuildFL,
+			hiddenInRebuildRR,
+			hiddenInRebuildRL,
 			interfaceName,
 			qadIdentity
 		} = result.data;
@@ -270,6 +282,10 @@ export const actions = {
 					isRebuild: isRebuild,
 						cannotBeMainReason,
 					hiddenInScrap,
+					hiddenInRebuildFR,
+					hiddenInRebuildFL,
+					hiddenInRebuildRR,
+					hiddenInRebuildRL,
 					interfaceName,
 					qadIdentity,
 					scrapCodes: {
