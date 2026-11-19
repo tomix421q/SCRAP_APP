@@ -44,7 +44,6 @@
 	<Scan
 		{scrapManager}
 		{form}
-		{data}
 		bind:barcodeValue
 		bind:selectedQuantityScrapLabelId
 		bind:status
@@ -71,7 +70,8 @@
 					await update({ reset: false });
 					isSubmitting = false;
 					isConfirmOpen = false;
-					if (result.type === 'success') {
+					// A 403 (mask not allowed / operator not verified) can't be fixed by retrying: start over.
+					if (result.type === 'success' || (result.type === 'failure' && result.status === 403)) {
 						resetAll();
 					}
 				};

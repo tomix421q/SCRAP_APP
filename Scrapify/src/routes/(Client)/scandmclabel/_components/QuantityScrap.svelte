@@ -135,7 +135,7 @@
 									<Button
 										type="button"
 										size="icon"
-										class="rounded-full"
+										class="rounded-lg"
 										variant="secondary"
 										onclick={() => adjustQuantity(row, -1)}
 									>
@@ -144,7 +144,7 @@
 									<Button
 										type="button"
 										size="icon"
-										class="rounded-full"
+										class="rounded-lg"
 										variant="default"
 										onclick={() => adjustQuantity(row, 1)}
 									>
@@ -156,7 +156,7 @@
 									<Button
 										type="button"
 										size="icon"
-										class="rounded-full"
+										class="rounded-lg"
 										variant="secondary"
 										onclick={() => adjustQuantity(row, -10)}
 									>
@@ -165,7 +165,7 @@
 									<Button
 										type="button"
 										size="icon"
-										class="rounded-full"
+										class="rounded-lg"
 										variant="default"
 										onclick={() => adjustQuantity(row, 10)}
 									>
@@ -176,7 +176,7 @@
 								<Button
 									type="button"
 									size="icon"
-									class="rounded-full"
+									class="rounded-lg"
 									variant="destructive"
 									onclick={() => (row.quantity = 0)}
 								>

@@ -7,6 +7,7 @@ import { saveQuantityScrapSchema, saveScrapSchema } from '@/utils/zod';
 import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
 import { loadOperatorHistory } from './_components/utils/history.server';
 import { findCardHolder } from '@/server/cardHolder';
+import { denyUnlessLabelAllowed, getAllowedLabelIds } from '@/server/operatorLabelAccess';
 import { dateTimeLocalTimeDb } from '@/utils/index';
 import type { ExistingRebuild } from './_components/ScrapManager.svelte';
 
@@ -31,8 +32,8 @@ async function findExistingRebuild(dmc: string): Promise<ExistingRebuild | null>
 		: null;
 }
 
-export const load = (async () => {
-	const quantityScrapLabels = await prismaClient.labelGroup.findMany({
+async function findQuantityScrapLabels() {
+	return prismaClient.labelGroup.findMany({
 		where: {
 			code: { startsWith: quantityScrapLabelPrefix },
 			groups: { some: {} }
@@ -42,11 +43,45 @@ export const load = (async () => {
 		},
 		orderBy: { code: 'asc' }
 	});
+}
 
-	return { quantityScrapLabels };
+export const load = (async () => {
+	return { quantityScrapLabels: await findQuantityScrapLabels() };
 }) satisfies PageServerLoad;
 
 export const actions = {
+	/** Quantity scrap labels the card holder may use; all of them when unrestricted. */
+	allowedQuantityScrapLabels: async ({ request }) => {
+		const formData = await request.formData();
+		const operator = String(formData.get('operator') ?? '').trim();
+		const cardId = /^\d+$/.test(operator) ? Number(operator) : NaN;
+		if (!Number.isSafeInteger(cardId) || cardId <= 0) {
+			return fail(400, {
+				success: false,
+				message: 'Neplatné ID operátora.',
+				error: 'Prihlás sa znova platnou kartou operátora.'
+			});
+		}
+
+		try {
+			const [allowedIds, labels] = await Promise.all([
+				getAllowedLabelIds(cardId),
+				findQuantityScrapLabels()
+			]);
+			return {
+				success: true,
+				message: 'Labely boli načítané.',
+				labels: allowedIds === null ? labels : labels.filter((label) => allowedIds.has(label.id))
+			};
+		} catch (err) {
+			console.error('Failed to load allowed quantity scrap labels:', err);
+			return fail(500, {
+				success: false,
+				message: 'Nepodarilo sa načítať quantity scrap labely.',
+				error: 'Skús to znova alebo kontaktuj správcu.'
+			});
+		}
+	},
 	history: async ({ request }) => {
 		const formData = await request.formData();
 		const operator = String(formData.get('operator') ?? '').trim();
@@ -97,6 +132,21 @@ export const actions = {
 					message: 'Nejednoznačný scan',
 					error: `Kód "${barcode}" zodpovedá viacerým projektom. Kontaktujte správcu.`
 				});
+			}
+
+			// Without a valid card the scan stays open (as before); saving always requires a card.
+			const operator = String(formData.get('operator') ?? '').trim();
+			if (/^\d+$/.test(operator) && Number.isSafeInteger(Number(operator))) {
+				const cardId = Number(operator);
+				const cardHolder = await findCardHolder(cardId);
+				if (cardHolder) {
+					const denied = await denyUnlessLabelAllowed(
+						cardId,
+						cardHolder.fullName,
+						matchedLabels[0]
+					);
+					if (denied) return denied;
+				}
 			}
 
 			const existingRebuild = await findExistingRebuild(barcode);
@@ -166,6 +216,13 @@ export const actions = {
 							: `Kód "${dmc}" zodpovedá viacerým projektom. Kontaktujte správcu.`
 				});
 			}
+			const denied = await denyUnlessLabelAllowed(
+				operatorCardId,
+				cardHolder.fullName,
+				matchedLabels[0]
+			);
+			if (denied) return denied;
+
 			// Re-checked on save: the scan may be stale, or the form submitted twice.
 			if (existingRebuild) {
 				return fail(409, {
@@ -379,6 +436,13 @@ export const actions = {
 					error: 'Vybraná linka už nie je nakonfigurovaná. Obnov stránku a skús to znova.'
 				});
 			}
+
+			const denied = await denyUnlessLabelAllowed(
+				operatorCardId,
+				cardHolder.fullName,
+				quantityScrapLabel
+			);
+			if (denied) return denied;
 
 			if (
 				!quantityScrapLabel.code.startsWith(quantityScrapLabelPrefix) ||

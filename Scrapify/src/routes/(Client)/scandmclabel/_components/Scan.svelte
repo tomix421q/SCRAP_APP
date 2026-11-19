@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { deserialize, enhance } from '$app/forms';
 	import OperatorLogin from '@/components/molecules/OperatorLogin.svelte';
 	import OperatorHistory from './OperatorHistory.svelte';
 	import type { ScanInitPayload, ScrapManager } from './ScrapManager.svelte';
@@ -24,7 +24,6 @@
 	let {
 		scrapManager,
 		form,
-		data,
 		barcodeValue = $bindable(),
 		selectedQuantityScrapLabelId = $bindable(),
 		status = $bindable(),
@@ -32,7 +31,6 @@
 	}: {
 		scrapManager: ScrapManager;
 		form: PageProps['form'];
-		data: PageProps['data'];
 		barcodeValue: string;
 		selectedQuantityScrapLabelId: number | null;
 		status: 'idle' | 'success' | 'error';
@@ -45,6 +43,12 @@
 	let isScanning = $state(false);
 	let inputEl = $state<HTMLInputElement | null>(null);
 	let isQuantityLineDialogOpen = $state(false);
+	type QuantityScrapLabel = PageProps['data']['quantityScrapLabels'][number];
+	// Labels the logged-in operator may use; `null` while loading (or without a card).
+	let allowedQuantityLabels = $state<QuantityScrapLabel[] | null>(null);
+	let quantityLabelsError = $state(false);
+	let labelsRequestId = 0;
+	const isLoadingQuantityLabels = $derived(Boolean($operatorCardId) && !allowedQuantityLabels);
 
 	//
 	// Funcs
@@ -69,7 +73,7 @@
 		);
 	}
 
-	function selectQuantityScrapLabel(label: (typeof data.quantityScrapLabels)[number]) {
+	function selectQuantityScrapLabel(label: QuantityScrapLabel) {
 		if (!$operatorCardId || isScanning) return;
 		selectedQuantityScrapLabelId = label.id;
 		isQuantityLineDialogOpen = false;
@@ -85,6 +89,47 @@
 		isQuantityLineDialogOpen = true;
 	}
 
+	function isQuantityLabels(value: unknown): value is { labels: QuantityScrapLabel[] } {
+		return (
+			typeof value === 'object' &&
+			value !== null &&
+			'labels' in value &&
+			Array.isArray(value.labels)
+		);
+	}
+
+	async function loadAllowedQuantityLabels(cardId: string) {
+		const currentRequest = ++labelsRequestId;
+		// Drop the previous operator's list right away so it can never be shown for the new card.
+		allowedQuantityLabels = null;
+		quantityLabelsError = false;
+		if (!cardId) return;
+
+		let labels: QuantityScrapLabel[] = [];
+		let failed = false;
+		try {
+			const body = new FormData();
+			body.set('operator', cardId);
+			const response = await fetch('/scandmclabel?/allowedQuantityScrapLabels', {
+				method: 'POST',
+				headers: { 'x-sveltekit-action': 'true' },
+				body
+			});
+			const result = deserialize(await response.text());
+			if (result.type === 'success' && isQuantityLabels(result.data)) {
+				labels = result.data.labels;
+			} else {
+				failed = true;
+			}
+		} catch {
+			failed = true;
+		}
+		if (currentRequest !== labelsRequestId) return;
+		// Fail closed: on error show nothing (saving is guarded on the server anyway).
+		allowedQuantityLabels = labels;
+		quantityLabelsError = failed;
+	}
+
 	async function refocus() {
 		await tick();
 		inputEl?.focus({ preventScroll: true });
@@ -92,6 +137,9 @@
 
 	//
 	// Effects
+	$effect(() => {
+		void loadAllowedQuantityLabels($operatorCardId);
+	});
 	$effect(() => {
 		if (status === 'idle' && barcodeValue === '') {
 			window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -129,7 +177,8 @@
 			method="POST"
 			action="?/scanDmc"
 			class=""
-			use:enhance={() => {
+			use:enhance={({ formData }) => {
+				formData.set('operator', $operatorCardId);
 				isScanning = true;
 				status = 'idle';
 				return async ({ result, update }) => {
@@ -239,7 +288,7 @@
 								? 'ring-2 ring-foreground'
 								: ''} relative text-lg"
 							onclick={startQuantityScrap}
-							disabled={!$operatorCardId || isScanning}
+							disabled={!$operatorCardId || isScanning || isLoadingQuantityLabels}
 							><AlignVerticalJustifyEnd class="size-6 " />Quantity scrap
 							<span
 								class="absolute text-xs uppercase bg-background text-chart-1 p-0.5 rotate-45 -top-0 -right-5 rounded-lg"
@@ -269,13 +318,18 @@
 			<Dialog.Description>Záznamy budú uložené pod tymto projektom.</Dialog.Description>
 		</Dialog.Header>
 		<div class="grid grid-cols-2 gap-3">
-			{#if data.quantityScrapLabels.length === 0}
+			{#if quantityLabelsError}
+				<p class="col-span-2 text-center text-destructive">
+					Nepodarilo sa načítať quantity scrap labely. Skús to znova.
+				</p>
+			{:else if !allowedQuantityLabels || allowedQuantityLabels.length === 0}
 				<p class="col-span-2 text-center text-muted-foreground">
-					V databáze nie sú nakonfigurované žiadne quantity scrap labely.
+					{#if isLoadingQuantityLabels}Načítavam…{:else}Nemáš povolené žiadne quantity scrap labely
+						alebo nie sú nakonfigurované.{/if}
 				</p>
 			{:else}
 				<article class="mb-4">
-					{#each data.quantityScrapLabels as label (label.id)}
+					{#each allowedQuantityLabels as label (label.id)}
 						<Button type="button" size="lg" onclick={() => selectQuantityScrapLabel(label)}>
 							{label.code.slice(quantityScrapLabelPrefix.length)}
 							{#if label.vProject}
