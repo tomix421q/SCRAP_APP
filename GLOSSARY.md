@@ -85,6 +85,10 @@ _Avoid_: user, pracovník
 Používateľ s účtom a rolou (USER, ENGINEER, MODERATOR, ADMIN); svojou kartou môže zaznamenávať scrap records rovnako ako operator.
 _Avoid_: operator, account
 
+**Allowed label**:
+Label (DMC maska), ktorý má operator povolený skenovať. Operator s obmedzením smie zaznamenať scrap records iba na svoje allowed labels; ak nemá žiadny, nesmie nič. Operator bez obmedzenia smie všetky labely. Platí aj pre quantity scrap labels. Useri s účtom obmedzení nie sú.
+_Avoid_: permission, oprávnenie, právo
+
 **Card ID**:
 Číslo zamestnaneckej karty, ktorým sa operator alebo user identifikuje pri zázname; v scrap recorde je uvedené ako Created by.
 _Avoid_: operator ID, číslo operátora

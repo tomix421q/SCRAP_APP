@@ -67,13 +67,17 @@ model Verification {
 
   @@map("verification")
 }
+
 model Operator {
-  id           Int            @id @default(autoincrement())
-  createdBy    String
-  fullName     String
-  cardId       Int            @unique
-  createdAt    DateTime       @default(dbgenerated("GETDATE()"))
-  operatorLogs ActivityLogs[]
+  id                  Int            @id @default(autoincrement())
+  createdBy           String
+  fullName            String
+  cardId              Int            @unique
+  createdAt           DateTime       @default(dbgenerated("GETDATE()"))
+  updatedAt           DateTime?      @updatedAt
+  hasLabelRestriction Boolean        @default(false)
+  operatorLogs        ActivityLogs[]
+  allowedLabels       LabelGroup[]   @relation("OperatorAllowedLabels")
 }
 
 model ActivityLogs {
@@ -88,23 +92,22 @@ model ActivityLogs {
   user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-
 model PartGroup {
-  id            Int                 @id @default(autoincrement())
-  name          String              @db.NVarChar(64)
-  createdAt     DateTime            @default(dbgenerated("GETDATE()"))
-  updatedAt     DateTime            @updatedAt
-  isRebuild     Boolean             @default(false)
-  cannotBeMainReason Boolean        @default(false)
-  hiddenInScrap Boolean             @default(false)
-  interfaceName String
-  qadIdentity   String?
-  vProject      String?             @db.VarChar(20)
-  photoFile     String?             @db.VarChar(64)
-  materials     PartGroupMaterial[]
-  scrapCodes    PartGroupScrapCodes[]
-  scrapRecords  ScrapRecord[]
-  labelGroups   LabelGroup[]        @relation("LabelGroupToPartGroup")
+  id                 Int                   @id @default(autoincrement())
+  name               String                @db.NVarChar(64)
+  createdAt          DateTime              @default(dbgenerated("GETDATE()"))
+  updatedAt          DateTime              @updatedAt
+  isRebuild          Boolean               @default(false)
+  cannotBeMainReason Boolean               @default(false)
+  hiddenInScrap      Boolean               @default(false)
+  interfaceName      String
+  qadIdentity        String?
+  vProject           String?               @db.VarChar(20)
+  photoFile          String?               @db.VarChar(64)
+  materials          PartGroupMaterial[]
+  scrapCodes         PartGroupScrapCodes[]
+  scrapRecords       ScrapRecord[]
+  labelGroups        LabelGroup[]          @relation("LabelGroupToPartGroup")
 
   @@unique([name, vProject])
   @@index([vProject])
@@ -122,46 +125,47 @@ model PartGroupMaterial {
   @@unique([partGroupId, material])
   @@index([material])
 }
+
 model PartGroupScrapCodes {
-  id          Int       @id @default(autoincrement())
-  partGroupId Int
-  code        String  @db.VarChar(20)
-  description String? @db.VarChar(50)
+  id               Int       @id @default(autoincrement())
+  partGroupId      Int
+  code             String    @db.VarChar(20)
+  description      String?   @db.VarChar(50)
   /// Code written to the other part groups' scrap records when this part group is their cause.
-  isOtherComponent Boolean @default(false)
-  partGroup   PartGroup @relation(fields: [partGroupId], references: [id], onDelete: Cascade)
+  isOtherComponent Boolean   @default(false)
+  partGroup        PartGroup @relation(fields: [partGroupId], references: [id], onDelete: Cascade)
 }
 
-
 model LabelGroup {
-  id        Int         @id @default(autoincrement())
-  code      String      @db.NVarChar(64)
-  createdAt DateTime    @default(dbgenerated("GETDATE()"))
-  updatedAt DateTime    @updatedAt
-  vProject  String?     @db.VarChar(20)
-  groups    PartGroup[] @relation("LabelGroupToPartGroup")
+  id               Int         @id @default(autoincrement())
+  code             String      @db.NVarChar(64)
+  createdAt        DateTime    @default(dbgenerated("GETDATE()"))
+  updatedAt        DateTime    @updatedAt
+  vProject         String?     @db.VarChar(20)
+  groups           PartGroup[] @relation("LabelGroupToPartGroup")
+  allowedOperators Operator[]  @relation("OperatorAllowedLabels")
 
   @@unique([code, vProject])
   @@index([vProject])
 }
 
 model ScrapRecord {
-  id                      Int        @id @default(autoincrement())
-  dmc                     String     @db.NVarChar(128)
-  payloadRecId            String?    @db.UniqueIdentifier
+  id                      Int       @id @default(autoincrement())
+  dmc                     String    @db.NVarChar(128)
+  payloadRecId            String?   @db.UniqueIdentifier
   partGroupId             Int
   scrapCode               String?
   scrapCodeDescription    String?
-  isRebuild               Boolean    @default(false)
-  isOtherComponent        Boolean    @default(false)
-  quantity                Float      @default(1)
+  isRebuild               Boolean   @default(false)
+  isOtherComponent        Boolean   @default(false)
+  quantity                Float     @default(1)
   description             String?
   createdBy               String
-  createdAt               DateTime   @default(dbgenerated("GETDATE()"))
-  QADExported             Boolean?   @default(false)
+  createdAt               DateTime  @default(dbgenerated("GETDATE()"))
+  QADExported             Boolean?  @default(false)
   exportedAt              DateTime?
-  replacementPartMaterial String?    @db.NVarChar(50)
-  partGroup               PartGroup  @relation(fields: [partGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  replacementPartMaterial String?   @db.NVarChar(50)
+  partGroup               PartGroup @relation(fields: [partGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([dmc])
   @@index([createdAt])
