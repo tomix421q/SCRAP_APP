@@ -3,6 +3,7 @@ import prismaClient from '@/server/prisma';
 import { fail, type ActionFailure } from '@sveltejs/kit';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import { describeError } from './describeError';
+import { SIDE_CODE_REGEX } from './partGroupVisibility';
 import type { LoggerActionType, LoggerEntityType, Role } from './types';
 
 export const toFuzzyPattern = (str: string) => {
@@ -134,7 +135,6 @@ export interface MatchResult {
 // Opt-in flag: a mask containing this token requires a side code anywhere in the DMC.
 // The token itself is removed from the mask before matching.
 const SIDE_TOKEN_REGEX = /\{SIDE\}/gi;
-const SIDE_CODE_REGEX = /FR|FL|RR|RL/i;
 
 export function matchDmcWithMask(scannedDmc: string, mask: string): MatchResult {
 	const cleanDmc = scannedDmc.trim();
