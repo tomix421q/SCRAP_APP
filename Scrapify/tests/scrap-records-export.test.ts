@@ -105,7 +105,9 @@ describe('scrap records export', () => {
 				scrapCode: null,
 				quantity: 2.5
 			},
-			{ ...baseRecord, id: 9, isRebuild: true, replacementPartMaterial: '' }
+			{ ...baseRecord, id: 9, isRebuild: true, replacementPartMaterial: '' },
+			// Quantity scrap stores the scrapped part, which is not an Other variant.
+			{ ...baseRecord, id: 10, dmc: 'QNT-SCRAP-2', isOtherComponent: false }
 		]);
 		const rows = await readRows(await runExport());
 
@@ -135,6 +137,7 @@ describe('scrap records export', () => {
 			10: 2.5
 		});
 		expect(rows[3]).toMatchObject({ 2: 'Rebuild', 8: 'No', 9: null });
+		expect(rows[4]).toMatchObject({ 2: 'Quantity scrap', 8: 'No', 9: 'P-777' });
 	});
 
 	it('writes the payload ID as the last column', async () => {
@@ -153,6 +156,7 @@ describe('scrap records export', () => {
 		expect(args).toEqual({
 			where: {
 				AND: [
+					{ NOT: { dmc: { startsWith: 'QNT-SCRAP-' } } },
 					{ replacementPartMaterial: { not: null } },
 					{ NOT: { replacementPartMaterial: '' } },
 					{ NOT: { dmc: { startsWith: 'QNT-SCRAP-' } } },

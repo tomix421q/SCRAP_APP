@@ -31,8 +31,14 @@ export type ScrapRecordColumn = {
 	exportValue: XlsxColumn<ScrapRecordRow>['value'];
 };
 
-/** Other variant is not stored; a record has one when a replacement part was chosen. */
-export function isOtherVariant(record: Pick<ScrapRecordRow, 'replacementPartMaterial'>) {
+/**
+ * Other variant is not stored; a scrap or rebuild record has one when a replacement part was chosen.
+ * Quantity scrap reuses `replacementPartMaterial` for the scrapped part, so it never has one.
+ */
+export function isOtherVariant(
+	record: Pick<ScrapRecordRow, 'dmc' | 'replacementPartMaterial'>
+): boolean {
+	if (record.dmc.startsWith(quantityScrapLabelPrefix)) return false;
 	return Boolean(record.replacementPartMaterial?.trim());
 }
 

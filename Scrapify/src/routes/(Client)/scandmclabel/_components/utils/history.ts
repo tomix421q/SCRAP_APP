@@ -16,7 +16,10 @@ export type OperatorHistoryRecord = {
 	scrapCode: string | null;
 	scrapCodeDescription: string | null;
 	isOtherComponent: boolean;
-	/** Part number of the replacement part (Other variant); null when none was chosen. */
+	/**
+	 * Part number of the replacement part (Other variant); null when none was chosen.
+	 * In quantity scrap it is the scrapped part instead, never an Other variant.
+	 */
 	replacementPartMaterial: string | null;
 	quantity: number;
 	qadExported: boolean;

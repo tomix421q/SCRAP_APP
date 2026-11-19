@@ -102,7 +102,14 @@
 			<Badge variant="outline" class="text-muted-foreground">Iný komponent</Badge>
 		{/if}
 		{#if record.replacementPartMaterial}
-			<Badge variant="default">Iný variant: {record.replacementPartMaterial}</Badge>
+			<!-- Quantity scrap stores the scrapped part here, not an Other variant -->
+			{#if record.mode === 'Quantity scrap'}
+				<Badge variant="outline" class="text-muted-foreground">
+					Diel: {record.replacementPartMaterial}
+				</Badge>
+			{:else}
+				<Badge variant="default">Iný variant: {record.replacementPartMaterial}</Badge>
+			{/if}
 		{/if}
 	</div>
 {/snippet}

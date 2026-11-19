@@ -174,18 +174,25 @@ describe('scrapRecords load: existing filters', () => {
 });
 
 describe('scrapRecords load: other variant and replacement part filters', () => {
-	it('otherVariant=true keeps records with a replacement part', async () => {
+	it('otherVariant=true keeps scrap and rebuild records with a replacement part', async () => {
 		await runLoad('otherVariant=true');
 		expect(findManyWhere().AND).toEqual([
+			{ NOT: { dmc: { startsWith: 'QNT-SCRAP-' } } },
 			{ replacementPartMaterial: { not: null } },
 			{ NOT: { replacementPartMaterial: '' } }
 		]);
 	});
 
-	it('otherVariant=false keeps records without a replacement part (empty string counts as none)', async () => {
+	it('otherVariant=false keeps records without a replacement part and every quantity scrap', async () => {
 		await runLoad('otherVariant=false');
 		expect(findManyWhere().AND).toEqual([
-			{ OR: [{ replacementPartMaterial: null }, { replacementPartMaterial: '' }] }
+			{
+				OR: [
+					{ dmc: { startsWith: 'QNT-SCRAP-' } },
+					{ replacementPartMaterial: null },
+					{ replacementPartMaterial: '' }
+				]
+			}
 		]);
 	});
 
@@ -213,7 +220,13 @@ describe('scrapRecords load: other variant and replacement part filters', () => 
 	it('new filters also narrow every category summary', async () => {
 		await runLoad('otherVariant=false&replacementPart=777');
 		const expected = [
-			{ OR: [{ replacementPartMaterial: null }, { replacementPartMaterial: '' }] },
+			{
+				OR: [
+					{ dmc: { startsWith: 'QNT-SCRAP-' } },
+					{ replacementPartMaterial: null },
+					{ replacementPartMaterial: '' }
+				]
+			},
 			{ replacementPartMaterial: { contains: '777' } }
 		];
 		for (const where of countWheres()) {

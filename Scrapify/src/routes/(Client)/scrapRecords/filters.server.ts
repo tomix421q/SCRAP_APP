@@ -96,18 +96,24 @@ export function parseScrapRecordFilters(params: URLSearchParams): ScrapRecordFil
 		});
 	}
 	if (isOtherComponent !== undefined) commonConditions.push({ isOtherComponent });
-	// Other variant is derived: a record has one when a replacement part was chosen.
+	// Other variant is derived: a scrap or rebuild record has one when a replacement part was chosen.
+	// Quantity scrap stores the scrapped part there, so it never counts as Other variant.
 	// An empty string is treated the same as null. SQL Server ignores trailing spaces
 	// in `=`, so whitespace-only values also match '' (consistent with `isOtherVariant`).
 	if (isOtherVariant === true) {
 		commonConditions.push(
+			{ NOT: { dmc: { startsWith: quantityScrapLabelPrefix } } },
 			{ replacementPartMaterial: { not: null } },
 			{ NOT: { replacementPartMaterial: '' } }
 		);
 	}
 	if (isOtherVariant === false) {
 		commonConditions.push({
-			OR: [{ replacementPartMaterial: null }, { replacementPartMaterial: '' }]
+			OR: [
+				{ dmc: { startsWith: quantityScrapLabelPrefix } },
+				{ replacementPartMaterial: null },
+				{ replacementPartMaterial: '' }
+			]
 		});
 	}
 	if (replacementPart) {
