@@ -110,7 +110,7 @@
 						pattern="\d+"
 						name="cardId"
 						bind:value={cardId}
-						class="inputNormalize max-w-[240px]"
+						class="inputNormalize max-w-[300px]"
 						required
 					/>
 				</div>

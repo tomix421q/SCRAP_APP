@@ -91,18 +91,3 @@ const numberFormatter = new Intl.NumberFormat('sk-SK', { maximumFractionDigits: 
 export function formatNumber(value: number): string {
 	return numberFormatter.format(value);
 }
-
-/**
- * Case-insensitive match of whitespace-separated query words appearing in `text` in order.
- * Client-side counterpart of the SQL pattern built by `toFuzzyPattern`; an empty query matches.
- */
-export function matchesFuzzy(text: string, query: string): boolean {
-	const haystack = text.toLocaleLowerCase();
-	let from = 0;
-	for (const word of query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean)) {
-		const at = haystack.indexOf(word, from);
-		if (at === -1) return false;
-		from = at + word.length;
-	}
-	return true;
-}

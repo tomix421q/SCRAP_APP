@@ -13,7 +13,6 @@
 	import ToNavigateBtn from '@/components/atoms/ToNavigateBtn.svelte';
 	import Separator from '@/components/ui/separator/separator.svelte';
 	import { dateTimmeUTCformatter } from '@/utils/index';
-	import CardFooter from '@/components/ui/card/card-footer.svelte';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 	import EditOperatorDialog from './_components/EditOperatorDialog.svelte';
 	import { summarizeAllowedLabels } from './_components/allowedLabels';
@@ -125,19 +124,16 @@
 								{/each}
 							</article>
 							<Separator class="mb-4" />
-							<article class="flex flex-col">
-								<span class="text-primary!">Created by</span><span class="text-muted"
-									>{operator.createdBy}</span
-								>
-							</article>
-							<article>
-								<span class="text-muted">{dateTimmeUTCformatter(operator.createdAt)}</span>
-							</article>
+							<div class="flex flex-col text-xs text-muted-foreground">
+								<span class="text-primary!">Created by</span>
+								<span class="break-all">{operator.createdBy}</span>
+								<span>{dateTimmeUTCformatter(operator.createdAt)}</span>
+							</div>
+							<div class="mt-3 flex items-center justify-end gap-1">
+								<EditOperatorDialog {operator} labels={labelGroups} />
+								<DeleteBtn id={operator.id} actionRoute={'?/deleteOperator'} />
+							</div>
 						</CardContent>
-						<CardFooter class="flex justify-end items-center gap-1 -mt-15">
-							<EditOperatorDialog {operator} labels={labelGroups} />
-							<DeleteBtn id={operator.id} actionRoute={'?/deleteOperator'} />
-						</CardFooter>
 					</Card>
 				{/each}
 			</div>

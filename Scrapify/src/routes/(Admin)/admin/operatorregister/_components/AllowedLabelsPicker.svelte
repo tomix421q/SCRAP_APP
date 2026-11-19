@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { SvelteSet } from 'svelte/reactivity';
 	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
-	import Input from '@/components/ui/input/input.svelte';
+	import Combobox from '@/components/atoms/Combobox.svelte';
 	import Label from '@/components/ui/label/label.svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import { Badge } from '@/components/ui/badge';
-	import { matchesFuzzy } from '@/utils/index';
+	import Separator from '@/components/ui/separator/separator.svelte';
 	import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
 	import { groupLabelsByProject, type AllowedLabel } from './allowedLabels';
 
@@ -22,17 +22,16 @@
 		idPrefix: string;
 	} = $props();
 
-	let filter = $state('');
+	let projectFilter = $state('');
 
-	// Bulk selection works on whole projects, including labels hidden by the filter.
 	const projectGroups = $derived(groupLabelsByProject(labels));
+	// The empty id resets the filter: Combobox then shows `firstText` ("All projects").
+	const projectItems = $derived([
+		{ id: '', name: 'All projects' },
+		...projectGroups.map(({ project }) => ({ id: project, name: project }))
+	]);
 	const visibleGroups = $derived(
-		projectGroups
-			.map((group) => ({
-				...group,
-				visible: group.labels.filter((label) => matchesFuzzy(label.code, filter))
-			}))
-			.filter((group) => group.visible.length > 0)
+		projectFilter ? projectGroups.filter((group) => group.project === projectFilter) : projectGroups
 	);
 
 	const selectedCount = (group: { labels: AllowedLabel[] }) =>
@@ -51,7 +50,14 @@
 	}
 </script>
 
-<section class="flex flex-col gap-3">
+<section class="flex flex-col gap-4" aria-labelledby="{idPrefix}-heading">
+	<Separator />
+	<div>
+		<h3 id="{idPrefix}-heading" class="text-lg font-semibold">Permissions</h3>
+		<p class="text-sm text-muted-foreground">
+			Choose which masks (labels) this operator is allowed to scan.
+		</p>
+	</div>
 	<div class="flex items-center gap-2">
 		<Checkbox id="{idPrefix}-all" bind:checked={allLabels} />
 		<Label for="{idPrefix}-all">Všetky masky</Label>
@@ -60,15 +66,19 @@
 
 	<fieldset disabled={allLabels} class="flex flex-col gap-3 disabled:opacity-50">
 		<legend class="sr-only">Allowed labels</legend>
-		<Input
-			type="search"
-			bind:value={filter}
-			placeholder="Filter by code"
-			aria-label="Filter labels by code"
-			class="inputNormalize"
-		/>
+		<div class="flex items-center justify-between gap-2">
+			<Label for="{idPrefix}-project" class="shrink-0">Project</Label>
+			<Combobox
+				dataBox={projectItems}
+				bind:value={projectFilter}
+				id="{idPrefix}-project"
+				width="xs"
+				firstText="All projects"
+				disabled={allLabels}
+			/>
+		</div>
 
-		<div class="flex max-h-[40dvh] flex-col gap-4 overflow-y-auto pr-1">
+		<div class="flex max-h-[40dvh] flex-col gap-4 overflow-y-auto">
 			{#each visibleGroups as group (group.project)}
 				{@const selected = selectedCount(group)}
 				<article class="flex flex-col gap-2">
@@ -97,7 +107,7 @@
 						</div>
 					</header>
 					<ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-						{#each group.visible as label (label.id)}
+						{#each group.labels as label (label.id)}
 							{@const checkboxId = `${idPrefix}-label-${label.id}`}
 							<li class="flex items-center gap-2">
 								<Checkbox
@@ -115,7 +125,7 @@
 					</ul>
 				</article>
 			{:else}
-				<p class="text-sm text-muted-foreground">No labels match the filter.</p>
+				<p class="text-sm text-muted-foreground">No labels found.</p>
 			{/each}
 		</div>
 	</fieldset>

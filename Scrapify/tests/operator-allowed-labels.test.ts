@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { matchesFuzzy } from '../src/lib/utils/index';
 import {
 	groupLabelsByProject,
 	summarizeAllowedLabels
@@ -51,17 +50,5 @@ describe('groupLabelsByProject', () => {
 			['X540', [4, 1]],
 			['Bez projektu', [2]]
 		]);
-	});
-});
-
-describe('matchesFuzzy', () => {
-	it.each([
-		['QNT-SCRAP-X4', '', true],
-		['QNT-SCRAP-X4', 'x4', true],
-		['QNT-SCRAP-X4', 'qnt x4', true],
-		['QNT-SCRAP-X4', 'x4 qnt', false],
-		['QNT-SCRAP-X4', 'x5', false]
-	])('%s matches "%s": %s', (text, query, expected) => {
-		expect(matchesFuzzy(text, query)).toBe(expected);
 	});
 });
