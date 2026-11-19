@@ -550,12 +550,8 @@
 					</article>
 
 					<!-- Sides (from the DMC) for which this group is hidden in rebuild mode -->
-					<article
-						class="flex flex-col mt-3 justify-between w-fit lg:items-center gap-2 lg:flex-row"
-					>
-						<Label class="text-sm md:text-lg whitespace-nowrap lg:min-w-[200px]"
-							>Hide in rebuild for:</Label
-						>
+					<article class="flex flex-col mt-3 w-fit gap-2">
+						<Label class="text-sm md:text-lg whitespace-nowrap">Hide in rebuild for:</Label>
 						<div class="flex gap-4">
 							{#each PART_SIDES as side (side)}
 								<div class="flex items-center gap-1.5">
@@ -695,7 +691,7 @@
 						</Button>
 					</div>
 				</section>
-				<p class="mt-2 text-sm text-muted-foreground lg:ml-[208px]">
+				<p class="mt-2 text-sm text-chart-warning lg:ml-[208px]">
 					Bez QAD identity sa part group zobrazí iba v quantity scrape.
 				</p>
 			</article>
