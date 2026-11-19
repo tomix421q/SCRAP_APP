@@ -1,5 +1,7 @@
 import { auth } from '@/auth/auth';
 import prismaClient from '@/server/prisma';
+import { fail, type ActionFailure } from '@sveltejs/kit';
+import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import type { LoggerActionType, LoggerEntityType, Role } from './types';
 
 export const toFuzzyPattern = (str: string) => {
@@ -31,6 +33,54 @@ export async function hasRoleServer({ request }: { request: Request }, roles: re
 		select: { role: true }
 	});
 	return dbUser !== null && roles.includes(dbUser.role as Role);
+}
+
+export type RoleGuardResult<R extends Role> =
+	| { ok: true; user: { id: string; email: string; name: string; role: R } }
+	| { ok: false; failure: ActionFailure<ResultInfoData> };
+
+/**
+ * Guards a form action: 401 when nobody is signed in, 403 when the DB role is not in `roles`.
+ * On success returns the signed-in user with the narrowed role, so callers can use it
+ * (e.g. as `createdBy`) instead of trusting form input.
+ *
+ * Usage: `const access = await requireRole(event, ['ADMIN']); if (!access.ok) return access.failure;`
+ */
+export async function requireRole<const R extends Role>(
+	{ request }: { request: Request },
+	roles: readonly R[]
+): Promise<RoleGuardResult<R>> {
+	const unauthorized = (): RoleGuardResult<R> => ({
+		ok: false,
+		failure: fail(401, {
+			success: false,
+			message: 'Unauthorized',
+			error: 'You must be signed in.'
+		})
+	});
+
+	const { user } = await getUserServer({ request });
+	if (!user) return unauthorized();
+
+	const dbUser = await prismaClient.user.findUnique({
+		where: { id: user.id },
+		select: { id: true, email: true, name: true, role: true }
+	});
+	if (!dbUser) return unauthorized();
+
+	const isAllowed = (role: string): role is R => (roles as readonly string[]).includes(role);
+	if (!isAllowed(dbUser.role)) {
+		return {
+			ok: false,
+			failure: fail(403, {
+				success: false,
+				message: 'Forbidden',
+				error: 'You do not have permission.'
+			})
+		};
+	}
+
+	return { ok: true, user: { ...dbUser, role: dbUser.role } };
 }
 
 export async function writeToLogger({

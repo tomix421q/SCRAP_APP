@@ -19,23 +19,14 @@
 	type FormDataType = {
 		fullName: string;
 		cardId: number | undefined;
-		createdBy: string;
 	};
 
 	let { form, data }: PageProps = $props();
-	let { user } = $derived(data);
 	let isSubmitting = $state(false);
 
 	let formData = $state<FormDataType>({
 		fullName: '',
-		cardId: undefined,
-		createdBy: ''
-	});
-
-	$effect(() => {
-		if (user) {
-			formData.createdBy = user.email;
-		}
+		cardId: undefined
 	});
 
 	// $inspect(data.allOperatorsPromise);
@@ -55,7 +46,7 @@
 					return async ({ update }) => {
 						await update();
 						isSubmitting = false;
-						formData = { cardId: undefined, fullName: '', createdBy: formData.createdBy };
+						formData = { cardId: undefined, fullName: '' };
 					};
 				}}
 			>
@@ -65,7 +56,6 @@
 				</div>
 
 				<!--  -->
-				<input type="text" hidden name="createdBy" bind:value={formData.createdBy} />
 				<article class="flex justify-between items-center gap-2">
 					<Label for="fullName" class="lg:text-xl">Name</Label>
 					<Input

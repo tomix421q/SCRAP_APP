@@ -2,7 +2,15 @@ import { fail, error, type Actions, type ActionFailure } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import prismaClient from '@/server/prisma';
-import { writeToLogger } from '@/utils/serverHelp';
+import { requireRole, writeToLogger } from '@/utils/serverHelp';
+import { OPERATOR_MANAGE_ROLES } from '@/utils/adminAccess';
+
+/** Readable message for an unknown error, including the Prisma error code when present. */
+function describeError(err: unknown): string {
+	if (!(err instanceof Error)) return 'Unknown error';
+	const code = 'code' in err && typeof err.code === 'string' ? ` ${err.code}` : '';
+	return `${err.message}${code}`;
+}
 
 export const load = (async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
@@ -22,17 +30,19 @@ export const load = (async (event) => {
 		})();
 
 		return { allOperatorsPromise, currentPage: page };
-	} catch (err: any) {
-		throw error(500, { message: `${err}` });
+	} catch (err: unknown) {
+		throw error(500, { message: describeError(err) });
 	}
 }) satisfies PageServerLoad;
 
 export const actions: Actions = {
 	createOperator: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
+		const access = await requireRole(event, OPERATOR_MANAGE_ROLES);
+		if (!access.ok) return access.failure;
+
 		const formData = await event.request.formData();
-		const opName = formData.get('fullName') as string;
-		const cardId = formData.get('cardId') as string;
-		const createdBy = formData.get('createdBy') as string;
+		const opName = String(formData.get('fullName') ?? '');
+		const cardId = String(formData.get('cardId') ?? '');
 
 		if (cardId.length < 5 || opName.length < 5) {
 			return fail(400, {
@@ -54,10 +64,10 @@ export const actions: Actions = {
 				data: {
 					cardId: Number(cardId),
 					fullName: opName,
-					createdBy: createdBy
+					createdBy: access.user.email
 				}
 			});
-			writeToLogger({
+			await writeToLogger({
 				request: event.request,
 				action: 'CREATE',
 				entityType: 'Operator',
@@ -67,15 +77,18 @@ export const actions: Actions = {
 				success: true,
 				message: `Operator named: ${createOperatorInDb.fullName} with card id ${createOperatorInDb.cardId} was created successfully.`
 			};
-		} catch (error: any) {
+		} catch (err: unknown) {
 			return {
 				success: false,
 				message: `Something is wrong :( Please try again later.`,
-				error: error.message + ' ' + error.code || 'Unknown error'
+				error: describeError(err)
 			};
 		}
 	},
 	deleteOperator: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
+		const access = await requireRole(event, OPERATOR_MANAGE_ROLES);
+		if (!access.ok) return access.failure;
+
 		const formData = await event.request.formData();
 		const { deleteId } = Object.fromEntries(formData);
 
@@ -94,7 +107,7 @@ export const actions: Actions = {
 				});
 			} else {
 				const deleteOp = await prismaClient.operator.delete({ where: { id: findOperator.id } });
-				writeToLogger({
+				await writeToLogger({
 					request: event.request,
 					action: 'DELETE',
 					entityType: 'Operator',
@@ -105,11 +118,11 @@ export const actions: Actions = {
 					message: `Successful deleted id: ${findOperator.id} with name ${findOperator.fullName} and cardId ${findOperator.cardId}.`
 				};
 			}
-		} catch (error: any) {
+		} catch (err: unknown) {
 			return {
 				success: false,
 				message: 'Something is wrong, Please try again later.',
-				error: error.message + ' ' + error.code || 'Unknown error'
+				error: describeError(err)
 			};
 		}
 	}
