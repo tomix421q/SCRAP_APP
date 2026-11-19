@@ -10,6 +10,7 @@ const prismaMock = vi.hoisted(() => ({
 		update: vi.fn(),
 		delete: vi.fn()
 	},
+	labelGroup: { findMany: vi.fn() },
 	user: { findUnique: vi.fn() },
 	activityLogs: { create: vi.fn() }
 }));
@@ -29,9 +30,11 @@ vi.mock('@/auth/auth', () => ({
 
 import { actions } from '../src/routes/(Admin)/admin/operatorregister/+page.server';
 
-function postEvent(action: string, fields: Record<string, string>) {
+function postEvent(action: string, fields: Record<string, string | string[]>) {
 	const formData = new FormData();
-	for (const [key, value] of Object.entries(fields)) formData.set(key, value);
+	for (const [key, value] of Object.entries(fields)) {
+		for (const item of Array.isArray(value) ? value : [value]) formData.append(key, item);
+	}
 	const request = new Request(`http://localhost/admin/operatorregister?/${action}`, {
 		method: 'POST',
 		body: formData
@@ -52,6 +55,10 @@ beforeEach(() => {
 	prismaMock.operator.delete.mockResolvedValue({ id: 7 });
 	prismaMock.operator.update.mockImplementation(async ({ where, data }) => ({ ...where, ...data }));
 	prismaMock.activityLogs.create.mockResolvedValue({});
+	// Every requested label exists unless a test says otherwise.
+	prismaMock.labelGroup.findMany.mockImplementation(async ({ where }) =>
+		(where.id.in as number[]).map((id) => ({ id }))
+	);
 });
 
 describe('createOperator action', () => {
@@ -172,7 +179,12 @@ describe('updateOperator action', () => {
 			expect(result).toMatchObject({ success: true });
 			expect(prismaMock.operator.update).toHaveBeenCalledWith({
 				where: { id: 7 },
-				data: { fullName: 'Jane Doe Smith', cardId: 654321 }
+				data: {
+					fullName: 'Jane Doe Smith',
+					cardId: 654321,
+					hasLabelRestriction: false,
+					allowedLabels: { set: [] }
+				}
 			});
 			expect(prismaMock.activityLogs.create).toHaveBeenCalledWith({
 				data: { userId: 'u1', action: 'EDIT', entityType: 'Operator', entityId: 7 }
@@ -242,5 +254,77 @@ describe('updateOperator action', () => {
 			status: 500,
 			data: { success: false, error: 'Connection lost' }
 		});
+	});
+
+	it('saves the label restriction and allowed labels in one update', async () => {
+		const result = await actions.updateOperator(
+			postEvent('updateOperator', {
+				...updateFields,
+				hasLabelRestriction: 'on',
+				allowedLabelIds: ['3', '5', '3']
+			})
+		);
+
+		expect(result).toMatchObject({ success: true });
+		expect(prismaMock.labelGroup.findMany).toHaveBeenCalledWith({
+			where: { id: { in: [3, 5] } },
+			select: { id: true }
+		});
+		expect(prismaMock.operator.update).toHaveBeenCalledTimes(1);
+		expect(prismaMock.operator.update).toHaveBeenCalledWith({
+			where: { id: 7 },
+			data: {
+				fullName: 'Jane Doe Smith',
+				cardId: 654321,
+				hasLabelRestriction: true,
+				allowedLabels: { set: [{ id: 3 }, { id: 5 }] }
+			}
+		});
+	});
+
+	it('keeps the selected labels when the restriction is off', async () => {
+		await actions.updateOperator(
+			postEvent('updateOperator', { ...updateFields, allowedLabelIds: ['4'] })
+		);
+
+		expect(prismaMock.operator.update).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({
+					hasLabelRestriction: false,
+					allowedLabels: { set: [{ id: 4 }] }
+				})
+			})
+		);
+	});
+
+	it('returns 400 and writes nothing when an allowed label does not exist', async () => {
+		prismaMock.labelGroup.findMany.mockResolvedValue([{ id: 3 }]);
+		const result = await actions.updateOperator(
+			postEvent('updateOperator', {
+				...updateFields,
+				hasLabelRestriction: 'on',
+				allowedLabelIds: ['3', '99']
+			})
+		);
+
+		expect(result).toMatchObject({ status: 400, data: { success: false } });
+		expect(result).toHaveProperty(['data', 'error', 'allowedLabelIds']);
+		expect(prismaMock.operator.update).not.toHaveBeenCalled();
+		expect(prismaMock.activityLogs.create).not.toHaveBeenCalled();
+	});
+
+	it('returns 400 for a non-numeric allowed label id', async () => {
+		const result = await actions.updateOperator(
+			postEvent('updateOperator', { ...updateFields, allowedLabelIds: ['abc'] })
+		);
+
+		expect(result).toMatchObject({ status: 400 });
+		expect(prismaMock.operator.update).not.toHaveBeenCalled();
+	});
+
+	it('does not query labels when none are selected', async () => {
+		await actions.updateOperator(postEvent('updateOperator', updateFields));
+
+		expect(prismaMock.labelGroup.findMany).not.toHaveBeenCalled();
 	});
 });

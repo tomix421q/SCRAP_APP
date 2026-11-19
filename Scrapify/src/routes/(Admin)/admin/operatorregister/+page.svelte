@@ -16,6 +16,8 @@
 	import CardFooter from '@/components/ui/card/card-footer.svelte';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
 	import EditOperatorDialog from './_components/EditOperatorDialog.svelte';
+	import { summarizeAllowedLabels } from './_components/allowedLabels';
+	import { Badge } from '@/components/ui/badge';
 
 	type FormDataType = {
 		fullName: string;
@@ -30,7 +32,7 @@
 		cardId: undefined
 	});
 
-	// $inspect(data.allOperatorsPromise);
+	const listPromise = $derived(Promise.all([data.allOperatorsPromise, data.labelGroupsPromise]));
 </script>
 
 <ToNavigateBtn href="/admin" text="Back To Admin Panel" />
@@ -94,9 +96,9 @@
 
 	<!-- Operators list -->
 	<section>
-		{#await data.allOperatorsPromise}
+		{#await listPromise}
 			<span>Loading...</span>
-		{:then operatorList}
+		{:then [operatorList, labelGroups]}
 			<div class="flex items-center justify-between mb-6 sm:text-3xl font-semibold">
 				<h1>Operator list</h1>
 				<div>Total : <span class="text-primary">{operatorList.length}</span></div>
@@ -117,6 +119,11 @@
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
+							<article class="mb-4 flex flex-wrap gap-1" aria-label="Allowed labels">
+								{#each summarizeAllowedLabels(operator) as summary (summary)}
+									<Badge variant="outline">{summary}</Badge>
+								{/each}
+							</article>
 							<Separator class="mb-4" />
 							<article class="flex flex-col">
 								<span class="text-primary!">Created by</span><span class="text-muted"
@@ -128,7 +135,7 @@
 							</article>
 						</CardContent>
 						<CardFooter class="flex justify-end items-center gap-1 -mt-15">
-							<EditOperatorDialog {operator} />
+							<EditOperatorDialog {operator} labels={labelGroups} />
 							<DeleteBtn id={operator.id} actionRoute={'?/deleteOperator'} />
 						</CardFooter>
 					</Card>

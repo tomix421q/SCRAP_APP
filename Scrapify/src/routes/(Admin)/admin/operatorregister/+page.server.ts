@@ -8,24 +8,26 @@ import { describeError, errorCode } from '@/utils/describeError';
 import { createOperatorSchema, updateOperatorSchema } from '@/utils/zod';
 import type { ZodError } from 'zod';
 
+const labelSelect = { id: true, code: true, vProject: true } as const;
+
 export const load = (async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
 	const limit = 50;
 	const skip = (page - 1) * limit;
 
 	try {
-		const allOperatorsPromise = (async () => {
-			// await sleep(5000);
-			return prismaClient.operator.findMany({
-				skip: skip,
-				take: limit,
-				orderBy: {
-					createdAt: 'desc' // Odporúčam zoradenie pre stránkovanie
-				}
-			});
-		})();
+		const allOperatorsPromise = prismaClient.operator.findMany({
+			skip: skip,
+			take: limit,
+			orderBy: { createdAt: 'desc' },
+			include: { allowedLabels: { select: labelSelect } }
+		});
+		const labelGroupsPromise = prismaClient.labelGroup.findMany({
+			select: labelSelect,
+			orderBy: [{ vProject: 'asc' }, { code: 'asc' }]
+		});
 
-		return { allOperatorsPromise, currentPage: page };
+		return { allOperatorsPromise, labelGroupsPromise, currentPage: page };
 	} catch (err: unknown) {
 		throw error(500, { message: describeError(err) });
 	}
@@ -43,6 +45,17 @@ const duplicateCardId = (cardId: number) =>
 		success: false,
 		message: `Card ID ${cardId} is already used by another operator.`
 	});
+
+/** Returns the ids from `labelIds` that have no `LabelGroup` row. */
+async function findMissingLabelIds(labelIds: number[]): Promise<number[]> {
+	if (labelIds.length === 0) return [];
+	const found = await prismaClient.labelGroup.findMany({
+		where: { id: { in: labelIds } },
+		select: { id: true }
+	});
+	const foundIds = new Set(found.map((label) => label.id));
+	return labelIds.filter((labelId) => !foundIds.has(labelId));
+}
 
 const unexpectedFailure = (err: unknown) =>
 	fail(500, {
@@ -85,14 +98,32 @@ export const actions: Actions = {
 		if (!access.ok) return access.failure;
 
 		const formData = await event.request.formData();
-		const parsed = updateOperatorSchema.safeParse(Object.fromEntries(formData));
+		const parsed = updateOperatorSchema.safeParse({
+			...Object.fromEntries(formData),
+			allowedLabelIds: formData.getAll('allowedLabelIds')
+		});
 		if (!parsed.success) return validationFailure(parsed.error);
-		const { id, fullName, cardId } = parsed.data;
+		const { id, fullName, cardId, hasLabelRestriction, allowedLabelIds } = parsed.data;
 
 		try {
+			const missingLabelIds = await findMissingLabelIds(allowedLabelIds);
+			if (missingLabelIds.length > 0) {
+				return fail(400, {
+					success: false,
+					message: 'Validation error',
+					error: { allowedLabelIds: [`Labels not found: ${missingLabelIds.join(', ')}.`] }
+				});
+			}
+
+			// The selection is saved even without the restriction, so it is kept for later.
 			const updated = await prismaClient.operator.update({
 				where: { id },
-				data: { fullName, cardId }
+				data: {
+					fullName,
+					cardId,
+					hasLabelRestriction,
+					allowedLabels: { set: allowedLabelIds.map((labelId) => ({ id: labelId })) }
+				}
 			});
 			await writeToLogger({
 				request: event.request,

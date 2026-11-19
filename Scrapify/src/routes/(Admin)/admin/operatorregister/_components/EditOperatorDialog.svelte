@@ -10,20 +10,35 @@
 	import Label from '@/components/ui/label/label.svelte';
 	import ResultInfo from '@/components/molecules/ResultInfo.svelte';
 	import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
+	import { SvelteSet } from 'svelte/reactivity';
+	import AllowedLabelsPicker from './AllowedLabelsPicker.svelte';
+	import type { AllowedLabel, OperatorLabelAccess } from './allowedLabels';
 
-	let { operator }: { operator: Pick<Operator, 'id' | 'fullName' | 'cardId'> } = $props();
+	let {
+		operator,
+		labels
+	}: {
+		operator: Pick<Operator, 'id' | 'fullName' | 'cardId'> & OperatorLabelAccess;
+		/** Every `LabelGroup` the operator can be allowed. */
+		labels: readonly AllowedLabel[];
+	} = $props();
 
 	let open = $state(false);
 	let isSubmitting = $state(false);
 	let fullName = $state('');
 	let cardId = $state('');
 	let result = $state<ResultInfoData | null>(null);
+	let allLabels = $state(true);
+	const selectedIds = new SvelteSet<number>();
 
 	// Start every opening from the saved values, so a cancelled edit leaves no trace.
 	function handleOpenChange(isOpen: boolean) {
 		if (!isOpen) return;
 		fullName = operator.fullName;
 		cardId = String(operator.cardId);
+		allLabels = !operator.hasLabelRestriction;
+		selectedIds.clear();
+		for (const label of operator.allowedLabels) selectedIds.add(label.id);
 		result = null;
 	}
 
@@ -38,7 +53,7 @@
 	>
 		<Pencil class="size-5! text-primary" />
 	</Dialog.Trigger>
-	<Dialog.Content class="cardNormalize">
+	<Dialog.Content class="cardNormalize max-h-[90dvh] overflow-y-auto">
 		<Dialog.Header>
 			<Dialog.Title>Edit operator</Dialog.Title>
 			<Dialog.Description>{operator.fullName} · {operator.cardId}</Dialog.Description>
@@ -103,6 +118,12 @@
 					Existing scrap records keep the old card ID in "Created by". They are not rewritten.
 				</p>
 			</article>
+
+			<input type="hidden" name="hasLabelRestriction" value={String(!allLabels)} />
+			{#each selectedIds as labelId (labelId)}
+				<input type="hidden" name="allowedLabelIds" value={labelId} />
+			{/each}
+			<AllowedLabelsPicker {labels} {selectedIds} bind:allLabels idPrefix={fieldId('labels')} />
 
 			<Dialog.Footer>
 				<Dialog.Close class={buttonVariants({ variant: 'outline' })} type="button">

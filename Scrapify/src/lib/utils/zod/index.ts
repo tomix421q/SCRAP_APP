@@ -260,6 +260,17 @@ export const createOperatorSchema = z.object({
 export type CreateOperatorInput = z.infer<typeof createOperatorSchema>;
 
 export const updateOperatorSchema = createOperatorSchema.extend({
-	id: z.coerce.number().int().positive()
+	id: z.coerce.number().int().positive(),
+	// An unchecked checkbox is missing from FormData, so a missing value means `false`.
+	hasLabelRestriction: z.preprocess((val) => {
+		if (typeof val === 'string') {
+			return val.toLocaleLowerCase() === 'true' || val === 'on' || val === '1';
+		}
+		return Boolean(val);
+	}, z.boolean()),
+	allowedLabelIds: z
+		.array(z.coerce.number().int().positive('Label id must be a positive number.'))
+		.default([])
+		.transform((ids) => [...new Set(ids)])
 });
 export type UpdateOperatorInput = z.infer<typeof updateOperatorSchema>;
