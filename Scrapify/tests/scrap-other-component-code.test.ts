@@ -405,29 +405,30 @@ describe('part group hidden in rebuild for a side', () => {
 
 describe('part group without QAD identity', () => {
 	const NO_QAD = 17;
-	const noQadLabel = {
+	const labelWithQad = (qadIdentity: string | null) => ({
 		...dmcLabel,
 		groups: [
 			...dmcLabel.groups,
 			{
 				id: NO_QAD,
-				qadIdentity: '  ',
+				qadIdentity,
 				isRebuild: false,
 				interfaceName: 'No QAD',
 				materials: [],
 				scrapCodes: [code('SA710', 'Missing')]
 			}
 		]
-	};
-
-	beforeEach(() => {
-		prismaMock.labelGroup.findMany.mockResolvedValue([noQadLabel]);
 	});
 
-	it.each([true, false])('rejects its row when isRebuild=%s', async (isRebuild) => {
-		const result = await saveScrap(isRebuild, [row(NO_QAD, { selectedScrapCode: 'SA710' })]);
-
-		expect(result).toMatchObject({ status: 400, data: { success: false } });
-		expect(prismaMock.scrapRecord.createMany).not.toHaveBeenCalled();
-	});
+	it.each([null, '', '  '])(
+		'rejects its row when qadIdentity is %j (scrap and rebuild)',
+		async (qad) => {
+			prismaMock.labelGroup.findMany.mockResolvedValue([labelWithQad(qad)]);
+			for (const isRebuild of [true, false]) {
+				const result = await saveScrap(isRebuild, [row(NO_QAD, { selectedScrapCode: 'SA710' })]);
+				expect(result).toMatchObject({ status: 400, data: { success: false } });
+			}
+			expect(prismaMock.scrapRecord.createMany).not.toHaveBeenCalled();
+		}
+	);
 });
