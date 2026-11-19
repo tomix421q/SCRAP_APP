@@ -16,6 +16,8 @@ type GroupFixture = {
 	otherCode?: string;
 	cannotBeMainReason?: boolean;
 	hiddenInScrap?: boolean;
+	hiddenInRebuildRR?: boolean;
+	qadIdentity?: string | null;
 };
 
 function group({
@@ -24,7 +26,9 @@ function group({
 	isRebuild,
 	otherCode,
 	cannotBeMainReason = false,
-	hiddenInScrap = false
+	hiddenInScrap = false,
+	hiddenInRebuildRR = false,
+	qadIdentity = 'QAD1'
 }: GroupFixture) {
 	const scrapCodes = [
 		{ id: id * 10, partGroupId: id, code: `R${id}`, description: 'Reason', isOtherComponent: false }
@@ -47,9 +51,9 @@ function group({
 		hiddenInScrap,
 		hiddenInRebuildFR: false,
 		hiddenInRebuildFL: false,
-		hiddenInRebuildRR: false,
+		hiddenInRebuildRR,
 		hiddenInRebuildRL: false,
-		qadIdentity: null,
+		qadIdentity,
 		vProject: 'PRJ1',
 		photoFile: null,
 		createdAt: new Date(),
@@ -59,7 +63,11 @@ function group({
 	};
 }
 
-function managerWith(groups: GroupFixture[], mode: 'rebuild' | 'scrap' | 'qntScrap') {
+function managerWith(
+	groups: GroupFixture[],
+	mode: 'rebuild' | 'scrap' | 'qntScrap',
+	barcode = 'ABC123'
+) {
 	const manager = new ScrapManager();
 	const payload = {
 		label: 'ABC123',
@@ -72,7 +80,7 @@ function managerWith(groups: GroupFixture[], mode: 'rebuild' | 'scrap' | 'qntScr
 			groups: groups.map(group)
 		}
 	} as ScanInitPayload;
-	manager.init(payload, 'ABC123');
+	manager.init(payload, barcode);
 	manager.setMode(mode);
 	return manager;
 }
@@ -321,5 +329,75 @@ describe('part group hidden in scrap', () => {
 
 		expect(manager.visibleRows).toEqual([]);
 		expect(manager.canSubmit).toBe(false);
+	});
+});
+
+describe('part group hidden in rebuild for a side', () => {
+	const label: GroupFixture[] = [
+		{ id: MAIN_CARRIER, name: 'Main carrier', isRebuild: true, otherCode: 'SA850' },
+		{
+			id: MIDDFIELD,
+			name: 'Middfield',
+			isRebuild: true,
+			otherCode: 'SA860',
+			hiddenInRebuildRR: true
+		},
+		{ id: BELTLINE, name: 'Beltline', isRebuild: false }
+	];
+	const ids = (manager: ScrapManager) => manager.visibleRows.map((row) => row.groupId);
+
+	it('leaves the group out of the rebuild form for that side only', () => {
+		expect(ids(managerWith(label, 'rebuild', 'ABCRR123'))).toEqual([MAIN_CARRIER, BELTLINE]);
+		expect(ids(managerWith(label, 'rebuild', 'abcrr123'))).toEqual([MAIN_CARRIER, BELTLINE]);
+		expect(ids(managerWith(label, 'rebuild', 'ABCFL123'))).toHaveLength(3);
+	});
+
+	it('keeps every group when the DMC has no side or ambiguous sides', () => {
+		expect(ids(managerWith(label, 'rebuild', 'ABC123'))).toHaveLength(3);
+		expect(ids(managerWith(label, 'rebuild', 'ABCRRFL123'))).toHaveLength(3);
+	});
+
+	it('does not change scrap or quantity scrap', () => {
+		expect(ids(managerWith(label, 'scrap', 'ABCRR123'))).toHaveLength(3);
+		expect(ids(managerWith(label, 'qntScrap', 'ABCRR123'))).toHaveLength(3);
+	});
+
+	it('does not auto-mark the hidden group as other component of the main reason', () => {
+		const manager = managerWith(label, 'rebuild', 'ABCRR123');
+		manager.selectScrap(MAIN_CARRIER, `R${MAIN_CARRIER}`);
+
+		expect(manager.relevantPayload.map((row) => row.groupId)).toEqual([MAIN_CARRIER]);
+		expect(manager.isMissingOtherComponentCause).toBe(false);
+	});
+
+	it('shows a message and blocks saving when no part group is left', () => {
+		const manager = managerWith(
+			label.map((g) => ({ ...g, hiddenInRebuildRR: true })),
+			'rebuild',
+			'ABCRR123'
+		);
+
+		expect(manager.visibleRows).toEqual([]);
+		expect(manager.emptyRebuildMessage).toBe('Pre stranu RR nie sú v rebuilde žiadne part groups.');
+		expect(manager.canSubmit).toBe(false);
+	});
+
+	it('has no empty message while part groups are visible or outside rebuild', () => {
+		expect(managerWith(label, 'rebuild', 'ABCRR123').emptyRebuildMessage).toBeNull();
+		expect(managerWith(label, 'scrap').emptyRebuildMessage).toBeNull();
+	});
+});
+
+describe('part group without QAD identity', () => {
+	const label: GroupFixture[] = [
+		{ id: MAIN_CARRIER, name: 'Main carrier', isRebuild: true },
+		{ id: BELTLINE, name: 'Beltline', isRebuild: false, qadIdentity: null }
+	];
+	const ids = (manager: ScrapManager) => manager.visibleRows.map((row) => row.groupId);
+
+	it('is visible only in quantity scrap', () => {
+		expect(ids(managerWith(label, 'scrap'))).toEqual([MAIN_CARRIER]);
+		expect(ids(managerWith(label, 'rebuild'))).toEqual([MAIN_CARRIER]);
+		expect(ids(managerWith(label, 'qntScrap'))).toEqual([MAIN_CARRIER, BELTLINE]);
 	});
 });

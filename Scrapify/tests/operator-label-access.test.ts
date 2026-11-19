@@ -17,7 +17,9 @@ const dmcLabel = {
 	id: 1,
 	code: 'ABC*',
 	vProject: 'X540',
-	groups: [{ id: 10, isRebuild: false, materials: [], scrapCodes: [{ code: 'S1' }] }]
+	groups: [
+		{ id: 10, qadIdentity: 'QAD1', isRebuild: false, materials: [], scrapCodes: [{ code: 'S1' }] }
+	]
 };
 const quantityLabel = {
 	id: 2,

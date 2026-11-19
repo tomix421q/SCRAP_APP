@@ -30,30 +30,35 @@ const dmcLabel = {
 	groups: [
 		{
 			id: MAIN_CARRIER,
+			qadIdentity: 'QAD1',
 			isRebuild: true,
 			materials: [],
 			scrapCodes: [code('SA100', 'Scratch'), code('SA850', 'Carrier damaged', true)]
 		},
 		{
 			id: MIDDFIELD,
+			qadIdentity: 'QAD1',
 			isRebuild: true,
 			materials: [],
 			scrapCodes: [code('SA200', 'Bent'), code('SA860', 'Middfield damaged', true)]
 		},
 		{
 			id: BELTLINE,
+			qadIdentity: 'QAD1',
 			isRebuild: false,
 			materials: [],
 			scrapCodes: [code('SA300', 'Torn')]
 		},
 		{
 			id: MA_POCKET,
+			qadIdentity: 'QAD1',
 			isRebuild: false,
 			materials: [],
 			scrapCodes: [code('SA400', 'Dent')]
 		},
 		{
 			id: FLAGGED,
+			qadIdentity: 'QAD1',
 			isRebuild: true,
 			cannotBeMainReason: true,
 			interfaceName: 'Flagged group',
@@ -67,9 +72,9 @@ function row(groupId: number, extra: Record<string, unknown> = {}) {
 	return { groupId, groupName: `Group ${groupId}`, ...extra };
 }
 
-function saveScrap(isRebuild: boolean, rows: unknown[]) {
+function saveScrap(isRebuild: boolean, rows: unknown[], dmc = 'ABC123') {
 	const body = new FormData();
-	body.set('dmc', 'ABC123');
+	body.set('dmc', dmc);
 	body.set('isRebuild', String(isRebuild));
 	body.set('operator', '4321');
 	body.set('scrapPayload', JSON.stringify(rows));
@@ -214,6 +219,7 @@ describe('an invalid cause is rejected and nothing is saved', () => {
 	it('rebuild with a cause that is not a rebuild group', async () => {
 		const smallGroupWithCode = {
 			id: BELTLINE,
+			qadIdentity: 'QAD1',
 			isRebuild: false,
 			materials: [],
 			scrapCodes: [code('SA300', 'Torn'), code('SA870', 'Beltline damaged', true)]
@@ -281,6 +287,7 @@ describe('part group hidden in scrap', () => {
 			...dmcLabel.groups,
 			{
 				id: HIDDEN,
+				qadIdentity: 'QAD1',
 				isRebuild: false,
 				hiddenInScrap: true,
 				interfaceName: 'Hidden group',
@@ -324,5 +331,103 @@ describe('part group hidden in scrap', () => {
 		const result = await saveScrap(false, [row(BELTLINE, { selectedScrapCode: 'SA300' })]);
 
 		expect(result).toMatchObject({ success: true });
+	});
+});
+
+describe('part group hidden in rebuild for a side', () => {
+	const SIDE_HIDDEN = 16;
+	const sideLabel = {
+		...dmcLabel,
+		groups: [
+			...dmcLabel.groups,
+			{
+				id: SIDE_HIDDEN,
+				qadIdentity: 'QAD1',
+				isRebuild: false,
+				hiddenInRebuildRR: true,
+				hiddenInRebuildFL: null,
+				interfaceName: 'Rear right only',
+				materials: [],
+				scrapCodes: [code('SA700', 'Torn'), code('SA880', 'Side damaged', true)]
+			}
+		]
+	};
+	const rows = [
+		row(MAIN_CARRIER, { selectedScrapCode: 'SA100' }),
+		row(SIDE_HIDDEN, { isOtherComponent: true, otherComponentCauseGroupId: MAIN_CARRIER })
+	];
+
+	beforeEach(() => {
+		prismaMock.labelGroup.findMany.mockResolvedValue([sideLabel]);
+	});
+
+	it('rejects a rebuild row of a part group hidden for the DMC side', async () => {
+		const result = await saveScrap(true, rows, 'ABCRR123');
+
+		expect(result).toMatchObject({
+			status: 400,
+			data: { success: false, error: expect.stringContaining('RR') }
+		});
+		expect(prismaMock.scrapRecord.createMany).not.toHaveBeenCalled();
+	});
+
+	it('rejects a part group hidden for the side used as the cause', async () => {
+		const result = await saveScrap(
+			true,
+			[
+				row(SIDE_HIDDEN, { selectedScrapCode: 'SA700' }),
+				row(MAIN_CARRIER, { isOtherComponent: true, otherComponentCauseGroupId: SIDE_HIDDEN })
+			],
+			'ABCrr123'
+		);
+
+		expect(result).toMatchObject({ status: 400, data: { success: false } });
+		expect(prismaMock.scrapRecord.createMany).not.toHaveBeenCalled();
+	});
+
+	it('saves when the DMC has no side, another side or ambiguous sides', async () => {
+		for (const dmc of ['ABC123', 'ABCFL123', 'ABCRRFL123']) {
+			prismaMock.scrapRecord.createMany.mockClear();
+			expect(await saveScrap(true, rows, dmc)).toMatchObject({ success: true });
+		}
+	});
+
+	it('does not apply the side rule in scrap mode', async () => {
+		const result = await saveScrap(
+			false,
+			[row(SIDE_HIDDEN, { selectedScrapCode: 'SA700' })],
+			'ABCRR123'
+		);
+
+		expect(result).toMatchObject({ success: true });
+	});
+});
+
+describe('part group without QAD identity', () => {
+	const NO_QAD = 17;
+	const noQadLabel = {
+		...dmcLabel,
+		groups: [
+			...dmcLabel.groups,
+			{
+				id: NO_QAD,
+				qadIdentity: '  ',
+				isRebuild: false,
+				interfaceName: 'No QAD',
+				materials: [],
+				scrapCodes: [code('SA710', 'Missing')]
+			}
+		]
+	};
+
+	beforeEach(() => {
+		prismaMock.labelGroup.findMany.mockResolvedValue([noQadLabel]);
+	});
+
+	it.each([true, false])('rejects its row when isRebuild=%s', async (isRebuild) => {
+		const result = await saveScrap(isRebuild, [row(NO_QAD, { selectedScrapCode: 'SA710' })]);
+
+		expect(result).toMatchObject({ status: 400, data: { success: false } });
+		expect(prismaMock.scrapRecord.createMany).not.toHaveBeenCalled();
 	});
 });

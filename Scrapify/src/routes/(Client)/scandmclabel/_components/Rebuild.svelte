@@ -23,7 +23,7 @@
 		viewStore.grid.rebuild
 	]} {GRID_MAX_W_CLASS[viewStore.grid.rebuild]}"
 >
-	{#each scrapManager.scrapPayload as row (row.groupId)}
+	{#each scrapManager.visibleRows as row (row.groupId)}
 		{@const groupDef = scrapManager.scanData?.groups.find((g) => g.id === row.groupId)}
 		{@const cannotBeMainReason = scrapManager.cannotBeMainReason(row.groupId)}
 		{@const colorOtherComponent = row.isOtherComponent ? 'bg-red-500/50 border-warning/50' : ''}
@@ -204,3 +204,8 @@
 		</div>
 	{/each}
 </div>
+{#if scrapManager.emptyRebuildMessage}
+	<p class="mx-auto text-center font-semibold text-muted-foreground">
+		{scrapManager.emptyRebuildMessage}
+	</p>
+{/if}

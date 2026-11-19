@@ -29,7 +29,7 @@
 	let gridOpen = $state(false);
 
 	let missingCodeGroupNames = $derived(
-		scrapManager.scrapPayload
+		scrapManager.visibleRows
 			.filter((row) => scrapManager.causeGroupIdsWithoutCode.includes(row.groupId))
 			.map((row) => row.interfaceName)
 	);

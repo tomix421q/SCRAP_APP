@@ -18,12 +18,14 @@ const dmcLabel = {
 	groups: [
 		{
 			id: 10,
+			qadIdentity: 'QAD1',
 			isRebuild: true,
 			materials: [{ material: 'PN-10' }],
 			scrapCodes: [{ code: 'S1' }, { code: 'S9', isOtherComponent: true }]
 		},
 		{
 			id: 11,
+			qadIdentity: 'QAD1',
 			isRebuild: false,
 			materials: [{ material: 'PN-11' }],
 			scrapCodes: [{ code: 'S2' }]

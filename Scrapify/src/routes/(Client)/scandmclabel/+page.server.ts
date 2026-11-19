@@ -3,6 +3,7 @@ import prismaClient from '@/server/prisma';
 import { fail, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { matchDmcWithMask } from '@/utils/serverHelp';
+import { describeHiddenReason, getHiddenReason } from '@/utils/partGroupVisibility';
 import { saveQuantityScrapSchema, saveScrapSchema } from '@/utils/zod';
 import { quantityScrapLabelPrefix } from '@/utils/quantityScrap';
 import { loadOperatorHistory } from './_components/utils/history.server';
@@ -246,6 +247,8 @@ export const actions = {
 			// 	});
 			// }
 
+			const visibilityContext = { mode: isRebuild ? 'rebuild' : 'scrap', dmc } as const;
+
 			for (const row of scrapPayload) {
 				const group = groupsById.get(row.groupId);
 				if (!group) {
@@ -256,12 +259,13 @@ export const actions = {
 					});
 				}
 
-				// A group the engineer hid in scrap mode can neither be scrapped nor be a cause there.
-				if (!isRebuild && group.hiddenInScrap) {
+				// A part group hidden by a visibility rule (scrap flag, missing QAD identity, rebuild side) can neither be scrapped nor be a cause.
+				const hiddenReason = getHiddenReason(group, visibilityContext);
+				if (hiddenReason) {
 					return fail(400, {
 						success: false,
 						message: 'Neplatná skupina dielov.',
-						error: `Part group ${group.interfaceName} nie je v scrap móde zapnutá.`
+						error: describeHiddenReason(hiddenReason, group.interfaceName)
 					});
 				}
 
@@ -315,11 +319,12 @@ export const actions = {
 				if (!row.isOtherComponent || row.otherComponentCauseGroupId == null) continue;
 				const causeGroup = groupsById.get(row.otherComponentCauseGroupId);
 				const causeCode = causeGroup?.scrapCodes.find((scrapCode) => scrapCode.isOtherComponent);
-				if (!isRebuild && causeGroup?.hiddenInScrap) {
+				const causeHiddenReason = causeGroup && getHiddenReason(causeGroup, visibilityContext);
+				if (causeGroup && causeHiddenReason) {
 					return fail(400, {
 						success: false,
 						message: 'Neplatná príčina iného komponentu.',
-						error: `Part group ${causeGroup.interfaceName} nie je v scrap móde zapnutá.`
+						error: describeHiddenReason(causeHiddenReason, causeGroup.interfaceName)
 					});
 				}
 				// In rebuild the cause is always the main reason, which only a rebuild group can carry.

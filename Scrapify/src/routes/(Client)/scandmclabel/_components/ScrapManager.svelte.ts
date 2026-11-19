@@ -1,4 +1,9 @@
 import type { Prisma } from '@prisma/client';
+import {
+	getHiddenReason,
+	extractSideFromDmc,
+	type ScanMode
+} from '@/utils/partGroupVisibility';
 
 export type ScrapMode = 'rebuild' | 'scrap' | 'qntScrap';
 type MatchData = Prisma.LabelGroupGetPayload<{
@@ -200,21 +205,32 @@ export class ScrapManager {
 			?.scrapCodes.find((scrapCode) => scrapCode.isOtherComponent);
 	}
 
-	/** Rows the operator works with: scrap mode leaves out part groups hidden in scrap, other modes keep all. */
-	visibleRows = $derived(
-		this.mode === 'scrap'
-			? this.scrapPayload.filter(
-					(row) => !this.scanData?.groups.find((g) => g.id === row.groupId)?.hiddenInScrap
-				)
-			: this.scrapPayload
-	);
+	/** Rows the operator works with: part groups hidden by any visibility rule for this mode and DMC are left out. */
+	visibleRows = $derived.by(() => {
+		const mode = this.mode;
+		if (mode === null) return this.scrapPayload;
+		const ruleMode: ScanMode = mode === 'qntScrap' ? 'quantity' : mode;
+		return this.scrapPayload.filter((row) => {
+			const group = this.scanData?.groups.find((g) => g.id === row.groupId);
+			return !group || !getHiddenReason(group, { mode: ruleMode, dmc: this.barcode });
+		});
+	});
+
+	/** Message shown instead of the rebuild list when every part group is hidden; null otherwise. */
+	emptyRebuildMessage = $derived.by(() => {
+		if (this.mode !== 'rebuild' || this.visibleRows.length > 0) return null;
+		const side = extractSideFromDmc(this.barcode);
+		return side
+			? `Pre stranu ${side} nie sú v rebuilde žiadne part groups.`
+			: 'V rebuilde nie sú žiadne part groups.';
+	});
 
 	// Rows that can be the cause of other component rows.
 	// Rebuild: the main reason group (its missing code is reported, not hidden).
 	// Scrap: every group with a selected reason that has an Other component scrap code.
 	private causeRows = $derived.by(() => {
 		if (this.mode === 'rebuild') {
-			const mainReasonRow = this.scrapPayload.find(
+			const mainReasonRow = this.visibleRows.find(
 				(row) => row.isRebuildGroup && Boolean(row.selectedScrapCode)
 			);
 			return mainReasonRow ? [mainReasonRow] : [];
@@ -249,7 +265,7 @@ export class ScrapManager {
 	// Sync after every change of reasons: rebuild auto-marking, then drop rows whose cause is gone.
 	private syncOtherComponents() {
 		this.syncRebuildBigComponents();
-		for (const row of this.scrapPayload) {
+		for (const row of this.visibleRows) {
 			if (!row.isOtherComponent) continue;
 			const candidates = this.causeCandidates(row.groupId);
 			// A row still waiting for the operator's choice keeps waiting while candidates exist.
@@ -265,17 +281,17 @@ export class ScrapManager {
 	}
 
 	private syncRebuildBigComponents() {
-		if (this.mode !== 'rebuild' || !this.scrapPayload) return;
+		if (this.mode !== 'rebuild') return;
 
 		// Only one rebuild group may carry a reason or another variant.
-		const activeBigGroup = this.scrapPayload.find(
+		const activeBigGroup = this.visibleRows.find(
 			(g) => g.isRebuildGroup && (Boolean(g.selectedScrapCode) || g.isOtherVariant)
 		);
 
 		if (activeBigGroup) {
 			activeBigGroup.isOtherComponent = false;
 			activeBigGroup.otherComponentCauseGroupId = null;
-			for (const row of this.scrapPayload) {
+			for (const row of this.visibleRows) {
 				if (row.isRebuildGroup && row.groupId !== activeBigGroup.groupId) {
 					row.selectedScrapCode = '';
 					row.selectedScrapDescription = '';
@@ -288,7 +304,7 @@ export class ScrapManager {
 		// Another variant is not a main reason, so it causes nothing.
 		const causeGroupId = activeBigGroup?.selectedScrapCode ? activeBigGroup.groupId : null;
 		if (causeGroupId !== null && causeGroupId !== this.rebuildCauseGroupId) {
-			for (const row of this.scrapPayload) {
+			for (const row of this.visibleRows) {
 				if (row.isRebuildGroup && row.groupId !== causeGroupId) {
 					row.isOtherComponent = true;
 					row.otherComponentCauseGroupId = causeGroupId;
@@ -313,7 +329,7 @@ export class ScrapManager {
 	}
 	hasIncompleteQntRow = $derived(
 		this.mode === 'qntScrap' &&
-			this.scrapPayload.some((row) => this.isQntRowStarted(row) && !this.isQntRowComplete(row))
+			this.visibleRows.some((row) => this.isQntRowStarted(row) && !this.isQntRowComplete(row))
 	);
 
 	// Future payload only selected scraps
@@ -337,11 +353,11 @@ export class ScrapManager {
 
 	// Is any selected?
 	hasAnySelection = $derived(
-		this.scrapPayload?.some((s) => Boolean(s.selectedScrapCode) || s.isOtherVariant)
+		this.visibleRows.some((s) => Boolean(s.selectedScrapCode) || s.isOtherVariant)
 	);
 	// Is selected other variant ?
 	isMissingOtherVariantPN = $derived(
-		this.scrapPayload?.some(
+		this.visibleRows.some(
 			(o) =>
 				o.isOtherVariant &&
 				(!o.replacementPartMaterial ||
@@ -351,12 +367,12 @@ export class ScrapManager {
 	);
 	// Every other component row needs a valid cause (rebuild: the main reason group; scrap: the chosen one).
 	isMissingOtherComponentCause = $derived(
-		this.scrapPayload.some((row) => row.isOtherComponent && !this.hasValidCause(row))
+		this.visibleRows.some((row) => row.isOtherComponent && !this.hasValidCause(row))
 	);
 	// Causes without an Other component scrap code would make dependent rows save without a code.
 	causeGroupIdsWithoutCode = $derived.by(() => {
 		const ids = new Set<number>();
-		for (const row of this.scrapPayload) {
+		for (const row of this.visibleRows) {
 			const causeId = row.otherComponentCauseGroupId;
 			if (row.isOtherComponent && causeId !== null && !this.otherComponentCodeOf(causeId)) {
 				ids.add(causeId);
