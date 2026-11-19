@@ -233,3 +233,28 @@ export const saveQuantityScrapSchema = z.object({
 		})
 });
 export type SaveScrapInput = z.infer<typeof saveScrapSchema>;
+
+/** Upper bound of a SQL Server `Int` column (e.g. `Operator.cardId`). */
+const SQL_INT_MAX = 2_147_483_647;
+
+export const updateOperatorSchema = z.object({
+	id: z.coerce.number().int().positive(),
+	fullName: z
+		.string()
+		.trim()
+		.min(5, 'Name must have at least 5 characters.')
+		.max(255, 'Name can have at most 255 characters.'),
+	cardId: z
+		.string()
+		.trim()
+		.regex(/^\d+$/, 'Card ID may contain digits only.')
+		.transform(Number)
+		.pipe(
+			z
+				.number()
+				.int()
+				.positive('Card ID must be a positive number.')
+				.max(SQL_INT_MAX, `Card ID can be at most ${SQL_INT_MAX}.`)
+		)
+});
+export type UpdateOperatorInput = z.infer<typeof updateOperatorSchema>;

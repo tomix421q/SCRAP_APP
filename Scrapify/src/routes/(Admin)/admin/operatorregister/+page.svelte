@@ -15,6 +15,7 @@
 	import { dateTimmeUTCformatter } from '@/utils/index';
 	import CardFooter from '@/components/ui/card/card-footer.svelte';
 	import DeleteBtn from '@/components/molecules/DeleteBtn.svelte';
+	import EditOperatorDialog from './_components/EditOperatorDialog.svelte';
 
 	type FormDataType = {
 		fullName: string;
@@ -104,7 +105,7 @@
 			<div
 				class="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6 justify-center items-center"
 			>
-				{#each operatorList as operator}
+				{#each operatorList as operator (operator.id)}
 					<Card class="cardNormalize bg-secondary/30 w-full! sm:w-xs mx-auto">
 						<CardHeader>
 							<CardTitle
@@ -126,7 +127,8 @@
 								<span class="text-muted">{dateTimmeUTCformatter(operator.createdAt)}</span>
 							</article>
 						</CardContent>
-						<CardFooter class="flex justify-end -mt-15">
+						<CardFooter class="flex justify-end items-center gap-1 -mt-15">
+							<EditOperatorDialog {operator} />
 							<DeleteBtn id={operator.id} actionRoute={'?/deleteOperator'} />
 						</CardFooter>
 					</Card>

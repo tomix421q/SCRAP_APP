@@ -4,7 +4,8 @@ import type { ResultInfoData } from '@/components/molecules/ResultInfo.svelte';
 import prismaClient from '@/server/prisma';
 import { requireRole, writeToLogger } from '@/utils/serverHelp';
 import { OPERATOR_MANAGE_ROLES } from '@/utils/adminAccess';
-import { describeError } from '@/utils/describeError';
+import { describeError, errorCode } from '@/utils/describeError';
+import { updateOperatorSchema } from '@/utils/zod';
 
 export const load = (async (event) => {
 	const page = Number(event.url.searchParams.get('page') ?? '1');
@@ -77,6 +78,59 @@ export const actions: Actions = {
 				message: `Something is wrong :( Please try again later.`,
 				error: describeError(err)
 			};
+		}
+	},
+	updateOperator: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
+		const access = await requireRole(event, OPERATOR_MANAGE_ROLES);
+		if (!access.ok) return access.failure;
+
+		const formData = await event.request.formData();
+		const parsed = updateOperatorSchema.safeParse(Object.fromEntries(formData));
+		if (!parsed.success) {
+			return fail(400, {
+				success: false,
+				message: 'Validation error',
+				error: parsed.error.flatten((issue) => issue.message).fieldErrors
+			});
+		}
+		const { id, fullName, cardId } = parsed.data;
+
+		try {
+			const updated = await prismaClient.operator.update({
+				where: { id },
+				data: { fullName, cardId }
+			});
+			await writeToLogger({
+				request: event.request,
+				action: 'EDIT',
+				entityType: 'Operator',
+				entityId: updated.id
+			});
+			return {
+				success: true,
+				message: `Operator ${updated.fullName} with card id ${updated.cardId} was updated.`
+			};
+		} catch (err: unknown) {
+			const code = errorCode(err);
+			if (code === 'P2002') {
+				return fail(409, {
+					success: false,
+					message: `Card ID ${cardId} is already used by another operator.`
+				});
+			}
+			// `update` throws P2025 when no operator has this id.
+			if (code === 'P2025') {
+				return fail(404, {
+					success: false,
+					message: 'Operator not found',
+					error: `Operator id ${id} not found in db.`
+				});
+			}
+			return fail(500, {
+				success: false,
+				message: 'Something is wrong, Please try again later.',
+				error: describeError(err)
+			});
 		}
 	},
 	deleteOperator: async (event): Promise<ResultInfoData | ActionFailure<ResultInfoData>> => {
