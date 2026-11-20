@@ -85,6 +85,7 @@ export const QAD_COMPONENTS_TYPES: QadComponentsType[] = [
 	{ project: '540', itemType: 'V', description: 'SCREW COV REL HAND' },
 	{ project: '540', itemType: 'W', description: 'WIRE HARNESS' },
 	{ project: '540', itemType: 'Z', description: 'TWEETER BRACKET' },
+	{ project: '540', itemType: 'X', description: 'MAPPOCKET PLASTIC PRT' },
 	// 214
 	{ project: '214', itemType: '!', description: 'MAP POCKET (REINF.)' },
 	{ project: '214', itemType: '?', description: 'RELEASE HANDLE (ADJ. Z-D)' },
